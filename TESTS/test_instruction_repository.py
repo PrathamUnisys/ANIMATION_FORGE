@@ -1,3 +1,5 @@
+import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,6 +9,7 @@ from scripts.validate_instruction_repository import (
     _resolve_dependency,
     _resolve_markdown_link,
     _validate_status_contracts,
+    _validate_reference_catalogues,
     expected_operations,
     parse_frontmatter,
     registry_operations,
@@ -96,6 +99,34 @@ class ContractTests(unittest.TestCase):
         findings, summary = validate(ROOT)
         self.assertGreater(summary["governed_markdown_files"], 0)
         self.assertEqual(findings, [])
+
+
+    def test_genre_style_tool_and_asset_registries_validate(self):
+        self.assertEqual(_validate_reference_catalogues(ROOT), [])
+
+    def test_project_schema_keeps_genre_and_channel_style_separate(self):
+        schema = json.loads((ROOT / "SCHEMAS/PROJECT.schema.json").read_text(encoding="utf-8"))
+        properties = schema["properties"]
+        self.assertIn("primary_genre_id", properties)
+        self.assertIn("secondary_genre_ids", properties)
+        self.assertIn("channel_style_id", properties)
+        self.assertNotIn("channel_style_id", properties["genre"])
+
+    def test_screenplay_context_manifest_records_profile_versions(self):
+        schema = json.loads((ROOT / "SCHEMAS/SCREENPLAY_CONTEXT.schema.json").read_text(encoding="utf-8"))
+        required = set(schema["required"])
+        self.assertTrue({"primary_genre", "secondary_genres", "channel_style", "screenwriter_instruction"} <= required)
+        self.assertTrue({"version", "content_hash_sha256", "source_path"} <= set(schema["$defs"]["profileRef"]["required"]))
+
+
+    def test_library_relative_paths_reject_traversal_and_windows_paths(self):
+        schema = json.loads((ROOT / "SCHEMAS/LIBRARY_INDEX.schema.json").read_text(encoding="utf-8"))
+        pattern = schema["properties"]["assets"]["items"]["properties"]["relative_path"]["pattern"]
+        invalid_paths = ["../secret", "folder/../../secret", "C:/outside", "/absolute", r"folder\\..\\escape"]
+        for path in invalid_paths:
+            with self.subTest(path=path):
+                self.assertIsNone(re.search(pattern, path))
+        self.assertIsNotNone(re.search(pattern, "PROJECTS/PROJECT_001/CHARACTERS/hero.png"))
 
 
 if __name__ == "__main__":

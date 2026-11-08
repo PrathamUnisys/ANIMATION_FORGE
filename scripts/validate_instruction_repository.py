@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import jsonschema
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -50,10 +51,16 @@ def governed_markdown(root: Path) -> list[Path]:
     patterns = (
         "CORE/*.md",
         "MODES/*.md",
+        "GENRES/**/*.md",
+        "STYLES/**/*.md",
+        "TOOLS/**/*.md",
+        "LIBRARY/**/*.md",
         "AGENTS/*/INSTRUCTION.md",
         "DEPARTMENTS/*/DEPARTMENT_RULES.md",
         "ORCHESTRATION/PRODUCTION_DIRECTOR/INSTRUCTION.md",
         "PROVIDERS/**/*.md",
+        "DOCS/CHANGE_REQUESTS/*.md",
+        "DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md",
         "DOCS/CAPABILITY_REGISTRY.md",
         "DOCS/AGENT_GUIDE.md",
         "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md",
@@ -198,6 +205,185 @@ def _validate_status_contracts(root: Path) -> list[str]:
     return [message for message, passed in checks.items() if not passed]
 
 
+def _validate_reference_catalogues(root: Path) -> list[str]:
+    """Validate modular creative profiles, tool task mappings, and asset index contracts."""
+    errors: list[str] = []
+
+    def load_json(relative_path: str) -> Any:
+        path = root / relative_path
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{relative_path}: could not load valid JSON: {exc}")
+            return None
+
+    def validate_document(data: Any, schema_path: str, label: str) -> None:
+        schema = load_json(schema_path)
+        if data is None or schema is None:
+            return
+        try:
+            validator = jsonschema.Draft202012Validator(schema)
+            for error in validator.iter_errors(data):
+                errors.append(f"{label}: {error.message} at {'/'.join(str(part) for part in error.absolute_path)}")
+        except Exception as exc:
+            errors.append(f"{schema_path}: schema validation failed: {exc}")
+
+    genres = load_json("GENRES/REGISTRY.json")
+    validate_document(genres, "SCHEMAS/GENRE_REGISTRY.schema.json", "GENRES/REGISTRY.json")
+    if isinstance(genres, dict):
+        seen_genres: set[str] = set()
+        for profile in genres.get("profiles", []):
+            profile_id = profile.get("genre_id")
+            if profile_id in seen_genres:
+                errors.append(f"GENRES/REGISTRY.json: duplicate genre ID {profile_id}")
+            seen_genres.add(profile_id)
+            source_path = root / profile.get("instruction_path", "")
+            if not source_path.is_file():
+                errors.append(f"GENRES/REGISTRY.json: missing profile file for {profile_id}")
+                continue
+            metadata, _, parse_error = parse_frontmatter(source_path)
+            if parse_error or not metadata:
+                errors.append(f"GENRES/REGISTRY.json: invalid front matter for {profile_id}: {parse_error}")
+            elif metadata.get("prompt_id") != profile_id or metadata.get("version") != profile.get("version"):
+                errors.append(f"GENRES/REGISTRY.json: ID/version mismatch for {profile_id}")
+
+    channels = load_json("STYLES/CHANNELS.json")
+    validate_document(channels, "SCHEMAS/CHANNEL_STYLE_REGISTRY.schema.json", "STYLES/CHANNELS.json")
+    if isinstance(channels, dict):
+        seen_channels: set[str] = set()
+        for profile in channels.get("channels", []):
+            profile_id = profile.get("channel_style_id")
+            if profile_id in seen_channels:
+                errors.append(f"STYLES/CHANNELS.json: duplicate channel style ID {profile_id}")
+            seen_channels.add(profile_id)
+            guide_path = root / profile.get("guide_path", "")
+            if not guide_path.is_file():
+                errors.append(f"STYLES/CHANNELS.json: missing style guide for {profile_id}")
+                continue
+            metadata, _, parse_error = parse_frontmatter(guide_path)
+            if parse_error or not metadata:
+                errors.append(f"STYLES/CHANNELS.json: invalid front matter for {profile_id}: {parse_error}")
+            elif metadata.get("prompt_id") != profile_id or metadata.get("version") != profile.get("version"):
+                errors.append(f"STYLES/CHANNELS.json: ID/version mismatch for {profile_id}")
+
+    catalogue = load_json("TOOLS/CATALOG.json")
+    validate_document(catalogue, "SCHEMAS/TOOL_CATALOG.schema.json", "TOOLS/CATALOG.json")
+    tool_profile_schema = load_json("SCHEMAS/TOOL_PROFILE.schema.json")
+    if isinstance(catalogue, dict):
+        tools = {item.get("tool_id"): item for item in catalogue.get("tools", [])}
+        groups = {item.get("task_id"): item for item in catalogue.get("task_groups", [])}
+        if len(tools) != len(catalogue.get("tools", [])):
+            errors.append("TOOLS/CATALOG.json: duplicate tool IDs")
+        if len(groups) != len(catalogue.get("task_groups", [])):
+            errors.append("TOOLS/CATALOG.json: duplicate task IDs")
+        for tool_id, tool in tools.items():
+            if tool_profile_schema is not None:
+                try:
+                    for schema_error in jsonschema.Draft202012Validator(tool_profile_schema).iter_errors(tool):
+                        errors.append(f"TOOLS/CATALOG.json: invalid profile {tool_id}: {schema_error.message}")
+                except jsonschema.SchemaError as exc:
+                    errors.append(f"SCHEMAS/TOOL_PROFILE.schema.json: invalid schema: {exc}")
+            manual = root / tool.get("manual_path", "")
+            if not manual.is_file():
+                errors.append(f"TOOLS/CATALOG.json: missing manual for {tool_id}")
+            else:
+                manual_metadata, _, manual_error = parse_frontmatter(manual)
+                if manual_error or not manual_metadata:
+                    errors.append(f"TOOLS/CATALOG.json: invalid manual front matter for {tool_id}: {manual_error}")
+                elif manual_metadata.get("prompt_id") != f"TOOL_{tool_id}":
+                    errors.append(f"TOOLS/CATALOG.json: manual prompt ID mismatch for {tool_id}")
+            for task_id in tool.get("tasks", []):
+                if task_id not in groups:
+                    errors.append(f"TOOLS/CATALOG.json: {tool_id} references unknown task {task_id}")
+                elif tool_id not in groups[task_id].get("candidate_tool_ids", []):
+                    errors.append(f"TOOLS/CATALOG.json: task {task_id} omits candidate {tool_id}")
+            if tool.get("availability_status") in {"INSTALLED", "CONNECTED"} and not tool.get("evidence"):
+                errors.append(f"TOOLS/CATALOG.json: {tool_id} claims availability without verification evidence")
+            if tool.get("integration_status") == "END_TO_END_VERIFIED" and not tool.get("evidence"):
+                errors.append(f"TOOLS/CATALOG.json: {tool_id} claims end-to-end verification without evidence")
+        for task_id, group in groups.items():
+            for tool_id in group.get("candidate_tool_ids", []):
+                if tool_id not in tools:
+                    errors.append(f"TOOLS/CATALOG.json: task {task_id} references unknown tool {tool_id}")
+                elif task_id not in tools[tool_id].get("tasks", []):
+                    errors.append(f"TOOLS/CATALOG.json: {tool_id} does not list task {task_id}")
+
+        provider_manager_path = root / "backend/providers/manager.py"
+        provider_source = provider_manager_path.read_text(encoding="utf-8") if provider_manager_path.is_file() else ""
+        registered_provider_ids = set(re.findall(r'"([A-Z][A-Z0-9_]+)":\s*\{\s*"provider_id":\s*"\1"', provider_source))
+        providers = {item.get("provider_id"): item for item in catalogue.get("providers", [])}
+        if len(providers) != len(catalogue.get("providers", [])):
+            errors.append("TOOLS/CATALOG.json: duplicate provider IDs")
+        for provider_id, provider in providers.items():
+            if provider_id not in registered_provider_ids:
+                errors.append(f"TOOLS/CATALOG.json: provider {provider_id} is not registered in ProviderManager")
+            for profile_path in provider.get("profile_paths", []):
+                profile_file = root / profile_path
+                if not profile_file.is_file():
+                    errors.append(f"TOOLS/CATALOG.json: missing provider profile {profile_path}")
+                else:
+                    profile_metadata, _, profile_error = parse_frontmatter(profile_file)
+                    if profile_error or not profile_metadata:
+                        errors.append(f"TOOLS/CATALOG.json: invalid provider profile {profile_path}: {profile_error}")
+            for task_id in provider.get("tasks", []):
+                if task_id not in groups:
+                    errors.append(f"TOOLS/CATALOG.json: provider {provider_id} references unknown task {task_id}")
+                elif provider_id not in groups[task_id].get("candidate_provider_ids", []):
+                    errors.append(f"TOOLS/CATALOG.json: task {task_id} omits provider {provider_id}")
+        for task_id, group in groups.items():
+            for provider_id in group.get("candidate_provider_ids", []):
+                if provider_id not in providers:
+                    errors.append(f"TOOLS/CATALOG.json: task {task_id} references unknown provider {provider_id}")
+                elif task_id not in providers[provider_id].get("tasks", []):
+                    errors.append(f"TOOLS/CATALOG.json: provider {provider_id} does not list task {task_id}")
+
+    storage_roots = load_json("LIBRARY/STORAGE_ROOTS.example.json")
+    validate_document(storage_roots, "SCHEMAS/STORAGE_ROOTS.schema.json", "LIBRARY/STORAGE_ROOTS.example.json")
+    if isinstance(storage_roots, dict):
+        root_items = storage_roots.get("storage_roots", [])
+        root_ids = [item.get("root_id") for item in root_items]
+        if len(root_ids) != len(set(root_ids)):
+            errors.append("LIBRARY/STORAGE_ROOTS.example.json: duplicate storage root IDs")
+        for item in root_items:
+            if item.get("status") == "CONFIGURED" and not item.get("uri"):
+                errors.append(f"LIBRARY/STORAGE_ROOTS.example.json: configured root {item.get('root_id')} has no URI")
+
+    asset_index = load_json("LIBRARY/ASSET_INDEX.json")
+    validate_document(asset_index, "SCHEMAS/LIBRARY_INDEX.schema.json", "LIBRARY/ASSET_INDEX.json")
+    taxonomy = load_json("LIBRARY/TAG_TAXONOMY.json")
+    if isinstance(asset_index, dict):
+        asset_ids = [asset.get("asset_id") for asset in asset_index.get("assets", [])]
+        if len(asset_ids) != len(set(asset_ids)):
+            errors.append("LIBRARY/ASSET_INDEX.json: duplicate asset IDs")
+        storage_ids = {root_item.get("root_id") for root_item in (storage_roots or {}).get("storage_roots", [])}
+        dimensions = (taxonomy or {}).get("dimensions", {})
+        reference_dimensions = (taxonomy or {}).get("reference_dimensions", {})
+        for asset in asset_index.get("assets", []):
+            group = asset.get("group")
+            if group == "PROJECT_ASSET" and not asset.get("project_id"):
+                errors.append(f"LIBRARY/ASSET_INDEX.json: project asset {asset.get('asset_id')} has no project ID")
+            elif group == "SERIES_ASSET" and not asset.get("series_id"):
+                errors.append(f"LIBRARY/ASSET_INDEX.json: series asset {asset.get('asset_id')} has no series ID")
+            elif group == "CHANNEL_BRAND" and not asset.get("channel_style_id"):
+                errors.append(f"LIBRARY/ASSET_INDEX.json: channel asset {asset.get('asset_id')} has no channel style ID")
+            if asset.get("storage_root_id") not in storage_ids:
+                errors.append(f"LIBRARY/ASSET_INDEX.json: unknown storage root {asset.get('storage_root_id')} for {asset.get('asset_id')}")
+            for tag in asset.get("tags", []):
+                if tag.startswith("custom:") and len(tag) > len("custom:"):
+                    continue
+                dimension, separator, value = tag.partition(":")
+                if not separator or not value:
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: malformed tag {tag!r}")
+                elif dimension in dimensions and value not in dimensions[dimension]:
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: unknown {dimension} tag value {value!r}")
+                elif dimension in reference_dimensions and not re.fullmatch(reference_dimensions[dimension].get("id_pattern", r"(?!)"), value):
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: invalid {dimension} reference tag value {value!r}")
+                elif dimension not in dimensions and dimension not in reference_dimensions:
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: unknown tag dimension {dimension!r}")
+
+    return errors
+
+
 def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
     root = root.resolve()
     files = governed_markdown(root)
@@ -301,11 +487,15 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
         for operation in sorted(referenced - documented_operations):
             findings.append(Finding("undefined-operation", relative(path, root), f"operation is not in the capability registry: {operation}"))
 
-    # Rule 5: keep schema status vocabularies aligned where schemas define a mapping.
+    # Rule 5: validate versioned genre/style registries, tool mappings and asset metadata.
+    for message in _validate_reference_catalogues(root):
+        findings.append(Finding("reference-catalogues", "GENRES/STYLES/TOOLS/LIBRARY", message))
+
+    # Rule 6: keep schema status vocabularies aligned where schemas define a mapping.
     for message in _validate_status_contracts(root):
         findings.append(Finding("status-vocabulary", "SCHEMAS/", message))
 
-    # Rule 6: each specialized agent must have distinct operational and approval boundaries.
+    # Rule 7: each specialized agent must have distinct operational and approval boundaries.
     agent_files = sorted((root / "AGENTS").glob("*/INSTRUCTION.md"))
     agent_files.append(root / "ORCHESTRATION/PRODUCTION_DIRECTOR/INSTRUCTION.md")
     forbidden_allowed = ("auto_approve", "human_approve", "bypass_human_approval", "apply_unapproved_change")
@@ -342,7 +532,7 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
             if not any(any(alias in title for alias in aliases) for title in sections):
                 findings.append(Finding("agent-completeness", rel, f"missing section: {required}"))
 
-    # Rule 7: operating modes and departments must cover their required workflow concerns.
+    # Rule 8: operating modes and departments must cover their required workflow concerns.
     mode_markers = (
         "purpose",
         "scope",
@@ -380,7 +570,7 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
         if missing:
             findings.append(Finding("department-completeness", relative(path, root), f"missing concepts: {', '.join(missing)}"))
 
-    # Rule 8: make sure the audit inventory points to every governed document.
+    # Rule 9: make sure the audit inventory points to every governed document.
     audit_path = root / "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md"
     if audit_path.exists():
         audit_text = audit_path.read_text(encoding="utf-8").replace("\\", "/")
@@ -395,7 +585,7 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
         "governed_markdown_files": len(files),
         "unique_prompt_ids": len(ids),
         "capability_operations": len(actual_operations),
-        "validation_rules": 8,
+        "validation_rules": 9,
         "findings": len(findings),
     }
     return findings, summary

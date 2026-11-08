@@ -1,0 +1,34 @@
+{
+  "config_version": "1.0.0",
+  "note": "Template only. Copy to local, ignored configuration and replace uri values with verified locations. Do not commit machine-specific paths.",
+  "storage_roots": [
+    {
+      "root_id": "PROJECTS_ROOT",
+      "display_name": "Project working files",
+      "uri": null,
+      "storage_type": "LOCAL_FILESYSTEM",
+      "status": "UNCONFIGURED"
+    },
+    {
+      "root_id": "SHARED_LIBRARY_ROOT",
+      "display_name": "Reusable shared assets",
+      "uri": null,
+      "storage_type": "LOCAL_FILESYSTEM",
+      "status": "UNCONFIGURED"
+    },
+    {
+      "root_id": "CHANNEL_BRAND_ROOT",
+      "display_name": "Channel brand assets",
+      "uri": null,
+      "storage_type": "LOCAL_FILESYSTEM",
+      "status": "UNCONFIGURED"
+    },
+    {
+      "root_id": "RENDER_OUTPUT_ROOT",
+      "display_name": "Rendered output",
+      "uri": null,
+      "storage_type": "LOCAL_FILESYSTEM",
+      "status": "UNCONFIGURED"
+    }
+  ]
+}

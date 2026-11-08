@@ -1,6 +1,6 @@
 ---
 prompt_id: DOCS_INSTRUCTION_REPOSITORY_AUDIT
-version: 1.0.0
+version: 1.1.0
 modified_date: 2026-11-09
 description: Evidence-based inventory, consistency findings, and validation results for the instruction repository
 dependencies: ["CORE_SYSTEM_CONSTITUTION", "DOCS_CAPABILITY_REGISTRY"]
@@ -8,6 +8,9 @@ change_history:
   - version: 1.0.0
     date: 2026-11-09
     summary: Inventory implementation and instruction surfaces under approved CR_001
+  - version: 1.1.0
+    date: 2026-11-09
+    summary: Extend the governed instruction inventory for CR_003 genre, channel-style, tool and library architecture
 ---
 # Instruction Repository Audit
 
@@ -370,3 +373,40 @@ Every path below is included in validator coverage:
 - `PROVIDERS/TTS/ELEVENLABS_PROFILE.md`
 - `PROVIDERS/TTS/LOCAL_KOKORO_XTTS_PROFILE.md`
 - `PROVIDERS/VIDEO/COMFYUI_WAN_LTX_PROFILE.md`
+
+ 
+## CR_003 governed instruction inventory
+
+The following files extend the governed corpus. The genre and channel registries are intentionally separate. The style registry is empty until a real channel identity has been defined.
+
+### Change and screenplay context
+- `DOCS/CHANGE_REQUESTS/CR_003_GENRE_STYLE_TOOL_LIBRARY.md`
+- `DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md`
+
+### Genre profiles
+- `GENRES/README.md`
+- `GENRES/TEMPLATES/GENRE_INSTRUCTION_TEMPLATE.md`
+- `GENRES/FANTASY/INSTRUCTION.md`
+- `GENRES/COMEDY/INSTRUCTION.md`
+
+### Channel style profiles
+- `STYLES/README.md`
+- `STYLES/TEMPLATES/CHANNEL_STYLE_GUIDE_TEMPLATE.md`
+
+### Tool manuals
+- `TOOLS/README.md`
+- `TOOLS/TEMPLATES/TOOL_MANUAL_TEMPLATE.md`
+- `TOOLS/BLENDER/TOOL.md`
+- `TOOLS/UNREAL_ENGINE/TOOL.md`
+- `TOOLS/COMFYUI/TOOL.md`
+
+### Asset library
+- `LIBRARY/README.md`
+
+### CR_003 validation scope
+
+- The instruction validator includes the new Markdown folders and the screenplay context contract.
+- JSON Schema contracts cover genre registry, channel-style registry, tool profile/catalogue, asset index, storage-root configuration and screenplay context manifest.
+- Registry validation checks file references, genre/style profile IDs and versions, tool manual IDs, task-to-tool and task-to-provider mappings, ProviderManager registration, duplicate IDs, asset storage-root references, tag vocabulary and evidence requirements for claimed tool availability.
+- Tool availability remains `NOT_VERIFIED` until a real local check is recorded. Integration maturity is separately marked `SIMULATION_ONLY` for the current Blender, Unreal and ComfyUI adapters.
+- The new genre and style project fields are optional in the project schema for backward compatibility. Database migrations, UI selectors, runtime context assembly and local storage-root configuration have not been implemented by CR_003.

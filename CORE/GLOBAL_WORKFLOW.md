@@ -1,6 +1,6 @@
 ---
 prompt_id: CORE_GLOBAL_WORKFLOW
-version: 1.1.0
+version: 1.2.0
 modified_date: 2026-11-09
 description: Policy sequence for the 17-stage production journey and its human gates
 dependencies: ["CORE_SYSTEM_CONSTITUTION", "CORE_HUMAN_APPROVAL_POLICY"]
@@ -11,6 +11,9 @@ change_history:
   - version: 1.1.0
     date: 2026-11-09
     summary: Separate workflow policy from verified application stage enforcement
+  - version: 1.2.0
+    date: 2026-11-09
+    summary: Add independent genre, channel-style, tagged tool and asset-library context to production planning
 ---
 # GLOBAL PRODUCTION WORKFLOW
 
@@ -24,12 +27,9 @@ The inventory and `DOCS/INSTRUCTION_REPOSITORY_AUDIT.md` record gaps.
 
 ## Stage sequence
 
-1. `USER_STORY_IDEA` - capture the user's premise and constraints.
-2. `STORY_ANALYSIS` - analyze dramatic engine, audience, tone, feasibility,
-   and open creative decisions.
-3. `SCRIPT_DEVELOPMENT` - develop and revise a screenplay through the
-   implemented screenplay workflow. Any stated pass count is a requirement
-   only where the current workflow implements it.
+1. `USER_STORY_IDEA` - capture the user's premise and constraints. Select one primary genre, optional secondary genres, and an optional channel style as separate project references. Do not infer these values from the title.
+2. `STORY_ANALYSIS` - load the selected versioned genre profiles and channel guide; analyze dramatic engine, audience, tone, feasibility, and open creative decisions. Genre governs narrative conventions; channel style governs channel presentation and format.
+3. `SCRIPT_DEVELOPMENT` - assemble a screenplay context using the selected profile IDs, exact versions and content hashes; develop and revise a screenplay through the implemented screenplay workflow. Any stated pass count is a requirement only where the current workflow implements it.
 4. `SCREENPLAY_APPROVAL` - submit the screenplay draft for authenticated human
    creative approval. Do not start downstream work that requires an approved
    screenplay until approval exists.
@@ -45,8 +45,7 @@ The inventory and `DOCS/INSTRUCTION_REPOSITORY_AUDIT.md` record gaps.
 9. `HUMAN_TOOLCHAIN_APPROVAL` - present a documented recommendation for human
    selection. Record approval before treating a toolchain as locked. Generate
    an approved manifest only if the implementation supports it.
-10. `PRODUCTION_PLANNING` - sequence work with prerequisites, owners, estimates,
-    and review points.
+10. `PRODUCTION_PLANNING` - sequence work with prerequisites, owners, estimates, and review points. Find candidate tools by task group and tags in `TOOLS/CATALOG.json`; verify availability and integration status separately. Find reusable media through `LIBRARY/ASSET_INDEX.json`, checking revision, scope, approval and licence.
 11. `AUDIO_AND_VISUAL_PRODUCTION` - create draft character, environment, voice,
     and other required assets; preserve provenance and separate technical QC
     from creative review.

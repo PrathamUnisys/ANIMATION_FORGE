@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeScreenplayContextManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project_id", "context_version", "primary_genre", "secondary_genres", "channel_style", "screenwriter_instruction", "project_sources", "assembled_at", "context_hash_sha256"],
+  "properties": {
+    "project_id": {"type": "string", "pattern": "^PROJECT_[A-Z0-9_]+$"},
+    "context_version": {"type": "string"},
+    "primary_genre": {"$ref": "#/$defs/profileRef"},
+    "secondary_genres": {"type": "array", "items": {"$ref": "#/$defs/profileRef"}},
+    "channel_style": {"anyOf": [{"$ref": "#/$defs/profileRef"}, {"type": "null"}]},
+    "screenwriter_instruction": {"$ref": "#/$defs/profileRef"},
+    "project_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_type", "source_id", "revision_or_hash"],
+        "properties": {
+          "source_type": {"enum": ["PROJECT_BRIEF", "STORY_BIBLE", "APPROVED_DECISION", "PREVIOUS_SCRIPT"]},
+          "source_id": {"type": "string"},
+          "revision_or_hash": {"type": "string"}
+        }
+      }
+    },
+    "provider": {"type": ["object", "null"], "properties": {"provider_id": {"type": "string"}, "model_id": {"type": "string"}, "request_id": {"type": ["string", "null"]}}},
+    "assembled_at": {"type": "string"},
+    "context_hash_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+  },
+  "$defs": {
+    "profileRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "version", "content_hash_sha256", "source_path"],
+      "properties": {
+        "profile_id": {"type": "string"},
+        "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "content_hash_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "source_path": {"type": "string"}
+      }
+    }
+  }
+}

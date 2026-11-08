@@ -1,0 +1,82 @@
+{
+  "taxonomy_version": "1.0.0",
+  "dimensions": {
+    "status": [
+      "draft",
+      "awaiting_review",
+      "approved",
+      "rejected",
+      "archived"
+    ],
+    "licence": [
+      "commercial_ok",
+      "non_commercial_only",
+      "attribution_required",
+      "review_required",
+      "unknown"
+    ],
+    "style": [
+      "fantasy",
+      "dark_fantasy",
+      "stylized",
+      "photoreal",
+      "anime_inspired",
+      "low_poly",
+      "cinematic"
+    ],
+    "mood": [
+      "ominous",
+      "whimsical",
+      "heroic",
+      "melancholic",
+      "comic",
+      "mysterious",
+      "calm"
+    ],
+    "palette": [
+      "warm",
+      "cool",
+      "monochrome",
+      "amber",
+      "teal",
+      "high_contrast"
+    ],
+    "type": [
+      "character",
+      "environment",
+      "prop",
+      "texture",
+      "model",
+      "rig",
+      "animation",
+      "storyboard",
+      "image",
+      "audio",
+      "video",
+      "subtitle",
+      "project_file",
+      "document"
+    ],
+    "use": [
+      "thumbnail",
+      "background",
+      "turnaround",
+      "voice",
+      "reference",
+      "episode_render",
+      "social_cutdown"
+    ]
+  },
+  "custom_tag_namespace": "custom:",
+  "reference_dimensions": {
+    "project": {
+      "id_pattern": "^PROJECT_[A-Z0-9_]+$"
+    },
+    "series": {
+      "id_pattern": "^SERIES_[A-Z0-9_]+$"
+    },
+    "channel": {
+      "id_pattern": "^STYLE_[A-Z0-9_]+$"
+    }
+  }
+}
