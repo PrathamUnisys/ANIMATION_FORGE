@@ -1,0 +1,42 @@
+{
+  "asset_id": "LOC_THRONE_ROOM_BG",
+  "revision": 1,
+  "workflow_json": {
+    "nodes": {
+      "1": {
+        "class_type": "KSampler",
+        "inputs": {
+          "seed": 88001,
+          "steps": 30,
+          "cfg": 4.0,
+          "ckpt_name": "flux1-dev-fp8.safetensors"
+        }
+      },
+      "2": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "filename_prefix": "LOC_THRONE_ROOM"
+        }
+      }
+    }
+  },
+  "model_ids": [
+    "flux1-dev-fp8.safetensors"
+  ],
+  "model_versions": [
+    "1.0-fp8"
+  ],
+  "prompt": "2.5D multi-plane environment background of Forgotten Citadel Throne Room, {\"architecture\": \"Mossy gothic arches\", \"lighting\": \"Amber morning god-rays\", \"layers\": [\"FG_Pillars\", \"MG_Throne_Dais\", \"BG_Vaulted_Ruins\"]}",
+  "negative_prompt": "characters in foreground, text, blurry",
+  "input_references": [],
+  "seed": 88001,
+  "node_versions": {
+    "KSampler": "1.0",
+    "IPAdapterAdvanced": "2.0"
+  },
+  "generated_at": "2026-11-08T20:14:58.882656Z",
+  "output_path": "PROJECTS/PROJECT_001/ENVIRONMENTS/LOC_THRONE_ROOM_bg_v01.png",
+  "file_sha256": "d7c9a0d5548f94a7a7bd59b4013c07c8787b5f59f203cd22f199400e1b0c7a9e",
+  "cost_usd": 0.0,
+  "approval_status": "AWAITING_HUMAN_REVIEW"
+}

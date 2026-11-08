@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AudioDeliverablePackage",
+  "type": "object",
+  "required": [
+    "audio_package_id",
+    "project_id",
+    "scene_id",
+    "lines",
+    "pronunciation_dictionary"
+  ],
+  "properties": {
+    "audio_package_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "scene_id": {
+      "type": "string"
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "line_id",
+          "character_id",
+          "spoken_text",
+          "emotion_direction",
+          "pause_before_ms",
+          "pause_after_ms",
+          "provider_tts_payload"
+        ],
+        "properties": {
+          "line_id": {
+            "type": "string"
+          },
+          "character_id": {
+            "type": "string"
+          },
+          "spoken_text": {
+            "type": "string"
+          },
+          "emotion_direction": {
+            "type": "string"
+          },
+          "comedy_timing_note": {
+            "type": "string"
+          },
+          "pause_before_ms": {
+            "type": "integer"
+          },
+          "pause_after_ms": {
+            "type": "integer"
+          },
+          "provider_tts_payload": {
+            "type": "object"
+          },
+          "audio_file_path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "pronunciation_dictionary": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "plugin_id": "PLG_OTIO_TIMELINE_EXPORTER",
+  "name": "OpenTimelineIO & DaVinci Resolve XML Exporter",
+  "version": "1.2.0",
+  "developer": "Animation Forge Open Pipeline Guild",
+  "description": "Exports approved scene assemblies to OpenTimelineIO (.otio) and Final Cut Pro XML (.fcpxml).",
+  "supported_app_versions": [
+    "1.0.0",
+    "1.1.0"
+  ],
+  "required_permissions": [
+    "READ_ONLY",
+    "DRAFT_CREATION"
+  ],
+  "dependencies": [
+    "python>=3.11"
+  ],
+  "supported_capabilities": [
+    "export_otio",
+    "export_fcpxml"
+  ],
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "project_id",
+      "scene_ids"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "timeline_path"
+    ]
+  },
+  "installation_method": "local_wheel_isolated",
+  "health_check_method": "verify_otio_serializer"
+}

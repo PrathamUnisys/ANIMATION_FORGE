@@ -1,0 +1,15 @@
+1
+00:00:00,100 --> 00:00:07,400
+SIR PIP: Behold, Gloop! Whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.
+
+2
+00:00:07,600 --> 00:00:15,000
+GLOOP: And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.
+
+3
+00:00:15,200 --> 00:00:29,800
+STONE GOLEM: CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?
+
+4
+00:00:30,000 --> 00:00:45,000
+KING GLOOP: Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!

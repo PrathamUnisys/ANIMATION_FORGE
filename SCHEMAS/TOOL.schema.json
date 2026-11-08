@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ToolCandidate",
+  "type": "object",
+  "required": [
+    "tool_id",
+    "name",
+    "category",
+    "state",
+    "source_url",
+    "scores"
+  ],
+  "properties": {
+    "tool_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "DISCOVERED",
+        "RESEARCHED",
+        "TESTED",
+        "RECOMMENDED",
+        "APPROVED",
+        "REJECTED",
+        "RETIRED"
+      ]
+    },
+    "source_url": {
+      "type": "string",
+      "pattern": "^https?://"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "official_docs",
+        "github_repo",
+        "pricing_page",
+        "community_report"
+      ]
+    },
+    "retrieved_at": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "commercial_use_allowed": {
+      "type": "boolean"
+    },
+    "estimated_cost_usd": {
+      "type": "number"
+    },
+    "scores": {
+      "type": "object",
+      "required": [
+        "quality",
+        "reliability",
+        "automation",
+        "cost",
+        "hardware",
+        "consistency",
+        "performance",
+        "compatibility",
+        "licensing",
+        "maintainability",
+        "reusability"
+      ],
+      "properties": {
+        "quality": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "reliability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "automation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "cost": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "hardware": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "consistency": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "performance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "compatibility": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "licensing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "maintainability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "reusability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        }
+      }
+    }
+  }
+}

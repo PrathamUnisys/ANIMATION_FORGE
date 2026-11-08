@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeAgentOperationEnvelope",
+  "type": "object",
+  "required": [
+    "operation_id",
+    "project_id",
+    "agent_id",
+    "status",
+    "outputs",
+    "warnings",
+    "validation",
+    "requires_human_approval"
+  ],
+  "properties": {
+    "operation_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "awaiting_review",
+        "completed_analysis",
+        "failed",
+        "blocked"
+      ]
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "asset_id",
+          "type",
+          "file_path",
+          "revision",
+          "approval_status"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "file_path": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "awaiting_human_review",
+              "approved",
+              "revision_requested",
+              "rejected"
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "schema_valid",
+        "technical_checks_passed"
+      ],
+      "properties": {
+        "schema_valid": {
+          "type": "boolean"
+        },
+        "technical_checks_passed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "requires_human_approval": {
+      "type": "boolean"
+    }
+  }
+}

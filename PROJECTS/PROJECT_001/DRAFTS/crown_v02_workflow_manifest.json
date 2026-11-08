@@ -1,0 +1,33 @@
+{
+  "asset_id": "AST_VER_TEST",
+  "revision": 2,
+  "workflow_json": {
+    "nodes": {
+      "1": {
+        "class_type": "KSampler",
+        "inputs": {
+          "ckpt_name": "flux1-dev-fp8.safetensors"
+        }
+      }
+    }
+  },
+  "model_ids": [
+    "flux1-dev-fp8.safetensors"
+  ],
+  "model_versions": [
+    "1.0-fp8"
+  ],
+  "prompt": "Crown v2",
+  "negative_prompt": "",
+  "input_references": [],
+  "seed": 102,
+  "node_versions": {
+    "KSampler": "1.0",
+    "IPAdapterAdvanced": "2.0"
+  },
+  "generated_at": "2026-11-08T20:17:31.810957Z",
+  "output_path": "PROJECTS/PROJECT_001/DRAFTS/crown_v02.png",
+  "file_sha256": "c5e6e236e0e7145295c2fe0eaf106fa8652def9be0ebca70807e2db7b54fcdce",
+  "cost_usd": 0.0,
+  "approval_status": "AWAITING_HUMAN_REVIEW"
+}

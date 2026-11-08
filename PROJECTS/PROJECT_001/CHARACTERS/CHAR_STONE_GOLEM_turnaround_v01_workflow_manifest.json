@@ -1,0 +1,48 @@
+{
+  "asset_id": "CHAR_STONE_GOLEM_SHEET",
+  "revision": 1,
+  "workflow_json": {
+    "nodes": {
+      "1": {
+        "class_type": "KSampler",
+        "inputs": {
+          "seed": 42001,
+          "steps": 28,
+          "cfg": 3.5,
+          "ckpt_name": "flux1-dev-fp8.safetensors"
+        }
+      },
+      "2": {
+        "class_type": "IPAdapterAdvanced",
+        "inputs": {
+          "weight": 0.92
+        }
+      },
+      "3": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "filename_prefix": "CHAR_STONE_GOLEM"
+        }
+      }
+    }
+  },
+  "model_ids": [
+    "flux1-dev-fp8.safetensors"
+  ],
+  "model_versions": [
+    "1.0-fp8"
+  ],
+  "prompt": "Character turnaround sheet of Bailiff Granite-IX, Antagonist Bureaucratic Golem, {\"body\": \"mossy_basalt_blocks\", \"eyes\": \"glowing_amber_runes\", \"palette\": [\"#1F2937\", \"#F59E0B\", \"#4ADE80\"]}, studio lighting, model sheet",
+  "negative_prompt": "inconsistent proportions, cropped, watermark, blurry",
+  "input_references": [],
+  "seed": 42001,
+  "node_versions": {
+    "KSampler": "1.0",
+    "IPAdapterAdvanced": "2.0"
+  },
+  "generated_at": "2026-11-08T20:14:58.821506Z",
+  "output_path": "PROJECTS/PROJECT_001/CHARACTERS/CHAR_STONE_GOLEM_turnaround_v01.png",
+  "file_sha256": "45445d9f2553c0c6cdc3fc3c7d0343ac1f7041605601fe598c67123868028eab",
+  "cost_usd": 0.0,
+  "approval_status": "AWAITING_HUMAN_REVIEW"
+}

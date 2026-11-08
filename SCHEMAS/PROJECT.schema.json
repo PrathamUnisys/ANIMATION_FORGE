@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeProject",
+  "type": "object",
+  "required": [
+    "project_id",
+    "title",
+    "synopsis",
+    "genre",
+    "target_audience",
+    "intended_runtime_sec",
+    "language",
+    "animation_technique",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "pattern": "^PROJECT_[A-Z0-9_]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "synopsis": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "string"
+    },
+    "target_audience": {
+      "type": "string"
+    },
+    "intended_runtime_sec": {
+      "type": "integer",
+      "minimum": 5
+    },
+    "language": {
+      "type": "string"
+    },
+    "creative_brief": {
+      "type": "string"
+    },
+    "visual_direction": {
+      "type": "string"
+    },
+    "animation_technique": {
+      "type": "string",
+      "enum": [
+        "2D",
+        "2.5D",
+        "3D",
+        "HYBRID"
+      ]
+    },
+    "production_goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string"
+    },
+    "current_stage": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  }
+}

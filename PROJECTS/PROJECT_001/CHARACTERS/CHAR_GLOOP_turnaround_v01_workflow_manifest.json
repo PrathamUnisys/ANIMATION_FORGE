@@ -1,0 +1,48 @@
+{
+  "asset_id": "CHAR_GLOOP_SHEET",
+  "revision": 1,
+  "workflow_json": {
+    "nodes": {
+      "1": {
+        "class_type": "KSampler",
+        "inputs": {
+          "seed": 42001,
+          "steps": 28,
+          "cfg": 3.5,
+          "ckpt_name": "flux1-dev-fp8.safetensors"
+        }
+      },
+      "2": {
+        "class_type": "IPAdapterAdvanced",
+        "inputs": {
+          "weight": 0.92
+        }
+      },
+      "3": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "filename_prefix": "CHAR_GLOOP"
+        }
+      }
+    }
+  },
+  "model_ids": [
+    "flux1-dev-fp8.safetensors"
+  ],
+  "model_versions": [
+    "1.0-fp8"
+  ],
+  "prompt": "Character turnaround sheet of King Gloop the Gelatinous, Deuteragonist Slime Familiar, {\"body\": \"translucent_emerald_dome\", \"accessory\": \"brass_monocle_right\", \"palette\": [\"#064E3B\", \"#10B981\", \"#FACC15\"]}, studio lighting, model sheet",
+  "negative_prompt": "inconsistent proportions, cropped, watermark, blurry",
+  "input_references": [],
+  "seed": 42001,
+  "node_versions": {
+    "KSampler": "1.0",
+    "IPAdapterAdvanced": "2.0"
+  },
+  "generated_at": "2026-11-08T20:14:58.770085Z",
+  "output_path": "PROJECTS/PROJECT_001/CHARACTERS/CHAR_GLOOP_turnaround_v01.png",
+  "file_sha256": "471f534bf897bbe4db3ee2d3133580e12914b5f3b13be0e38ad6bbaeca46fb66",
+  "cost_usd": 0.0,
+  "approval_status": "AWAITING_HUMAN_REVIEW"
+}

@@ -1,0 +1,69 @@
+{
+  "toolchain_id": "TC_PROJECT_RND_V2",
+  "project_id": "PROJECT_RND",
+  "version": 2,
+  "locked": true,
+  "tools": [
+    {
+      "tool_id": "TOOL_COMFYUI_FLUX_IPADAPTER",
+      "version": "0.3.14",
+      "provider_id": "COMFYUI_LOCAL_GRAPH",
+      "workflow_id": "WF_TOOL_COMFYUI_FLUX_IPADAPTER_DEFAULT",
+      "configuration": {
+        "deterministic_seed": true
+      },
+      "dependencies": [],
+      "expected_input_formats": [
+        "json",
+        "png",
+        "wav"
+      ],
+      "expected_output_formats": [
+        "png",
+        "wav",
+        "mp4",
+        "blend"
+      ],
+      "approved_capabilities": [
+        "IMAGE_AND_CHARACTER_CONSISTENCY"
+      ]
+    },
+    {
+      "tool_id": "TOOL_BLENDER_HEADLESS_5_2",
+      "version": "5.2.3",
+      "provider_id": "LOCAL_DETERMINISTIC_STUDIO",
+      "workflow_id": "WF_TOOL_BLENDER_HEADLESS_5_2_DEFAULT",
+      "configuration": {
+        "deterministic_seed": true
+      },
+      "dependencies": [],
+      "expected_input_formats": [
+        "json",
+        "png",
+        "wav"
+      ],
+      "expected_output_formats": [
+        "png",
+        "wav",
+        "mp4",
+        "blend"
+      ],
+      "approved_capabilities": [
+        "2_5D_AND_3D_ANIMATION"
+      ]
+    }
+  ],
+  "cost_limit_usd": 10.0,
+  "fallback_options": {
+    "TOOL_ELEVENLABS_TTS_V3": "TOOL_KOKORO_LOCAL_TTS",
+    "TOOL_BLENDER_HEADLESS_5_2": "INTERNAL_2_5D_COMPOSITOR"
+  },
+  "approval_history": [
+    {
+      "version": 2,
+      "approved_by": "HUMAN_DIRECTOR",
+      "approved_at": "2026-11-08T20:17:31.751463Z",
+      "rationale": "Approved optimal local-first 2.5D/3D hybrid toolchain."
+    }
+  ]
+}

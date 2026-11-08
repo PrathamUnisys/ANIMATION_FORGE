@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectRndReport",
+  "type": "object",
+  "required": [
+    "report_id",
+    "project_id",
+    "research_date",
+    "search_methodology",
+    "requirements",
+    "candidates",
+    "recommendations",
+    "decision_status"
+  ],
+  "properties": {
+    "report_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "research_date": {
+      "type": "string"
+    },
+    "search_methodology": {
+      "type": "string"
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "poc_results": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "decision_status": {
+      "type": "string",
+      "enum": [
+        "AWAITING_HUMAN_APPROVAL",
+        "APPROVED",
+        "REJECTED",
+        "ADDITIONAL_RESEARCH_REQUESTED"
+      ]
+    }
+  }
+}

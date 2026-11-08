@@ -1,0 +1,42 @@
+{
+  "asset_id": "LOC_LOCK_TEST_BG",
+  "revision": 1,
+  "workflow_json": {
+    "nodes": {
+      "1": {
+        "class_type": "KSampler",
+        "inputs": {
+          "seed": 88001,
+          "steps": 30,
+          "cfg": 4.0,
+          "ckpt_name": "flux1-dev-fp8.safetensors"
+        }
+      },
+      "2": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "filename_prefix": "LOC_LOCK_TEST"
+        }
+      }
+    }
+  },
+  "model_ids": [
+    "flux1-dev-fp8.safetensors"
+  ],
+  "model_versions": [
+    "1.0-fp8"
+  ],
+  "prompt": "2.5D multi-plane environment background of Citadel, {}",
+  "negative_prompt": "characters in foreground, text, blurry",
+  "input_references": [],
+  "seed": 88001,
+  "node_versions": {
+    "KSampler": "1.0",
+    "IPAdapterAdvanced": "2.0"
+  },
+  "generated_at": "2026-11-08T20:17:31.943223Z",
+  "output_path": "PROJECTS/PROJECT_001/ENVIRONMENTS/LOC_LOCK_TEST_bg_v01.png",
+  "file_sha256": "25f44fa36e6ed5f9af78633adba8748f49509eac15bf5503aa1640b8f4bdd0c1",
+  "cost_usd": 0.0,
+  "approval_status": "AWAITING_HUMAN_REVIEW"
+}

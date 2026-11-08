@@ -1,0 +1,14 @@
+# Local env / build artifacts (scope A)
+.venv/
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+src-tauri/target/
+src-tauri/binaries/
+
+.pyi-build/
+.pyi-spec/
+*.spec

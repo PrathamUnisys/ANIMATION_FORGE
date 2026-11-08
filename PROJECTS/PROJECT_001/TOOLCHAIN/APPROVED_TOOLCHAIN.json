@@ -1,0 +1,117 @@
+{
+  "toolchain_id": "TC_PROJECT_001_V1",
+  "project_id": "PROJECT_001",
+  "version": 1,
+  "locked": true,
+  "tools": [
+    {
+      "tool_id": "TOOL_COMFYUI_FLUX_IPADAPTER",
+      "version": "0.3.14",
+      "provider_id": "COMFYUI_LOCAL_GRAPH",
+      "workflow_id": "WF_TOOL_COMFYUI_FLUX_IPADAPTER_DEFAULT",
+      "configuration": {
+        "deterministic_seed": true
+      },
+      "dependencies": [],
+      "expected_input_formats": [
+        "json",
+        "png",
+        "wav"
+      ],
+      "expected_output_formats": [
+        "png",
+        "wav",
+        "mp4",
+        "blend"
+      ],
+      "approved_capabilities": [
+        "IMAGE_AND_CHARACTER_CONSISTENCY"
+      ]
+    },
+    {
+      "tool_id": "TOOL_BLENDER_HEADLESS_5_2",
+      "version": "5.2.3",
+      "provider_id": "LOCAL_DETERMINISTIC_STUDIO",
+      "workflow_id": "WF_TOOL_BLENDER_HEADLESS_5_2_DEFAULT",
+      "configuration": {
+        "deterministic_seed": true
+      },
+      "dependencies": [],
+      "expected_input_formats": [
+        "json",
+        "png",
+        "wav"
+      ],
+      "expected_output_formats": [
+        "png",
+        "wav",
+        "mp4",
+        "blend"
+      ],
+      "approved_capabilities": [
+        "2_5D_AND_3D_ANIMATION"
+      ]
+    },
+    {
+      "tool_id": "TOOL_ELEVENLABS_TTS_V3",
+      "version": "v3",
+      "provider_id": "ELEVENLABS_TTS",
+      "workflow_id": "WF_TOOL_ELEVENLABS_TTS_V3_DEFAULT",
+      "configuration": {
+        "deterministic_seed": true
+      },
+      "dependencies": [],
+      "expected_input_formats": [
+        "json",
+        "png",
+        "wav"
+      ],
+      "expected_output_formats": [
+        "png",
+        "wav",
+        "mp4",
+        "blend"
+      ],
+      "approved_capabilities": [
+        "VOICE_AND_TTS"
+      ]
+    },
+    {
+      "tool_id": "TOOL_KOKORO_LOCAL_TTS",
+      "version": "1.0",
+      "provider_id": "LOCAL_DETERMINISTIC_STUDIO",
+      "workflow_id": "WF_TOOL_KOKORO_LOCAL_TTS_DEFAULT",
+      "configuration": {
+        "deterministic_seed": true
+      },
+      "dependencies": [],
+      "expected_input_formats": [
+        "json",
+        "png",
+        "wav"
+      ],
+      "expected_output_formats": [
+        "png",
+        "wav",
+        "mp4",
+        "blend"
+      ],
+      "approved_capabilities": [
+        "VOICE_AND_TTS"
+      ]
+    }
+  ],
+  "cost_limit_usd": 15.0,
+  "fallback_options": {
+    "TOOL_ELEVENLABS_TTS_V3": "TOOL_KOKORO_LOCAL_TTS",
+    "TOOL_BLENDER_HEADLESS_5_2": "INTERNAL_2_5D_COMPOSITOR"
+  },
+  "approval_history": [
+    {
+      "version": 1,
+      "approved_by": "HUMAN_EXEC_PRODUCER",
+      "approved_at": "2026-11-08T20:14:58.623850Z",
+      "rationale": "Selected local ComfyUI Flux+IPAdapter for character lock, Blender 5.2 LTS for 2.5D parallax camera, and ElevenLabs/Kokoro TTS."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "event": "deliverable.ready_for_review",
+    "project_id": "PROJECT_001",
+    "episode_id": "EP001",
+    "task_id": "TASK_001",
+    "asset_id": "ASSET_001",
+    "status": "awaiting_approval"
+  },
+  {
+    "event": "deliverable.approved",
+    "project_id": "PROJECT_001",
+    "episode_id": "EP001",
+    "task_id": "TASK_001",
+    "asset_id": "ASSET_001",
+    "approved": true
+  }
+]

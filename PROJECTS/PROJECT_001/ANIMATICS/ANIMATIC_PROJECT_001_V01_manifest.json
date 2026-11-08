@@ -1,0 +1,22 @@
+{
+  "animatic_id": "ANIMATIC_PROJECT_001_V01",
+  "project_id": "PROJECT_001",
+  "total_duration_sec": 45.0,
+  "fps": 24,
+  "resolution": "1920x1080",
+  "tracks": {
+    "storyboard_panels": [
+      "PROJECTS/PROJECT_001/STORYBOARDS/SHT_001_panel_v01.png",
+      "PROJECTS/PROJECT_001/STORYBOARDS/SHT_002_panel_v01.png",
+      "PROJECTS/PROJECT_001/STORYBOARDS/SHT_003_panel_v01.png",
+      "PROJECTS/PROJECT_001/STORYBOARDS/SHT_004_panel_v01.png"
+    ],
+    "dialogue_audio": [
+      "AUD_LINE_001",
+      "AUD_LINE_002",
+      "AUD_LINE_003",
+      "AUD_LINE_004"
+    ],
+    "camera_Previs_notes": "2.5D Z-depth parallax verified across all 4 shots"
+  }
+}

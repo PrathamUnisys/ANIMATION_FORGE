@@ -1,0 +1,48 @@
+{
+  "asset_id": "CHAR_LOCK_TEST_SHEET",
+  "revision": 1,
+  "workflow_json": {
+    "nodes": {
+      "1": {
+        "class_type": "KSampler",
+        "inputs": {
+          "seed": 42001,
+          "steps": 28,
+          "cfg": 3.5,
+          "ckpt_name": "flux1-dev-fp8.safetensors"
+        }
+      },
+      "2": {
+        "class_type": "IPAdapterAdvanced",
+        "inputs": {
+          "weight": 0.92
+        }
+      },
+      "3": {
+        "class_type": "SaveImage",
+        "inputs": {
+          "filename_prefix": "CHAR_LOCK_TEST"
+        }
+      }
+    }
+  },
+  "model_ids": [
+    "flux1-dev-fp8.safetensors"
+  ],
+  "model_versions": [
+    "1.0-fp8"
+  ],
+  "prompt": "Character turnaround sheet of Sir Lock, Knight, {\"eyes\": \"blue\"}, studio lighting, model sheet",
+  "negative_prompt": "inconsistent proportions, cropped, watermark, blurry",
+  "input_references": [],
+  "seed": 42001,
+  "node_versions": {
+    "KSampler": "1.0",
+    "IPAdapterAdvanced": "2.0"
+  },
+  "generated_at": "2026-11-08T20:17:31.868395Z",
+  "output_path": "PROJECTS/PROJECT_001/CHARACTERS/CHAR_LOCK_TEST_turnaround_v01.png",
+  "file_sha256": "fb100f8f64401b341df4d339474db1ef51c6c093692b753f7407243cef1e7cf8",
+  "cost_usd": 0.0,
+  "approval_status": "AWAITING_HUMAN_REVIEW"
+}

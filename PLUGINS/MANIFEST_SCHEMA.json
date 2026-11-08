@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgePluginManifest",
+  "type": "object",
+  "required": [
+    "plugin_id",
+    "name",
+    "version",
+    "developer",
+    "description",
+    "supported_app_versions",
+    "required_permissions",
+    "dependencies",
+    "supported_capabilities",
+    "input_schema",
+    "output_schema",
+    "installation_method",
+    "health_check_method"
+  ],
+  "properties": {
+    "plugin_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "developer": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "supported_app_versions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "READ_ONLY",
+          "DRAFT_CREATION",
+          "LOCAL_MODIFICATION",
+          "EXTERNAL_NETWORK",
+          "PAID_OPERATION",
+          "DESTRUCTIVE_OPERATION"
+        ]
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supported_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "input_schema": {
+      "type": "object"
+    },
+    "output_schema": {
+      "type": "object"
+    },
+    "installation_method": {
+      "type": "string"
+    },
+    "health_check_method": {
+      "type": "string"
+    }
+  }
+}

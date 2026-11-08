@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApprovalGateRecord",
+  "type": "object",
+  "required": [
+    "approval_id",
+    "project_id",
+    "target_type",
+    "target_id",
+    "revision",
+    "state",
+    "reviewer_type"
+  ],
+  "properties": {
+    "approval_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "target_type": {
+      "type": "string"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "integer"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "PROPOSED",
+        "GENERATING",
+        "QUALITY_CHECK",
+        "AWAITING_HUMAN_REVIEW",
+        "APPROVED",
+        "REVISION_REQUESTED",
+        "REJECTED"
+      ]
+    },
+    "technical_qc_outcome": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "APPROVED_TECHNICALLY",
+        "NEEDS_REVISION",
+        "REJECTED",
+        "MANUAL_INSPECTION_REQUIRED",
+        null
+      ]
+    },
+    "reviewer_type": {
+      "type": "string",
+      "enum": [
+        "HUMAN_EXECUTIVE_PRODUCER",
+        "SYSTEM_TECHNICAL_QC"
+      ]
+    },
+    "comments": {
+      "type": "string"
+    },
+    "decided_at": {
+      "type": "string"
+    }
+  }
+}

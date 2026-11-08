@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ShotAndAnimationSpec",
+  "type": "object",
+  "required": [
+    "shot_id",
+    "scene_id",
+    "camera_angle",
+    "shot_size",
+    "camera_movement",
+    "focal_length_mm",
+    "duration_sec",
+    "fps",
+    "resolution"
+  ],
+  "properties": {
+    "shot_id": {
+      "type": "string"
+    },
+    "scene_id": {
+      "type": "string"
+    },
+    "camera_angle": {
+      "type": "string"
+    },
+    "shot_size": {
+      "type": "string"
+    },
+    "camera_position": {
+      "type": "string"
+    },
+    "camera_movement": {
+      "type": "string"
+    },
+    "focal_length_mm": {
+      "type": "number"
+    },
+    "character_placement": {
+      "type": "string"
+    },
+    "character_movement": {
+      "type": "string"
+    },
+    "facial_expression": {
+      "type": "string"
+    },
+    "lighting": {
+      "type": "string"
+    },
+    "audio_cues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duration_sec": {
+      "type": "number"
+    },
+    "fps": {
+      "type": "integer"
+    },
+    "resolution": {
+      "type": "string"
+    },
+    "required_assets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

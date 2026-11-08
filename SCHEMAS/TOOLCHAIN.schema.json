@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApprovedToolchainProfile",
+  "type": "object",
+  "required": [
+    "toolchain_id",
+    "project_id",
+    "version",
+    "locked",
+    "tools",
+    "cost_limit_usd",
+    "fallback_options",
+    "approval_history"
+  ],
+  "properties": {
+    "toolchain_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "locked": {
+      "type": "boolean"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "tool_id",
+          "version",
+          "provider_id",
+          "workflow_id",
+          "expected_input_formats",
+          "expected_output_formats",
+          "approved_capabilities"
+        ],
+        "properties": {
+          "tool_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "provider_id": {
+            "type": "string"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "configuration": {
+            "type": "object"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected_input_formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected_output_formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "approved_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "cost_limit_usd": {
+      "type": "number"
+    },
+    "fallback_options": {
+      "type": "object"
+    },
+    "approval_history": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

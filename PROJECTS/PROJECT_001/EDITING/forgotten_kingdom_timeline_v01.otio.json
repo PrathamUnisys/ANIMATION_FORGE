@@ -1,0 +1,55 @@
+{
+  "OTIO_SCHEMA": "Timeline.1",
+  "name": "PROJECT_001_Master_Timeline_v01",
+  "global_start_time": {
+    "value": 0,
+    "rate": 24
+  },
+  "tracks": [
+    {
+      "name": "V1_2_5D_Composite_Track",
+      "kind": "Video",
+      "clips": [
+        {
+          "shot_id": "SHT_001",
+          "duration_frames": 180,
+          "transition": "Cut"
+        },
+        {
+          "shot_id": "SHT_002",
+          "duration_frames": 180,
+          "transition": "Hard Cut"
+        },
+        {
+          "shot_id": "SHT_003",
+          "duration_frames": 360,
+          "transition": "Whip Pan"
+        },
+        {
+          "shot_id": "SHT_004",
+          "duration_frames": 360,
+          "transition": "Iris Out"
+        }
+      ]
+    },
+    {
+      "name": "A1_Dialogue_Master",
+      "kind": "Audio",
+      "clips": [
+        "AUD_LINE_001",
+        "AUD_LINE_002",
+        "AUD_LINE_003",
+        "AUD_LINE_004"
+      ]
+    }
+  ],
+  "subtitles_path": "PROJECTS/PROJECT_001/EDITING/forgotten_kingdom_v01.srt",
+  "color_grading_lut": "ForgottenCitadel_WarmGold_Rec709.cube",
+  "export_settings": {
+    "codec": "H.264",
+    "container": "MP4",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "audio_lufs": -14.0
+  }
+}

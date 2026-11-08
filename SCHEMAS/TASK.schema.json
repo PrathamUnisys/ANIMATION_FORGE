@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProductionTask",
+  "type": "object",
+  "required": [
+    "task_id",
+    "project_id",
+    "department",
+    "assigned_agent",
+    "title",
+    "status",
+    "dependencies"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "assigned_agent": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PROPOSED",
+        "GENERATING",
+        "QUALITY_CHECK",
+        "AWAITING_HUMAN_REVIEW",
+        "APPROVED",
+        "REVISION_REQUESTED",
+        "REJECTED",
+        "BLOCKED"
+      ]
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "retry_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

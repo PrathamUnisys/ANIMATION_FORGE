@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SceneBreakdownSpec",
+  "type": "object",
+  "required": [
+    "scene_id",
+    "project_id",
+    "title",
+    "location_id",
+    "characters",
+    "duration_sec",
+    "animation_method",
+    "required_shots"
+  ],
+  "properties": {
+    "scene_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "location_id": {
+      "type": "string"
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_assets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duration_sec": {
+      "type": "number"
+    },
+    "animation_method": {
+      "type": "string",
+      "enum": [
+        "2D",
+        "2.5D",
+        "3D",
+        "HYBRID"
+      ]
+    },
+    "required_shots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "camera_requirements": {
+      "type": "string"
+    },
+    "audio_dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lighting": {
+      "type": "string"
+    },
+    "vfx": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "production_dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AssetRegistryRecord",
+  "type": "object",
+  "required": [
+    "asset_id",
+    "name",
+    "type",
+    "project_id",
+    "file_location",
+    "revision",
+    "created_at",
+    "creation_agent",
+    "tool_used",
+    "approval_status"
+  ],
+  "properties": {
+    "asset_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "character_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scene_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "file_location": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "creation_agent": {
+      "type": "string"
+    },
+    "tool_used": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "workflow": {
+      "type": "string"
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "input_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": [
+        "PROPOSED",
+        "GENERATING",
+        "QUALITY_CHECK",
+        "AWAITING_HUMAN_REVIEW",
+        "APPROVED",
+        "REVISION_REQUESTED",
+        "REJECTED",
+        "ARCHIVED"
+      ]
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "license_info": {
+      "type": "string"
+    }
+  }
+}
