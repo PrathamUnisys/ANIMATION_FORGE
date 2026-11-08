@@ -12,3 +12,6 @@ src-tauri/binaries/
 .pyi-build/
 .pyi-spec/
 *.spec
+
+# Local machine-specific media-library storage roots
+LIBRARY/STORAGE_ROOTS.json
