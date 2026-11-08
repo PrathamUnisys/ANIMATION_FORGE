@@ -226,7 +226,7 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
             validator = jsonschema.Draft202012Validator(schema, resolver=resolver)
             for error in validator.iter_errors(data):
                 errors.append(f"{label}: {error.message} at {'/'.join(str(part) for part in error.absolute_path)}")
-        except (jsonschema.SchemaError, jsonschema.RefResolutionError, OSError) as exc:
+        except Exception as exc:
             errors.append(f"{schema_path}: schema validation failed: {exc}")
 
     genres = load_json("GENRES/REGISTRY.json")
