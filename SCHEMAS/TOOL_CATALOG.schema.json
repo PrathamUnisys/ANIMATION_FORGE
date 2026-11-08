@@ -6,7 +6,8 @@
   "required": [
     "catalog_version",
     "task_groups",
-    "tools"
+    "tools",
+    "providers"
   ],
   "properties": {
     "catalog_version": {
@@ -39,6 +40,13 @@
             }
           },
           "candidate_tool_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidate_provider_ids": {
             "type": "array",
             "uniqueItems": true,
             "items": {
@@ -188,6 +196,60 @@
                 }
               }
             }
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provider_id",
+          "profile_paths",
+          "category",
+          "capability_tags",
+          "integration_status",
+          "limitations"
+        ],
+        "properties": {
+          "provider_id": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]+$"
+          },
+          "profile_paths": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^PROVIDERS/.+\\.md$"
+            }
+          },
+          "category": {
+            "type": "string"
+          },
+          "capability_tags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "integration_status": {
+            "enum": [
+              "DOCUMENTED_ONLY",
+              "SIMULATION_ONLY",
+              "ADAPTER_IMPLEMENTED",
+              "END_TO_END_VERIFIED"
+            ]
           },
           "limitations": {
             "type": "array",
