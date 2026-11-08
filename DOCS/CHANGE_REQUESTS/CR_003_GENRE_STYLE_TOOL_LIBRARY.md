@@ -74,7 +74,7 @@ This change adds architecture documentation, initial genre instructions, templat
 - A screenplay task can identify the exact genre/style profile versions it used.
 - Genre instructions are reusable across channels; channel style guides are reusable across genres.
 - Tool manuals have consistent setup, connection, usage and debugging sections.
-- Tool catalogue entries are grouped by task and searchable by tags, with unverified states explicit.
+- Tool catalogue entries are grouped by task and searchable by tags, with separate candidate tool/provider IDs and unverified states explicit.
 - Asset index records metadata and file locations without requiring binary assets in Git.
 - JSON contracts validate the catalogue and asset index.
 - Documentation validator includes the new governed folders and reports no missing inventory entries.
