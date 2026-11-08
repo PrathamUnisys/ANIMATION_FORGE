@@ -1,6 +1,6 @@
 ---
 prompt_id: DOCS_AGENT_GUIDE
-version: 1.0.0
+version: 1.1.0
 modified_date: 2026-11-09
 description: Agent role map, dispatch boundaries, output contracts, and human approval rules
 dependencies: ["CORE/RULE_HIERARCHY.md", "CORE/HUMAN_APPROVAL_POLICY.md", "DOCS/CAPABILITY_REGISTRY.md"]
@@ -8,6 +8,9 @@ change_history:
   - version: 1.0.0
     date: 2026-11-09
     summary: Replace role list with operational dispatch and permission guidance
+  - version: 1.1.0
+    date: 2026-11-09
+    summary: Document genre/style profile loading, task-based tool lookup and library reuse under CR_003
 ---
 # Specialized AI Production Agents Guide
 
@@ -42,7 +45,11 @@ public API and MCP catalog, and the repository audit for implementation gaps.
    constitution, active mode, project/series memory, department rules, agent
    instruction, and provider profile as applicable.
 3. Confirm required inputs, upstream approvals, allowed project paths, and
-   registered capabilities before dispatch.
+   registered capabilities before dispatch. For screenplay work, resolve a
+   primary genre, optional secondary genres and optional channel style as
+   separate versioned profiles. For production tasks, consult the task-based
+   tool catalogue and asset library; do not treat catalogue presence as proof
+   that a tool is installed or an asset is approved.
 4. Give the agent a specific deliverable, project ID, revision, constraints,
    output schema, and acceptance checks.
 5. Validate its response and persisted outputs. Report assumptions, warnings,
