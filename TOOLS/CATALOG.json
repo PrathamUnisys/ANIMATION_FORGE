@@ -44,6 +44,9 @@
         "COMFYUI",
         "BLENDER",
         "UNREAL_ENGINE"
+      ],
+      "candidate_provider_ids": [
+        "COMFYUI_LOCAL_GRAPH"
       ]
     },
     {
@@ -59,6 +62,9 @@
         "COMFYUI",
         "BLENDER",
         "UNREAL_ENGINE"
+      ],
+      "candidate_provider_ids": [
+        "COMFYUI_LOCAL_GRAPH"
       ]
     },
     {
@@ -74,6 +80,9 @@
         "COMFYUI",
         "BLENDER",
         "UNREAL_ENGINE"
+      ],
+      "candidate_provider_ids": [
+        "COMFYUI_LOCAL_GRAPH"
       ]
     },
     {
@@ -88,7 +97,8 @@
       "candidate_tool_ids": [
         "BLENDER",
         "UNREAL_ENGINE"
-      ]
+      ],
+      "candidate_provider_ids": []
     },
     {
       "task_id": "ANIMATION",
@@ -102,7 +112,8 @@
       "candidate_tool_ids": [
         "BLENDER",
         "UNREAL_ENGINE"
-      ]
+      ],
+      "candidate_provider_ids": []
     },
     {
       "task_id": "RENDERING",
@@ -116,7 +127,8 @@
       "candidate_tool_ids": [
         "BLENDER",
         "UNREAL_ENGINE"
-      ]
+      ],
+      "candidate_provider_ids": []
     },
     {
       "task_id": "VIDEO_GENERATION",
@@ -159,7 +171,8 @@
       ],
       "candidate_tool_ids": [
         "BLENDER"
-      ]
+      ],
+      "candidate_provider_ids": []
     }
   ],
   "tools": [
@@ -288,6 +301,9 @@
       "integration_status": "SIMULATION_ONLY",
       "limitations": [
         "ProviderManager currently records metadata and estimated usage; it does not return real generated text."
+      ],
+      "tasks": [
+        "SCREENPLAY_DEVELOPMENT"
       ]
     },
     {
@@ -304,6 +320,9 @@
       "integration_status": "SIMULATION_ONLY",
       "limitations": [
         "ProviderManager currently does not make a request to an OpenAI-compatible endpoint."
+      ],
+      "tasks": [
+        "SCREENPLAY_DEVELOPMENT"
       ]
     },
     {
@@ -320,6 +339,9 @@
       "integration_status": "SIMULATION_ONLY",
       "limitations": [
         "Current production audio path generates synthetic tone WAVs rather than invoking ElevenLabs."
+      ],
+      "tasks": [
+        "AUDIO_TTS"
       ]
     },
     {
@@ -336,6 +358,9 @@
       "integration_status": "SIMULATION_ONLY",
       "limitations": [
         "Kokoro metadata is registered, but current production audio path does not invoke the model."
+      ],
+      "tasks": [
+        "AUDIO_TTS"
       ]
     },
     {
@@ -353,6 +378,13 @@
       "integration_status": "SIMULATION_ONLY",
       "limitations": [
         "The provider manager registers metadata, but the adapter does not dispatch a workflow to ComfyUI."
+      ],
+      "tasks": [
+        "IMAGE_GENERATION",
+        "CHARACTER_ASSETS",
+        "ENVIRONMENT_ASSETS",
+        "STORYBOARD_PREVIS",
+        "VIDEO_GENERATION"
       ]
     }
   ]
