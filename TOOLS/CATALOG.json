@@ -2,6 +2,17 @@
   "catalog_version": "1.0.0",
   "task_groups": [
     {
+      "task_id": "SCREENPLAY_DEVELOPMENT",
+      "display_name": "AI screenplay and story development",
+      "tags": [
+        "story_analysis",
+        "screenplay_generation",
+        "dialogue_writing",
+        "script_review"
+      ],
+      "candidate_tool_ids": []
+    },
+    {
       "task_id": "IMAGE_GENERATION",
       "display_name": "Image generation",
       "tags": [
