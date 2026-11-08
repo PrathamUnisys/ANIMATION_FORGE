@@ -1,31 +1,6 @@
 {
   "taxonomy_version": "1.0.0",
   "dimensions": {
-    "media_type": [
-      "character",
-      "environment",
-      "prop",
-      "texture",
-      "model",
-      "rig",
-      "animation",
-      "storyboard",
-      "image",
-      "audio",
-      "video",
-      "subtitle",
-      "project_file",
-      "document"
-    ],
-    "usage": [
-      "thumbnail",
-      "background",
-      "turnaround",
-      "voice",
-      "reference",
-      "episode_render",
-      "social_cutdown"
-    ],
     "status": [
       "draft",
       "awaiting_review",
@@ -65,7 +40,37 @@
       "amber",
       "teal",
       "high_contrast"
+    ],
+    "type": [
+      "character",
+      "environment",
+      "prop",
+      "texture",
+      "model",
+      "rig",
+      "animation",
+      "storyboard",
+      "image",
+      "audio",
+      "video",
+      "subtitle",
+      "project_file",
+      "document"
+    ],
+    "use": [
+      "thumbnail",
+      "background",
+      "turnaround",
+      "voice",
+      "reference",
+      "episode_render",
+      "social_cutdown"
     ]
   },
-  "custom_tag_namespace": "custom:"
+  "custom_tag_namespace": "custom:",
+  "reference_dimensions": {
+    "project": "PROJECT_ID",
+    "series": "SERIES_ID",
+    "channel": "STYLE_ID"
+  }
 }
