@@ -407,6 +407,6 @@ The following files extend the governed corpus. The genre and channel registries
 
 - The instruction validator includes the new Markdown folders and the screenplay context contract.
 - JSON Schema contracts cover genre registry, channel-style registry, tool profile/catalogue, asset index, storage-root configuration and screenplay context manifest.
-- Registry validation checks file references, profile IDs/versions, tool manual IDs, task-to-tool mappings, duplicate IDs, asset storage-root references, tag vocabulary and evidence requirements for claimed tool availability.
+- Registry validation checks file references, genre/style profile IDs and versions, tool manual IDs, task-to-tool and task-to-provider mappings, ProviderManager registration, duplicate IDs, asset storage-root references, tag vocabulary and evidence requirements for claimed tool availability.
 - Tool availability remains `NOT_VERIFIED` until a real local check is recorded. Integration maturity is separately marked `SIMULATION_ONLY` for the current Blender, Unreal and ComfyUI adapters.
 - The new genre and style project fields are optional in the project schema for backward compatibility. Database migrations, UI selectors, runtime context assembly and local storage-root configuration have not been implemented by CR_003.
