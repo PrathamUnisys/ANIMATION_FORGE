@@ -15,7 +15,7 @@ change_history:
 
 `LIBRARY/` manages metadata and locations for project and reusable media. It is an index, not a folder that must contain every large binary file.
 
-The machine-readable catalogue lives in `LIBRARY/ASSET_INDEX.json`, validated by `SCHEMAS/LIBRARY_INDEX.schema.json`. Copy `STORAGE_ROOTS.example.json` to the ignored local file `STORAGE_ROOTS.json`, configure verified storage URIs, and validate it with `SCHEMAS/STORAGE_ROOTS.schema.json`.
+The portable index contract lives in `LIBRARY/ASSET_INDEX.json`, validated by `SCHEMAS/LIBRARY_INDEX.schema.json`. In the first runtime implementation, SQLite should be the searchable source of truth; this JSON file should remain a bootstrap/import-export snapshot rather than a giant live catalogue. Copy `STORAGE_ROOTS.example.json` to the ignored local file `STORAGE_ROOTS.json`, configure verified storage URIs, and validate it with `SCHEMAS/STORAGE_ROOTS.schema.json`.
 
 ## Logical groups
 
@@ -31,7 +31,7 @@ Each asset also has a media type such as character, environment, prop, texture, 
 
 ## Location model
 
-Each asset record stores a URI and storage-root ID. Roots may be local folders, network shares or approved object storage. Example logical roots:
+Each asset record stores a `storage_root_id` plus a `relative_path` inside that root. The local configuration resolves the root ID to a URI. This keeps records portable when a project moves between machines. Roots may be local folders, network shares or approved object storage. Example logical roots:
 
 - `PROJECTS_ROOT`
 - `SHARED_LIBRARY_ROOT`
@@ -55,7 +55,7 @@ Tags are descriptive metadata, not permission. Search results must still check p
 
 ## Asset record minimum
 
-Every indexed asset requires a stable ID, display name, type, group, URI, storage-root ID, project/series/channel association where relevant, revision, approval state, tags, licence summary and provenance. For generated files capture the creating tool/model/version, workflow/prompt reference, seed where applicable and SHA-256 hash.
+Every indexed asset requires a stable ID, display name, media type, group, storage-root ID, relative path, project/series/channel association where relevant, revision, approval state, tags, licence summary and provenance. Optional technical metadata can hold dimensions, duration, frame rate, codec, sample rate and color space. Relationships can link derived assets, variants, dependencies and references. For generated files capture the creating tool/model/version, workflow/prompt reference, seed where applicable and SHA-256 hash.
 
 ## Interoperability direction
 
