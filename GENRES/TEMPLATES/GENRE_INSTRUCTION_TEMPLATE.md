@@ -11,6 +11,8 @@ change_history:
 ---
 # Genre Instruction Template
 
+When creating a real profile, replace the front-matter `prompt_id` with the stable ID `GENRE_<NAME>` and register that ID, path and version in `GENRES/REGISTRY.json`.
+
 ## Genre identity and promise
 
 - **Genre ID:** `GENRE_<NAME>`
