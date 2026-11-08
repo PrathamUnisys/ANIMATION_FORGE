@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -116,6 +117,16 @@ class ContractTests(unittest.TestCase):
         required = set(schema["required"])
         self.assertTrue({"primary_genre", "secondary_genres", "channel_style", "screenwriter_instruction"} <= required)
         self.assertTrue({"version", "content_hash_sha256", "source_path"} <= set(schema["$defs"]["profileRef"]["required"]))
+
+
+    def test_library_relative_paths_reject_traversal_and_windows_paths(self):
+        schema = json.loads((ROOT / "SCHEMAS/LIBRARY_INDEX.schema.json").read_text(encoding="utf-8"))
+        pattern = schema["properties"]["assets"]["items"]["properties"]["relative_path"]["pattern"]
+        invalid_paths = ["../secret", "folder/../../secret", "C:/outside", "/absolute", r"folder\\..\\escape"]
+        for path in invalid_paths:
+            with self.subTest(path=path):
+                self.assertIsNone(re.search(pattern, path))
+        self.assertIsNotNone(re.search(pattern, "PROJECTS/PROJECT_001/CHARACTERS/hero.png"))
 
 
 if __name__ == "__main__":
