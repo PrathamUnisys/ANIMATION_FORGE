@@ -323,7 +323,7 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
         reference_dimensions = (taxonomy or {}).get("reference_dimensions", {})
         for asset in asset_index.get("assets", []):
             if asset.get("storage_root_id") not in storage_ids:
-                errors.append(f"LIBRARY/ASSET_INDEX.json: unknown storage root {asset.get(chr(115)+chr(116)+chr(111)+chr(114)+chr(97)+chr(103)+chr(101)+chr(95)+chr(114)+chr(111)+chr(111)+chr(116)+chr(95)+chr(105)+chr(100))} for {asset.get(chr(97)+chr(115)+chr(115)+chr(101)+chr(116)+chr(95)+chr(105)+chr(100))}")
+                errors.append(f"LIBRARY/ASSET_INDEX.json: unknown storage root {asset.get('storage_root_id')} for {asset.get('asset_id')}")
             for tag in asset.get("tags", []):
                 if tag.startswith("custom:") and len(tag) > len("custom:"):
                     continue
