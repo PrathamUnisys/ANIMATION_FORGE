@@ -13,7 +13,7 @@ change_history:
 
 ## Purpose and layout
 
-`TOOLS/` is the operational knowledge base for software and services used in production.
+`TOOLS/` is the operational knowledge base for desktop applications, local servers and execution tools used in production. Hosted LLM and TTS provider profiles remain under `PROVIDERS/` to avoid duplicating API/model configuration. The task catalogue may reference provider capability groups later, but provider credentials and model settings belong in `PROVIDERS/`.
 
 - `TOOLS/<TOOL_ID>/TOOL.md` — how to locate, install, connect, configure, use, validate and debug one tool.
 - `TOOLS/CATALOG.json` — machine-readable tools grouped by production task and searchable capability tags.
@@ -34,7 +34,7 @@ Never guess a local executable path, installed version, endpoint or credential s
 
 The catalogue answers: **Which tools could perform this task, and what evidence do we have that they are available?**
 
-Select by task group and tags such as `screenplay_generation`, `image_generation`, `character_consistency`, `3d_modeling`, `animation`, `rendering`, `tts`, `video_encoding` and `subtitle_burning`.
+Select by task group and tags such as `screenplay_generation`, `image_generation`, `character_consistency`, `3d_modeling`, `animation`, `rendering`, `tts`, `video_encoding` and `subtitle_burning`. A task group with no candidate tools explicitly records a capability gap; do not fill it with a fictional or unverified integration.
 
 A candidate is not an available tool. Before dispatch, verify:
 1. The tool is installed or its service is reachable.
