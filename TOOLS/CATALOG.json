@@ -10,7 +10,11 @@
         "dialogue_writing",
         "script_review"
       ],
-      "candidate_tool_ids": []
+      "candidate_tool_ids": [],
+      "candidate_provider_ids": [
+        "LOCAL_DETERMINISTIC_STUDIO",
+        "OPENAI_COMPATIBLE_CLOUD"
+      ]
     },
     {
       "task_id": "IMAGE_GENERATION",
@@ -22,6 +26,9 @@
       ],
       "candidate_tool_ids": [
         "COMFYUI"
+      ],
+      "candidate_provider_ids": [
+        "COMFYUI_LOCAL_GRAPH"
       ]
     },
     {
@@ -121,6 +128,9 @@
       ],
       "candidate_tool_ids": [
         "COMFYUI"
+      ],
+      "candidate_provider_ids": [
+        "COMFYUI_LOCAL_GRAPH"
       ]
     },
     {
@@ -131,7 +141,11 @@
         "voice_generation",
         "audio_synthesis"
       ],
-      "candidate_tool_ids": []
+      "candidate_tool_ids": [],
+      "candidate_provider_ids": [
+        "ELEVENLABS_TTS",
+        "LOCAL_KOKORO_TTS"
+      ]
     },
     {
       "task_id": "EDITING_DELIVERY",
@@ -256,6 +270,89 @@
       "evidence": [],
       "limitations": [
         "Animation Forge adapter does not launch Unreal Editor or verify a rendered output."
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "provider_id": "LOCAL_DETERMINISTIC_STUDIO",
+      "profile_paths": [
+        "PROVIDERS/LLM/DEFAULT_LLM_PROFILE.md"
+      ],
+      "category": "LLM",
+      "capability_tags": [
+        "story_analysis",
+        "screenplay_generation",
+        "dialogue_writing"
+      ],
+      "integration_status": "SIMULATION_ONLY",
+      "limitations": [
+        "ProviderManager currently records metadata and estimated usage; it does not return real generated text."
+      ]
+    },
+    {
+      "provider_id": "OPENAI_COMPATIBLE_CLOUD",
+      "profile_paths": [
+        "PROVIDERS/LLM/DEFAULT_LLM_PROFILE.md"
+      ],
+      "category": "LLM",
+      "capability_tags": [
+        "story_analysis",
+        "screenplay_generation",
+        "dialogue_writing"
+      ],
+      "integration_status": "SIMULATION_ONLY",
+      "limitations": [
+        "ProviderManager currently does not make a request to an OpenAI-compatible endpoint."
+      ]
+    },
+    {
+      "provider_id": "ELEVENLABS_TTS",
+      "profile_paths": [
+        "PROVIDERS/TTS/ELEVENLABS_PROFILE.md"
+      ],
+      "category": "TTS",
+      "capability_tags": [
+        "tts",
+        "voice_generation",
+        "dialogue_synthesis"
+      ],
+      "integration_status": "SIMULATION_ONLY",
+      "limitations": [
+        "Current production audio path generates synthetic tone WAVs rather than invoking ElevenLabs."
+      ]
+    },
+    {
+      "provider_id": "LOCAL_KOKORO_TTS",
+      "profile_paths": [
+        "PROVIDERS/TTS/LOCAL_KOKORO_XTTS_PROFILE.md"
+      ],
+      "category": "TTS",
+      "capability_tags": [
+        "tts",
+        "local_tts",
+        "voice_generation"
+      ],
+      "integration_status": "SIMULATION_ONLY",
+      "limitations": [
+        "Kokoro metadata is registered, but current production audio path does not invoke the model."
+      ]
+    },
+    {
+      "provider_id": "COMFYUI_LOCAL_GRAPH",
+      "profile_paths": [
+        "PROVIDERS/IMAGE/COMFYUI_FLUX_SDXL_PROFILE.md",
+        "PROVIDERS/VIDEO/COMFYUI_WAN_LTX_PROFILE.md"
+      ],
+      "category": "IMAGE_VIDEO",
+      "capability_tags": [
+        "image_generation",
+        "image_to_image",
+        "video_generation"
+      ],
+      "integration_status": "SIMULATION_ONLY",
+      "limitations": [
+        "The provider manager registers metadata, but the adapter does not dispatch a workflow to ComfyUI."
       ]
     }
   ]
