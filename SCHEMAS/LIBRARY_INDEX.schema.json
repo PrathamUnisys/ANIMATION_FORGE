@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeLibraryIndex",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["index_version", "assets"],
+  "properties": {
+    "index_version": {"type": "string"},
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "display_name", "media_type", "group", "storage_root_id", "location_uri", "revision", "approval_status", "tags", "licence", "provenance", "created_at"],
+        "properties": {
+          "asset_id": {"type": "string", "pattern": "^AST_[A-Z0-9_]+$"},
+          "display_name": {"type": "string", "minLength": 1},
+          "media_type": {"enum": ["character", "environment", "prop", "texture", "model", "rig", "animation", "storyboard", "image", "audio", "video", "subtitle", "project_file", "document"]},
+          "group": {"enum": ["PROJECT_ASSET", "SERIES_ASSET", "SHARED_LIBRARY", "CHANNEL_BRAND", "REFERENCE", "EXPORT"]},
+          "project_id": {"type": ["string", "null"]},
+          "series_id": {"type": ["string", "null"]},
+          "channel_style_id": {"type": ["string", "null"]},
+          "storage_root_id": {"type": "string"},
+          "location_uri": {"type": "string", "minLength": 1},
+          "content_hash_sha256": {"type": ["string", "null"], "pattern": "^([a-fA-F0-9]{64})?$"},
+          "revision": {"type": "integer", "minimum": 1},
+          "approval_status": {"enum": ["DRAFT", "AWAITING_HUMAN_REVIEW", "APPROVED", "REVISION_REQUESTED", "REJECTED", "ARCHIVED"]},
+          "tags": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "licence": {
+            "type": "object",
+            "required": ["status", "summary"],
+            "properties": {
+              "status": {"enum": ["COMMERCIAL_OK", "NON_COMMERCIAL_ONLY", "ATTRIBUTION_REQUIRED", "REVIEW_REQUIRED", "UNKNOWN"]},
+              "summary": {"type": "string"},
+              "source_uri": {"type": ["string", "null"]}
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "required": ["source_type"],
+            "properties": {
+              "source_type": {"enum": ["AI_GENERATED", "HUMAN_CREATED", "IMPORTED", "EXTERNAL_REFERENCE", "DERIVED"]},
+              "tool_id": {"type": ["string", "null"]},
+              "tool_version": {"type": ["string", "null"]},
+              "model_id": {"type": ["string", "null"]},
+              "workflow_ref": {"type": ["string", "null"]},
+              "prompt_ref": {"type": ["string", "null"]},
+              "seed": {"type": ["integer", "null"]},
+              "parent_asset_ids": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "created_at": {"type": "string"},
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}
