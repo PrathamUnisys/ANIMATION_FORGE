@@ -3,54 +3,290 @@
   "title": "AnimationForgeLibraryIndex",
   "type": "object",
   "additionalProperties": false,
-  "required": ["index_version", "assets"],
+  "required": [
+    "index_version",
+    "assets"
+  ],
   "properties": {
-    "index_version": {"type": "string"},
+    "index_version": {
+      "type": "string"
+    },
     "assets": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["asset_id", "display_name", "media_type", "group", "storage_root_id", "location_uri", "revision", "approval_status", "tags", "licence", "provenance", "created_at"],
+        "required": [
+          "asset_id",
+          "display_name",
+          "media_type",
+          "group",
+          "storage_root_id",
+          "relative_path",
+          "revision",
+          "approval_status",
+          "tags",
+          "licence",
+          "provenance",
+          "created_at"
+        ],
         "properties": {
-          "asset_id": {"type": "string", "pattern": "^AST_[A-Z0-9_]+$"},
-          "display_name": {"type": "string", "minLength": 1},
-          "media_type": {"enum": ["character", "environment", "prop", "texture", "model", "rig", "animation", "storyboard", "image", "audio", "video", "subtitle", "project_file", "document"]},
-          "group": {"enum": ["PROJECT_ASSET", "SERIES_ASSET", "SHARED_LIBRARY", "CHANNEL_BRAND", "REFERENCE", "EXPORT"]},
-          "project_id": {"type": ["string", "null"]},
-          "series_id": {"type": ["string", "null"]},
-          "channel_style_id": {"type": ["string", "null"]},
-          "storage_root_id": {"type": "string"},
-          "location_uri": {"type": "string", "minLength": 1},
-          "content_hash_sha256": {"type": ["string", "null"], "pattern": "^([a-fA-F0-9]{64})?$"},
-          "revision": {"type": "integer", "minimum": 1},
-          "approval_status": {"enum": ["DRAFT", "AWAITING_HUMAN_REVIEW", "APPROVED", "REVISION_REQUESTED", "REJECTED", "ARCHIVED"]},
-          "tags": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "asset_id": {
+            "type": "string",
+            "pattern": "^AST_[A-Z0-9_]+$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "media_type": {
+            "enum": [
+              "character",
+              "environment",
+              "prop",
+              "texture",
+              "model",
+              "rig",
+              "animation",
+              "storyboard",
+              "image",
+              "audio",
+              "video",
+              "subtitle",
+              "project_file",
+              "document"
+            ]
+          },
+          "group": {
+            "enum": [
+              "PROJECT_ASSET",
+              "SERIES_ASSET",
+              "SHARED_LIBRARY",
+              "CHANNEL_BRAND",
+              "REFERENCE",
+              "EXPORT"
+            ]
+          },
+          "project_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "series_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "channel_style_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "storage_root_id": {
+            "type": "string"
+          },
+          "content_hash_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^([a-fA-F0-9]{64})?$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval_status": {
+            "enum": [
+              "DRAFT",
+              "AWAITING_HUMAN_REVIEW",
+              "APPROVED",
+              "REVISION_REQUESTED",
+              "REJECTED",
+              "ARCHIVED"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
           "licence": {
             "type": "object",
-            "required": ["status", "summary"],
+            "required": [
+              "status",
+              "summary"
+            ],
             "properties": {
-              "status": {"enum": ["COMMERCIAL_OK", "NON_COMMERCIAL_ONLY", "ATTRIBUTION_REQUIRED", "REVIEW_REQUIRED", "UNKNOWN"]},
-              "summary": {"type": "string"},
-              "source_uri": {"type": ["string", "null"]}
+              "status": {
+                "enum": [
+                  "COMMERCIAL_OK",
+                  "NON_COMMERCIAL_ONLY",
+                  "ATTRIBUTION_REQUIRED",
+                  "REVIEW_REQUIRED",
+                  "UNKNOWN"
+                ]
+              },
+              "summary": {
+                "type": "string"
+              },
+              "source_uri": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           },
           "provenance": {
             "type": "object",
-            "required": ["source_type"],
+            "required": [
+              "source_type"
+            ],
             "properties": {
-              "source_type": {"enum": ["AI_GENERATED", "HUMAN_CREATED", "IMPORTED", "EXTERNAL_REFERENCE", "DERIVED"]},
-              "tool_id": {"type": ["string", "null"]},
-              "tool_version": {"type": ["string", "null"]},
-              "model_id": {"type": ["string", "null"]},
-              "workflow_ref": {"type": ["string", "null"]},
-              "prompt_ref": {"type": ["string", "null"]},
-              "seed": {"type": ["integer", "null"]},
-              "parent_asset_ids": {"type": "array", "items": {"type": "string"}}
+              "source_type": {
+                "enum": [
+                  "AI_GENERATED",
+                  "HUMAN_CREATED",
+                  "IMPORTED",
+                  "EXTERNAL_REFERENCE",
+                  "DERIVED"
+                ]
+              },
+              "tool_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "tool_version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "model_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "workflow_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "prompt_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "seed": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "parent_asset_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           },
-          "created_at": {"type": "string"},
-          "notes": {"type": "string"}
+          "created_at": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "relative_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(^|/)\\.\\.(/|$)).+$"
+          },
+          "technical_metadata": {
+            "type": "object",
+            "properties": {
+              "mime_type": {
+                "type": "string"
+              },
+              "byte_size": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "width": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "duration_seconds": {
+                "type": "number",
+                "minimum": 0
+              },
+              "frame_rate": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "frame_start": {
+                "type": "integer"
+              },
+              "frame_end": {
+                "type": "integer"
+              },
+              "sample_rate_hz": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "channels": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "codec": {
+                "type": "string"
+              },
+              "color_space": {
+                "type": "string"
+              }
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "relationship_type",
+                "target_asset_id"
+              ],
+              "properties": {
+                "relationship_type": {
+                  "enum": [
+                    "DERIVED_FROM",
+                    "VARIANT_OF",
+                    "USES",
+                    "BELONGS_TO",
+                    "REFERENCES"
+                  ]
+                },
+                "target_asset_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
