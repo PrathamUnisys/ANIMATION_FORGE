@@ -1,0 +1,31 @@
+{
+  "registry_version": "1.0.0",
+  "profiles": [
+    {
+      "genre_id": "GENRE_FANTASY",
+      "display_name": "Fantasy",
+      "instruction_path": "GENRES/FANTASY/INSTRUCTION.md",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "tags": [
+        "fantasy",
+        "worldbuilding",
+        "magic",
+        "mythic_conflict"
+      ]
+    },
+    {
+      "genre_id": "GENRE_COMEDY",
+      "display_name": "Comedy",
+      "instruction_path": "GENRES/COMEDY/INSTRUCTION.md",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "tags": [
+        "comedy",
+        "comic_engine",
+        "visual_comedy",
+        "dialogue_timing"
+      ]
+    }
+  ]
+}
