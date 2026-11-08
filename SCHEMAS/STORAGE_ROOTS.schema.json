@@ -3,24 +3,83 @@
   "title": "AnimationForgeStorageRoots",
   "type": "object",
   "additionalProperties": false,
-  "required": ["config_version", "storage_roots"],
+  "required": [
+    "config_version",
+    "storage_roots"
+  ],
   "properties": {
-    "config_version": {"type": "string"},
-    "note": {"type": "string"},
+    "config_version": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
     "storage_roots": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["root_id", "display_name", "uri", "storage_type", "status"],
+        "required": [
+          "root_id",
+          "display_name",
+          "uri",
+          "storage_type",
+          "status"
+        ],
         "properties": {
-          "root_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
-          "display_name": {"type": "string", "minLength": 1},
-          "uri": {"type": ["string", "null"]},
-          "storage_type": {"enum": ["LOCAL_FILESYSTEM", "NETWORK_SHARE", "OBJECT_STORAGE"]},
-          "status": {"enum": ["UNCONFIGURED", "CONFIGURED", "UNAVAILABLE"]}
-        }
-      }
+          "root_id": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]+$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "storage_type": {
+            "enum": [
+              "LOCAL_FILESYSTEM",
+              "NETWORK_SHARE",
+              "OBJECT_STORAGE"
+            ]
+          },
+          "status": {
+            "enum": [
+              "UNCONFIGURED",
+              "CONFIGURED",
+              "UNAVAILABLE"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "CONFIGURED"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "uri": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      },
+      "uniqueItems": true
     }
   }
 }
