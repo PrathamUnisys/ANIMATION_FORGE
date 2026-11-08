@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeGenreRegistry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["registry_version", "profiles"],
+  "properties": {
+    "registry_version": {"type": "string"},
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["genre_id", "display_name", "instruction_path", "version", "status", "tags"],
+        "properties": {
+          "genre_id": {"type": "string", "pattern": "^GENRE_[A-Z0-9_]+$"},
+          "display_name": {"type": "string", "minLength": 1},
+          "instruction_path": {"type": "string", "pattern": "^GENRES/.+/INSTRUCTION\\.md$"},
+          "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+          "status": {"enum": ["ACTIVE", "DRAFT", "RETIRED"]},
+          "tags": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    }
+  }
+}
