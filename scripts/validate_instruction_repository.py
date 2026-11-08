@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import jsonschema
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -50,10 +51,16 @@ def governed_markdown(root: Path) -> list[Path]:
     patterns = (
         "CORE/*.md",
         "MODES/*.md",
+        "GENRES/**/*.md",
+        "STYLES/**/*.md",
+        "TOOLS/**/*.md",
+        "LIBRARY/**/*.md",
         "AGENTS/*/INSTRUCTION.md",
         "DEPARTMENTS/*/DEPARTMENT_RULES.md",
         "ORCHESTRATION/PRODUCTION_DIRECTOR/INSTRUCTION.md",
         "PROVIDERS/**/*.md",
+        "DOCS/CHANGE_REQUESTS/*.md",
+        "DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md",
         "DOCS/CAPABILITY_REGISTRY.md",
         "DOCS/AGENT_GUIDE.md",
         "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md",
@@ -198,6 +205,107 @@ def _validate_status_contracts(root: Path) -> list[str]:
     return [message for message, passed in checks.items() if not passed]
 
 
+def _validate_reference_catalogues(root: Path) -> list[str]:
+    """Validate modular creative profiles, tool task mappings, and asset index contracts."""
+    errors: list[str] = []
+
+    def load_json(relative_path: str) -> Any:
+        path = root / relative_path
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{relative_path}: could not load valid JSON: {exc}")
+            return None
+
+    def validate_document(data: Any, schema_path: str, label: str) -> None:
+        schema = load_json(schema_path)
+        if data is None or schema is None:
+            return
+        try:
+            resolver = jsonschema.RefResolver(base_uri=(root / schema_path).as_uri(), referrer=schema)
+            validator = jsonschema.Draft202012Validator(schema, resolver=resolver)
+            for error in validator.iter_errors(data):
+                errors.append(f"{label}: {error.message} at {'/'.join(str(part) for part in error.absolute_path)}")
+        except (jsonschema.SchemaError, jsonschema.RefResolutionError, OSError) as exc:
+            errors.append(f"{schema_path}: schema validation failed: {exc}")
+
+    genres = load_json("GENRES/REGISTRY.json")
+    validate_document(genres, "SCHEMAS/GENRE_REGISTRY.schema.json", "GENRES/REGISTRY.json")
+    if isinstance(genres, dict):
+        seen_genres: set[str] = set()
+        for profile in genres.get("profiles", []):
+            profile_id = profile.get("genre_id")
+            if profile_id in seen_genres:
+                errors.append(f"GENRES/REGISTRY.json: duplicate genre ID {profile_id}")
+            seen_genres.add(profile_id)
+            source_path = root / profile.get("instruction_path", "")
+            if not source_path.is_file():
+                errors.append(f"GENRES/REGISTRY.json: missing profile file for {profile_id}")
+                continue
+            metadata, _, parse_error = parse_frontmatter(source_path)
+            if parse_error or not metadata:
+                errors.append(f"GENRES/REGISTRY.json: invalid front matter for {profile_id}: {parse_error}")
+            elif metadata.get("prompt_id") != profile_id or metadata.get("version") != profile.get("version"):
+                errors.append(f"GENRES/REGISTRY.json: ID/version mismatch for {profile_id}")
+
+    channels = load_json("STYLES/CHANNELS.json")
+    validate_document(channels, "SCHEMAS/CHANNEL_STYLE_REGISTRY.schema.json", "STYLES/CHANNELS.json")
+    if isinstance(channels, dict):
+        seen_channels: set[str] = set()
+        for profile in channels.get("channels", []):
+            profile_id = profile.get("channel_style_id")
+            if profile_id in seen_channels:
+                errors.append(f"STYLES/CHANNELS.json: duplicate channel style ID {profile_id}")
+            seen_channels.add(profile_id)
+            guide_path = root / profile.get("guide_path", "")
+            if not guide_path.is_file():
+                errors.append(f"STYLES/CHANNELS.json: missing style guide for {profile_id}")
+                continue
+            metadata, _, parse_error = parse_frontmatter(guide_path)
+            if parse_error or not metadata:
+                errors.append(f"STYLES/CHANNELS.json: invalid front matter for {profile_id}: {parse_error}")
+            elif metadata.get("version") != profile.get("version"):
+                errors.append(f"STYLES/CHANNELS.json: version mismatch for {profile_id}")
+
+    catalogue = load_json("TOOLS/CATALOG.json")
+    validate_document(catalogue, "SCHEMAS/TOOL_CATALOG.schema.json", "TOOLS/CATALOG.json")
+    if isinstance(catalogue, dict):
+        tools = {item.get("tool_id"): item for item in catalogue.get("tools", [])}
+        groups = {item.get("task_id"): item for item in catalogue.get("task_groups", [])}
+        if len(tools) != len(catalogue.get("tools", [])):
+            errors.append("TOOLS/CATALOG.json: duplicate tool IDs")
+        if len(groups) != len(catalogue.get("task_groups", [])):
+            errors.append("TOOLS/CATALOG.json: duplicate task IDs")
+        for tool_id, tool in tools.items():
+            manual = root / tool.get("manual_path", "")
+            if not manual.is_file():
+                errors.append(f"TOOLS/CATALOG.json: missing manual for {tool_id}")
+            for task_id in tool.get("tasks", []):
+                if task_id not in groups:
+                    errors.append(f"TOOLS/CATALOG.json: {tool_id} references unknown task {task_id}")
+                elif tool_id not in groups[task_id].get("candidate_tool_ids", []):
+                    errors.append(f"TOOLS/CATALOG.json: task {task_id} omits candidate {tool_id}")
+            if tool.get("availability_status") in {"INSTALLED", "CONNECTED"} and not tool.get("evidence"):
+                errors.append(f"TOOLS/CATALOG.json: {tool_id} claims availability without verification evidence")
+            if tool.get("integration_status") == "END_TO_END_VERIFIED" and not tool.get("evidence"):
+                errors.append(f"TOOLS/CATALOG.json: {tool_id} claims end-to-end verification without evidence")
+        for task_id, group in groups.items():
+            for tool_id in group.get("candidate_tool_ids", []):
+                if tool_id not in tools:
+                    errors.append(f"TOOLS/CATALOG.json: task {task_id} references unknown tool {tool_id}")
+                elif task_id not in tools[tool_id].get("tasks", []):
+                    errors.append(f"TOOLS/CATALOG.json: {tool_id} does not list task {task_id}")
+
+    asset_index = load_json("LIBRARY/ASSET_INDEX.json")
+    validate_document(asset_index, "SCHEMAS/LIBRARY_INDEX.schema.json", "LIBRARY/ASSET_INDEX.json")
+    if isinstance(asset_index, dict):
+        asset_ids = [asset.get("asset_id") for asset in asset_index.get("assets", [])]
+        if len(asset_ids) != len(set(asset_ids)):
+            errors.append("LIBRARY/ASSET_INDEX.json: duplicate asset IDs")
+
+    return errors
+
+
 def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
     root = root.resolve()
     files = governed_markdown(root)
@@ -301,6 +409,10 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
         for operation in sorted(referenced - documented_operations):
             findings.append(Finding("undefined-operation", relative(path, root), f"operation is not in the capability registry: {operation}"))
 
+    # Rule 5: validate versioned genre/style registries, tool mappings and asset metadata.
+    for message in _validate_reference_catalogues(root):
+        findings.append(Finding("reference-catalogues", "GENRES/STYLES/TOOLS/LIBRARY", message))
+
     # Rule 5: keep schema status vocabularies aligned where schemas define a mapping.
     for message in _validate_status_contracts(root):
         findings.append(Finding("status-vocabulary", "SCHEMAS/", message))
@@ -395,7 +507,7 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
         "governed_markdown_files": len(files),
         "unique_prompt_ids": len(ids),
         "capability_operations": len(actual_operations),
-        "validation_rules": 8,
+        "validation_rules": 9,
         "findings": len(findings),
     }
     return findings, summary
