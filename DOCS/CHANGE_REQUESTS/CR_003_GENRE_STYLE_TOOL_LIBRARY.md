@@ -62,7 +62,7 @@ A channel style guide may shape presentation but cannot rewrite story canon or s
 
 Use logical groups such as project assets, series assets, reusable library assets, channel-brand assets, references and exports. Every indexed item should have a stable asset ID, type, group, tags, location URI, project/series/channel association where applicable, revision, approval state, licence and provenance.
 
-Do not copy all media into the repository. Store paths/URIs and metadata; the actual files remain in configured storage roots.
+Do not copy all media into the repository. Store storage-root IDs and root-relative paths plus metadata; the actual files remain in configured storage roots. For the eventual runtime, use SQLite as the queryable source of truth and keep JSON as a portable bootstrap/import-export representation.
 
 ## Implementation boundary
 
