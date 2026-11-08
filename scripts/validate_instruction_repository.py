@@ -332,6 +332,8 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
                     errors.append(f"LIBRARY/ASSET_INDEX.json: malformed tag {tag!r}")
                 elif dimension in dimensions and value not in dimensions[dimension]:
                     errors.append(f"LIBRARY/ASSET_INDEX.json: unknown {dimension} tag value {value!r}")
+                elif dimension in reference_dimensions and not re.fullmatch(reference_dimensions[dimension].get("id_pattern", r"(?!)"), value):
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: invalid {dimension} reference tag value {value!r}")
                 elif dimension not in dimensions and dimension not in reference_dimensions:
                     errors.append(f"LIBRARY/ASSET_INDEX.json: unknown tag dimension {dimension!r}")
 
@@ -445,11 +447,11 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
     for message in _validate_reference_catalogues(root):
         findings.append(Finding("reference-catalogues", "GENRES/STYLES/TOOLS/LIBRARY", message))
 
-    # Rule 5: keep schema status vocabularies aligned where schemas define a mapping.
+    # Rule 6: keep schema status vocabularies aligned where schemas define a mapping.
     for message in _validate_status_contracts(root):
         findings.append(Finding("status-vocabulary", "SCHEMAS/", message))
 
-    # Rule 6: each specialized agent must have distinct operational and approval boundaries.
+    # Rule 7: each specialized agent must have distinct operational and approval boundaries.
     agent_files = sorted((root / "AGENTS").glob("*/INSTRUCTION.md"))
     agent_files.append(root / "ORCHESTRATION/PRODUCTION_DIRECTOR/INSTRUCTION.md")
     forbidden_allowed = ("auto_approve", "human_approve", "bypass_human_approval", "apply_unapproved_change")
@@ -486,7 +488,7 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
             if not any(any(alias in title for alias in aliases) for title in sections):
                 findings.append(Finding("agent-completeness", rel, f"missing section: {required}"))
 
-    # Rule 7: operating modes and departments must cover their required workflow concerns.
+    # Rule 8: operating modes and departments must cover their required workflow concerns.
     mode_markers = (
         "purpose",
         "scope",
@@ -524,7 +526,7 @@ def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
         if missing:
             findings.append(Finding("department-completeness", relative(path, root), f"missing concepts: {', '.join(missing)}"))
 
-    # Rule 8: make sure the audit inventory points to every governed document.
+    # Rule 9: make sure the audit inventory points to every governed document.
     audit_path = root / "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md"
     if audit_path.exists():
         audit_text = audit_path.read_text(encoding="utf-8").replace("\\", "/")
