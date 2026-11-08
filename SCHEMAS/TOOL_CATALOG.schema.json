@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeToolCatalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["catalog_version", "task_groups", "tools"],
+  "properties": {
+    "catalog_version": {"type": "string"},
+    "task_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "display_name", "tags", "candidate_tool_ids"],
+        "properties": {
+          "task_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+          "display_name": {"type": "string"},
+          "tags": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "candidate_tool_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+        }
+      }
+    },
+    "tools": {"type": "array", "items": {"$ref": "TOOL_PROFILE.schema.json"}}
+  }
+}
