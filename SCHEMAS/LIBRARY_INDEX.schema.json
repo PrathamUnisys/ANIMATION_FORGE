@@ -212,7 +212,7 @@
           "relative_path": {
             "type": "string",
             "minLength": 1,
-            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(^|/)\\.\\.(/|$)).+$"
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.(?:/|$)).+$"
           },
           "technical_metadata": {
             "type": "object",
@@ -287,7 +287,78 @@
               }
             }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "group": {
+                  "const": "PROJECT_ASSET"
+                }
+              },
+              "required": [
+                "group"
+              ]
+            },
+            "then": {
+              "required": [
+                "project_id"
+              ],
+              "properties": {
+                "project_id": {
+                  "type": "string",
+                  "pattern": "^PROJECT_[A-Z0-9_]+$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "group": {
+                  "const": "SERIES_ASSET"
+                }
+              },
+              "required": [
+                "group"
+              ]
+            },
+            "then": {
+              "required": [
+                "series_id"
+              ],
+              "properties": {
+                "series_id": {
+                  "type": "string",
+                  "pattern": "^SERIES_[A-Z0-9_]+$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "group": {
+                  "const": "CHANNEL_BRAND"
+                }
+              },
+              "required": [
+                "group"
+              ]
+            },
+            "then": {
+              "required": [
+                "channel_style_id"
+              ],
+              "properties": {
+                "channel_style_id": {
+                  "type": "string",
+                  "pattern": "^STYLE_[A-Z0-9_]+$"
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }
