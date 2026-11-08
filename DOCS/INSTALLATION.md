@@ -40,6 +40,8 @@ npm run dev   # http://127.0.0.1:1420
 ## Tests
 ```powershell
 .\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py   # expected: 15 passed
+.\.venv\Scripts\python -m pytest -q TESTS/test_instruction_repository.py
+.\.venv\Scripts\python scripts\validate_instruction_repository.py
 ```
 
 ## Desktop / sidecar (optional)

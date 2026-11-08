@@ -5,6 +5,11 @@
 **Workspace:** `D:\Work\ANIMATION_FORGE` (not a git repo).  
 **Host/tooling observed:** Windows (win32), Python **3.12.3**, Node **v22.20.0**, npm **10.9.3**, Rust/cargo **1.99.1** (`rustc 1.99.1`).
 
+> This is a historical build report from before approved `CR_001`; the health
+> smoke test below observed `ARCH_V1.0.0`. Instruction-authoring and current
+> repository validation results are tracked in
+> [INSTRUCTION_REPOSITORY_AUDIT.md](./INSTRUCTION_REPOSITORY_AUDIT.md).
+
 ## Summary (outcome)
 | Area | Status | Evidence |
 |---|---|---|
@@ -32,7 +37,7 @@
 - `DOCS/INSTALLATION.md`, `DOCS/DEVELOPER_GUIDE.md` — updated to reflect local env/build/test reality and this report.
 
 ### Added
-- `requirements.txt` — backend/test deps (pinned ranges): `fastapi>=0.115,<1`, `uvicorn>=0.30,<1`, `pydantic>=2.7,<3`, `jsonschema>=4.22,<5`, `Pillow>=10.3,<12`, `pytest>=8.2,<9`.
+- `requirements.txt` — backend/test deps (pinned ranges): `fastapi>=0.115,<1`, `uvicorn>=0.30,<1`, `pydantic>=2.7,<3`, `jsonschema>=4.22,<5`, `Pillow>=10.3,<12`, `pytest>=8.2,<9`, `PyYAML>=6,<7` (used by the instruction repository validator).
 - `.gitignore` — `.venv/`, `frontend/node_modules/`, `frontend/dist/`, `__pycache__/`, `*.pyc`, `.pytest_cache/`, `*.egg-info/`, `src-tauri/target/`, `src-tauri/binaries/`, `.pyi-build/`, `.pyi-spec/`, `*.spec`.
 - `frontend/` scaffolding (was missing; required by `package.json` scripts and Tauri `frontendDist`): `index.html` (entry `/src/main.tsx`), `src/main.tsx`, `src/index.css` (Tailwind), `vite.config.ts` (React plugin; dev `127.0.0.1:1420`, strict; **proxy `/api` → `127.0.0.1:8765` with `x-forge-token` header** for local dev), `tsconfig.json`, `tsconfig.node.json`, `tailwind.config.js`, `postcss.config.js`. Existing `frontend/src/App.tsx` and `frontend/src/store/useForgeStore.ts` retained; `App.tsx` wired to fetch `/api/health` + `/api/dashboard` and render status/nav/counts/JSON.
 - `src-tauri/build.rs` — `fn main(){ tauri_build::build(); }` (required; `cargo build` failed with `OUT_DIR env var is not set` without it).
@@ -55,6 +60,8 @@ python -m venv .venv
 ```powershell
 .\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py
 # expected: 15 passed
+.\.venv\Scripts\python -m pytest -q TESTS/test_instruction_repository.py
+.\.venv\Scripts\python scripts\validate_instruction_repository.py
 ```
 
 ### 3) Frontend — local node_modules (no global npm installs)

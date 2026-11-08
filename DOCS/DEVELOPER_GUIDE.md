@@ -24,6 +24,12 @@
 - Build: `cd frontend && npm run build` (`tsc && vite build`) → `dist/`. Dev: `npm run dev` on `127.0.0.1:1420`.
 - `src/App.tsx` consumes `/api/health` + `/api/dashboard`; Vite proxy injects the token in dev. Production/Tauri wiring should source the token/config from the sidecar bridge, not the dev proxy.
 
+## Instruction repository validation
+- Governed instruction Markdown uses YAML front matter with a unique `prompt_id`, version, date, dependencies, and change history.
+- After installing the project requirements, run `.\.venv\Scripts\python.exe scripts\validate_instruction_repository.py` from the repository root.
+- Run its focused tests with `.\.venv\Scripts\python.exe -m pytest -q TESTS\test_instruction_repository.py`.
+- The validator checks front matter, dependency references/cycles, internal Markdown links, source-to-document operation IDs, schema status mappings, agent approval/output boundaries, and audit inventory coverage. It does not execute application workflows or prove semantic consistency; review results and the audit report as well.
+
 ## Packaging notes
 - Sidecar: build with venv-local PyInstaller into `src-tauri/binaries/animation-forge-backend-x86_64-pc-windows-msvc(.exe)`.
 - `scripts/build_windows_installer.ps1` still references global `pyinstaller`/`npx @tauri-apps/cli@latest`; prefer the venv + local-CLI commands in `DOCS/BUILD_AND_TEST_REPORT.md`. MSI/NSIS bundles require WiX/NSIS installed.

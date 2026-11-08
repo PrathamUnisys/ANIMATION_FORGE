@@ -1,0 +1,420 @@
+"""Validate governed instruction Markdown and its cross-file contracts."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+from typing import Any
+from urllib.parse import unquote, urlsplit
+
+import yaml
+
+
+REQUIRED_FRONTMATTER = {
+    "prompt_id",
+    "version",
+    "modified_date",
+    "description",
+    "dependencies",
+    "change_history",
+}
+VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
+PROMPT_ID_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]+$")
+MCP_OPERATION_PATTERN = re.compile(r'"(forge\.[A-Za-z0-9_.]+)"\s*,')
+ROUTE_PATTERN = re.compile(
+    r'@app\.(get|post|put|patch|delete)\(\s*["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+OPERATION_REFERENCE_PATTERN = re.compile(r"`(forge\.[A-Za-z0-9_.]+)`")
+HTTP_REFERENCE_PATTERN = re.compile(r"`((?:GET|POST|PUT|PATCH|DELETE) /api/[A-Za-z0-9_{}./-]+)`")
+MARKDOWN_LINK_PATTERN = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+
+
+@dataclass(frozen=True)
+class Finding:
+    rule: str
+    path: str
+    message: str
+
+    def __str__(self) -> str:
+        return f"{self.rule}: {self.path}: {self.message}"
+
+
+def governed_markdown(root: Path) -> list[Path]:
+    patterns = (
+        "CORE/*.md",
+        "MODES/*.md",
+        "AGENTS/*/INSTRUCTION.md",
+        "DEPARTMENTS/*/DEPARTMENT_RULES.md",
+        "ORCHESTRATION/PRODUCTION_DIRECTOR/INSTRUCTION.md",
+        "PROVIDERS/**/*.md",
+        "DOCS/CAPABILITY_REGISTRY.md",
+        "DOCS/AGENT_GUIDE.md",
+        "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md",
+        "DOCS/TOOL_RND_GUIDE.md",
+        "DOCS/*_INTEGRATION_GUIDE.md",
+        "DOCS/TOOL_INTELLIGENCE/*.md",
+        "DOCS/INTEGRATIONS/*.md",
+        "DOCS/TEMPLATES/*.md",
+    )
+    files = {path.resolve() for pattern in patterns for path in root.glob(pattern) if path.is_file()}
+    return sorted(files, key=lambda path: path.as_posix().casefold())
+
+
+def relative(path: Path, root: Path) -> str:
+    return path.relative_to(root.resolve()).as_posix()
+
+
+def parse_frontmatter(path: Path) -> tuple[dict[str, Any] | None, str, str | None]:
+    raw = path.read_text(encoding="utf-8")
+    lines = raw.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None, raw, "missing opening YAML front matter delimiter"
+    closing = next((index for index in range(1, len(lines)) if lines[index].strip() == "---"), None)
+    if closing is None:
+        return None, raw, "missing closing YAML front matter delimiter"
+    header = "\n".join(lines[1:closing])
+    try:
+        parsed = yaml.safe_load(header)
+    except yaml.YAMLError as exc:
+        return None, "\n".join(lines[closing + 1 :]), f"invalid YAML: {exc}"
+    if not isinstance(parsed, dict):
+        return None, "\n".join(lines[closing + 1 :]), "front matter must be a YAML mapping"
+    return parsed, "\n".join(lines[closing + 1 :]), None
+
+
+def expected_operations(root: Path) -> set[str]:
+    gateway = (root / "backend/integrations/mcp_gateway.py").read_text(encoding="utf-8")
+    main = (root / "backend/main.py").read_text(encoding="utf-8")
+    operations = set(MCP_OPERATION_PATTERN.findall(gateway))
+    operations.update(
+        f"{method.upper()} {route}"
+        for method, route in ROUTE_PATTERN.findall(main)
+        if route.startswith("/api/")
+    )
+    return operations
+
+
+def registry_operations(path: Path) -> set[str]:
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    return set(OPERATION_REFERENCE_PATTERN.findall(text)) | set(HTTP_REFERENCE_PATTERN.findall(text))
+
+
+def _resolve_dependency(dep: str, source: Path, root: Path, ids: dict[str, Path]) -> Path | None:
+    if dep in ids:
+        return ids[dep]
+    normalized = dep.replace("\\", "/")
+    if normalized.lower().endswith(".md") or "/" in normalized:
+        candidates = [root / normalized, source.parent / normalized]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate.resolve()
+    return None
+
+
+def _find_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
+    cycles: list[list[str]] = []
+    active: list[str] = []
+    completed: set[str] = set()
+
+    def visit(node: str) -> None:
+        if node in active:
+            start = active.index(node)
+            cycles.append(active[start:] + [node])
+            return
+        if node in completed:
+            return
+        active.append(node)
+        for neighbor in sorted(graph.get(node, set())):
+            visit(neighbor)
+        active.pop()
+        completed.add(node)
+
+    for node in sorted(graph):
+        visit(node)
+    return cycles
+
+
+def _resolve_markdown_link(target: str, source: Path, root: Path) -> Path | None:
+    target = target.strip()
+    if target.startswith("<") and target.endswith(">"):
+        target = target[1:-1]
+    parsed = urlsplit(target)
+    if parsed.scheme or not parsed.path:
+        return None
+    path_text = unquote(parsed.path).replace("\\", "/")
+    if path_text.startswith("/"):
+        candidate = root / path_text.lstrip("/")
+    else:
+        candidate = source.parent / path_text
+        if not candidate.exists():
+            candidate = root / path_text
+    return candidate
+
+
+def _schema_enum(schema_path: Path, property_name: str, nested: str | None = None) -> set[str]:
+    data = json.loads(schema_path.read_text(encoding="utf-8"))
+    node: Any = data["properties"][property_name]
+    if nested is not None:
+        node = node["items"]["properties"][nested]
+    return set(node.get("enum", []))
+
+
+def _validate_status_contracts(root: Path) -> list[str]:
+    schemas = root / "SCHEMAS"
+    approval = _schema_enum(schemas / "APPROVAL.schema.json", "state")
+    asset = _schema_enum(schemas / "ASSET.schema.json", "approval_status")
+    task = _schema_enum(schemas / "TASK.schema.json", "status")
+    agent = _schema_enum(schemas / "AGENT.schema.json", "status")
+    agent_approval = _schema_enum(schemas / "AGENT.schema.json", "outputs", "approval_status")
+    tool = _schema_enum(schemas / "TOOL.schema.json", "state")
+    research = _schema_enum(schemas / "RESEARCH_REPORT.schema.json", "decision_status")
+
+    checks = {
+        "Asset approval states must equal approval states plus ARCHIVED": asset == approval | {"ARCHIVED"},
+        "Task states must equal approval states plus BLOCKED": task == approval | {"BLOCKED"},
+        "Agent output approval states must preserve the documented summary vocabulary": agent_approval == {
+            "pending",
+            "awaiting_human_review",
+            "approved",
+            "revision_requested",
+            "rejected",
+        } and agent_approval - {"pending"} == {value.lower() for value in approval if value in {
+            "AWAITING_HUMAN_REVIEW",
+            "APPROVED",
+            "REVISION_REQUESTED",
+            "REJECTED",
+        }},
+        "Agent operation states must match the documented envelope": agent == {"awaiting_review", "completed_analysis", "failed", "blocked"},
+        "Tool candidate lifecycle states must remain complete": tool == {"DISCOVERED", "RESEARCHED", "TESTED", "RECOMMENDED", "APPROVED", "REJECTED", "RETIRED"},
+        "Research decision states must remain explicit": research == {"AWAITING_HUMAN_APPROVAL", "APPROVED", "REJECTED", "ADDITIONAL_RESEARCH_REQUESTED"},
+    }
+    return [message for message, passed in checks.items() if not passed]
+
+
+def validate(root: Path) -> tuple[list[Finding], dict[str, Any]]:
+    root = root.resolve()
+    files = governed_markdown(root)
+    findings: list[Finding] = []
+    metadata_by_path: dict[Path, dict[str, Any]] = {}
+    ids: dict[str, Path] = {}
+    duplicate_ids: set[str] = set()
+    bodies: dict[Path, str] = {}
+
+    if not files:
+        return [Finding("inventory", ".", "no governed instruction Markdown files were found")], {"files": 0}
+
+    # Rule 1: parse YAML and validate required metadata.
+    for path in files:
+        rel = relative(path, root)
+        metadata, body, parse_error = parse_frontmatter(path)
+        bodies[path] = body
+        if parse_error:
+            findings.append(Finding("frontmatter", rel, parse_error))
+            continue
+        assert metadata is not None
+        metadata_by_path[path] = metadata
+        missing = REQUIRED_FRONTMATTER - metadata.keys()
+        if missing:
+            findings.append(Finding("frontmatter", rel, f"missing keys: {', '.join(sorted(missing))}"))
+        prompt_id = metadata.get("prompt_id")
+        if not isinstance(prompt_id, str) or not PROMPT_ID_PATTERN.fullmatch(prompt_id):
+            findings.append(Finding("frontmatter", rel, "prompt_id must be a unique uppercase identifier"))
+        elif prompt_id in ids:
+            duplicate_ids.add(prompt_id)
+            findings.append(Finding("unique-id", rel, f"{prompt_id} is already used by {relative(ids[prompt_id], root)}"))
+        else:
+            ids[prompt_id] = path
+        if not isinstance(metadata.get("version"), str) or not VERSION_PATTERN.fullmatch(metadata["version"]):
+            findings.append(Finding("frontmatter", rel, "version must use MAJOR.MINOR.PATCH"))
+        try:
+            modified_date = metadata.get("modified_date")
+            if isinstance(modified_date, date):
+                pass
+            elif isinstance(modified_date, str):
+                date.fromisoformat(modified_date)
+            else:
+                raise ValueError
+        except ValueError:
+            findings.append(Finding("frontmatter", rel, "modified_date must be an ISO 8601 date"))
+        if not isinstance(metadata.get("description"), str) or not metadata["description"].strip():
+            findings.append(Finding("frontmatter", rel, "description must be non-empty text"))
+        dependencies = metadata.get("dependencies")
+        if not isinstance(dependencies, list) or not all(isinstance(dep, str) for dep in dependencies):
+            findings.append(Finding("frontmatter", rel, "dependencies must be a list of strings"))
+        history = metadata.get("change_history")
+        if not isinstance(history, list) or not history:
+            findings.append(Finding("frontmatter", rel, "change_history must be a non-empty list"))
+        elif any(
+            not isinstance(item, dict)
+            or not {"version", "date", "summary"} <= item.keys()
+            or not isinstance(item.get("version"), str)
+            or not item["version"].strip()
+            or not isinstance(item.get("summary"), str)
+            or not item["summary"].strip()
+            or not isinstance(item.get("date"), (str, date))
+            for item in history
+        ):
+            findings.append(Finding("frontmatter", rel, "each change_history item needs non-empty version, date, and summary"))
+
+    # Rule 2: resolve references and build the instruction dependency graph.
+    graph: dict[str, set[str]] = defaultdict(set)
+    for path, metadata in metadata_by_path.items():
+        prompt_id = metadata.get("prompt_id")
+        if not isinstance(prompt_id, str) or prompt_id in duplicate_ids:
+            continue
+        for dep in metadata.get("dependencies", []):
+            resolved = _resolve_dependency(dep, path, root, ids)
+            if resolved is None:
+                findings.append(Finding("dependency", relative(path, root), f"unresolved dependency: {dep}"))
+            elif resolved in metadata_by_path:
+                dep_id = metadata_by_path[resolved].get("prompt_id")
+                if isinstance(dep_id, str):
+                    graph[prompt_id].add(dep_id)
+    for cycle in _find_cycles(graph):
+        findings.append(Finding("dependency-cycle", "instruction graph", " -> ".join(cycle)))
+
+    # Rule 3: check relative Markdown links in the governed corpus.
+    for path, body in bodies.items():
+        for match in MARKDOWN_LINK_PATTERN.finditer(body):
+            target = match.group(1).split(maxsplit=1)[0]
+            resolved = _resolve_markdown_link(target, path, root)
+            if resolved is not None and not resolved.exists():
+                findings.append(Finding("internal-link", relative(path, root), f"broken link: {target}"))
+
+    # Rule 4: keep documented operation IDs synchronized with source.
+    registry_path = root / "DOCS/CAPABILITY_REGISTRY.md"
+    actual_operations = expected_operations(root)
+    documented_operations = registry_operations(registry_path)
+    for operation in sorted(actual_operations - documented_operations):
+        findings.append(Finding("capability-registry", "DOCS/CAPABILITY_REGISTRY.md", f"missing source operation: {operation}"))
+    for operation in sorted(documented_operations - actual_operations):
+        findings.append(Finding("capability-registry", "DOCS/CAPABILITY_REGISTRY.md", f"not found in source: {operation}"))
+    for path, body in bodies.items():
+        referenced = set(OPERATION_REFERENCE_PATTERN.findall(body)) | set(HTTP_REFERENCE_PATTERN.findall(body))
+        for operation in sorted(referenced - documented_operations):
+            findings.append(Finding("undefined-operation", relative(path, root), f"operation is not in the capability registry: {operation}"))
+
+    # Rule 5: keep schema status vocabularies aligned where schemas define a mapping.
+    for message in _validate_status_contracts(root):
+        findings.append(Finding("status-vocabulary", "SCHEMAS/", message))
+
+    # Rule 6: each specialized agent must have distinct operational and approval boundaries.
+    agent_files = sorted((root / "AGENTS").glob("*/INSTRUCTION.md"))
+    agent_files.append(root / "ORCHESTRATION/PRODUCTION_DIRECTOR/INSTRUCTION.md")
+    forbidden_allowed = ("auto_approve", "human_approve", "bypass_human_approval", "apply_unapproved_change")
+    for path in agent_files:
+        if not path.exists():
+            continue
+        rel = relative(path, root)
+        text = path.read_text(encoding="utf-8")
+        headings = list(re.finditer(r"(?im)^##\s+(.+)$", text))
+        sections: dict[str, str] = {}
+        for index, match in enumerate(headings):
+            end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+            sections[match.group(1).strip().lower()] = text[match.end() : end]
+        allowed = next((content for title, content in sections.items() if title.startswith("allowed")), "")
+        for operation in forbidden_allowed:
+            if re.search(rf"\b{re.escape(operation)}\b", allowed, re.IGNORECASE):
+                findings.append(Finding("permissions", rel, f"forbidden capability appears in allowed section: {operation}"))
+        approval = next((content for title, content in sections.items() if "approval" in title), "")
+        human_boundary = "human" in text.lower() and re.search(
+            r"\bnever\b|\bmust not\b|\bcannot\b|\bonly\b.{0,80}\bhuman\b",
+            text,
+            re.IGNORECASE | re.DOTALL,
+        )
+        if not approval or not human_boundary:
+            findings.append(Finding("approval-boundary", rel, "approval section must explicitly reserve approval to a human"))
+        if "SCHEMAS/" not in text and "CORE/OUTPUT_CONTRACTS.md" not in text:
+            findings.append(Finding("output-contract", rel, "agent instruction must reference a schema or the output contract"))
+        required_headings = {
+            "required inputs": ("required inputs", "activation and context", "inputs"),
+            "execution procedure": ("execution procedure", "procedure", "workflow"),
+            "failure handling": ("failure handling", "failure", "conflicts, and failure"),
+        }
+        for required, aliases in required_headings.items():
+            if not any(any(alias in title for alias in aliases) for title in sections):
+                findings.append(Finding("agent-completeness", rel, f"missing section: {required}"))
+
+    # Rule 7: operating modes and departments must cover their required workflow concerns.
+    mode_markers = (
+        "purpose",
+        "scope",
+        "activation",
+        "context",
+        "allowed",
+        "forbidden",
+        "permission",
+        "procedure",
+        "approval",
+        "output",
+        "memory",
+        "conflict",
+        "failure",
+        "success",
+    )
+    for path in sorted((root / "MODES").glob("*.md")):
+        text = path.read_text(encoding="utf-8").lower()
+        missing = [marker for marker in mode_markers if marker not in text]
+        if missing:
+            findings.append(Finding("mode-completeness", relative(path, root), f"missing concepts: {', '.join(missing)}"))
+    department_markers = (
+        "entry requirements",
+        "inputs",
+        "workflow",
+        "outputs",
+        "dependencies",
+        "gate",
+        "exceptions",
+        "handoff",
+    )
+    for path in sorted((root / "DEPARTMENTS").glob("*/DEPARTMENT_RULES.md")):
+        text = path.read_text(encoding="utf-8").lower()
+        missing = [marker for marker in department_markers if marker not in text]
+        if missing:
+            findings.append(Finding("department-completeness", relative(path, root), f"missing concepts: {', '.join(missing)}"))
+
+    # Rule 8: make sure the audit inventory points to every governed document.
+    audit_path = root / "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md"
+    if audit_path.exists():
+        audit_text = audit_path.read_text(encoding="utf-8").replace("\\", "/")
+        for path in files:
+            rel = relative(path, root)
+            if rel not in audit_text:
+                findings.append(Finding("audit-inventory", "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md", f"missing governed file: {rel}"))
+    else:
+        findings.append(Finding("audit-inventory", "DOCS/INSTRUCTION_REPOSITORY_AUDIT.md", "audit report is missing"))
+
+    summary = {
+        "governed_markdown_files": len(files),
+        "unique_prompt_ids": len(ids),
+        "capability_operations": len(actual_operations),
+        "validation_rules": 8,
+        "findings": len(findings),
+    }
+    return findings, summary
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--json", action="store_true", help="emit machine-readable results")
+    args = parser.parse_args(argv)
+    findings, summary = validate(args.root)
+    if args.json:
+        print(json.dumps({"summary": summary, "findings": [finding.__dict__ for finding in findings]}, indent=2))
+    else:
+        print(f"Instruction repository: {summary['governed_markdown_files']} files, {summary['validation_rules']} rules, {summary['findings']} findings")
+        for finding in findings:
+            print(f"- {finding}")
+    return 1 if findings else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
