@@ -2,9 +2,12 @@ import os
 import json
 import shutil
 import sqlite3
+import stat
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from backend.filesystem_security import is_safe_path_component
 
 DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "animation_forge.db")
 
@@ -634,28 +637,105 @@ class DatabaseManager:
     def import_project_bundle(self, zip_path: str, projects_base_dir: str, new_project_id: Optional[str] = None) -> str:
         with zipfile.ZipFile(zip_path, "r") as zf:
             export_data = json.loads(zf.read("project_db_export.json").decode("utf-8"))
+            if not isinstance(export_data, dict) or not isinstance(export_data.get("project"), dict):
+                raise ValueError("Project bundle manifest must contain a project object")
             proj = export_data["project"]
-            old_id = proj["project_id"]
-            target_id = new_project_id or old_id
+            old_id = proj.get("project_id")
+            target_id = new_project_id if new_project_id is not None else old_id
+            if not is_safe_path_component(target_id):
+                raise ValueError("Project ID must be a single safe path component")
+
             proj["project_id"] = target_id
             proj["updated_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
 
             with self.get_connection() as conn:
-                cols = list(proj.keys())
-                placeholders = ", ".join(["?"] * len(cols))
-                conn.execute(
-                    f"INSERT OR REPLACE INTO projects ({', '.join(cols)}) VALUES ({placeholders})",
-                    [proj[c] for c in cols]
-                )
-                conn.commit()
+                project_columns = {
+                    row["name"]: row for row in conn.execute("PRAGMA table_info(projects)").fetchall()
+                }
+            if not proj or set(proj) - project_columns.keys():
+                raise ValueError("Project bundle contains unknown project fields")
+            required_columns = {
+                name
+                for name, row in project_columns.items()
+                if row["notnull"] and row["dflt_value"] is None
+            }
+            required_columns.add("project_id")
+            if not required_columns.issubset(proj):
+                raise ValueError("Project bundle is missing required project fields")
 
-            target_dir = os.path.join(projects_base_dir, target_id)
-            os.makedirs(target_dir, exist_ok=True)
-            for member in zf.namelist():
-                if member.startswith("project_files/") and not member.endswith("/"):
-                    rel = member[len("project_files/"):]
-                    dest = os.path.join(target_dir, rel)
-                    os.makedirs(os.path.dirname(dest), exist_ok=True)
-                    with open(dest, "wb") as f:
-                        f.write(zf.read(member))
+            project_files = []
+            seen_paths = set()
+            for info in zf.infolist():
+                member = info.filename
+                if member == "project_files/":
+                    continue
+                if not member.startswith("project_files/"):
+                    continue
+
+                relative_path = member[len("project_files/"):]
+                path_value = relative_path[:-1] if info.is_dir() and relative_path.endswith("/") else relative_path
+                path_parts = path_value.split("/")
+                if not path_value or any(not is_safe_path_component(part) for part in path_parts):
+                    raise ValueError(f"Unsafe project bundle path: {member!r}")
+
+                mode = (info.external_attr >> 16) & 0xFFFF
+                file_type = stat.S_IFMT(mode)
+                if file_type not in (0, stat.S_IFREG, stat.S_IFDIR):
+                    raise ValueError(f"Unsupported project bundle entry type: {member!r}")
+                if info.is_dir():
+                    continue
+                if file_type == stat.S_IFDIR:
+                    raise ValueError(f"Project bundle file entry is a directory: {member!r}")
+
+                normalized_path = os.path.normcase(os.path.normpath(relative_path))
+                if normalized_path in seen_paths:
+                    raise ValueError(f"Duplicate project bundle path: {member!r}")
+                seen_paths.add(normalized_path)
+                project_files.append((info, path_parts))
+
+            for _, path_parts in project_files:
+                normalized_parts = [os.path.normcase(part) for part in path_parts]
+                if any(
+                    os.path.normcase(os.path.normpath(os.path.join(*normalized_parts[:index]))) in seen_paths
+                    for index in range(1, len(normalized_parts))
+                ):
+                    raise ValueError("Project bundle file path conflicts with a parent file")
+
+            project_root = os.path.realpath(projects_base_dir)
+            os.makedirs(project_root, exist_ok=True)
+            target_dir = os.path.join(project_root, target_id)
+            if os.path.commonpath((project_root, os.path.realpath(target_dir))) != project_root:
+                raise ValueError("Project bundle destination escapes the projects directory")
+            if os.path.lexists(target_dir):
+                raise FileExistsError(f"Project destination already exists: {target_id}")
+
+            staging_dir = tempfile.mkdtemp(prefix=".project-import-", dir=project_root)
+            target_created = False
+            try:
+                for info, path_parts in project_files:
+                    destination = os.path.join(staging_dir, *path_parts)
+                    if os.path.commonpath((staging_dir, os.path.realpath(destination))) != staging_dir:
+                        raise ValueError(f"Unsafe project bundle path: {info.filename!r}")
+                    os.makedirs(os.path.dirname(destination), exist_ok=True)
+                    with zf.open(info, "r") as source, open(destination, "xb") as output:
+                        shutil.copyfileobj(source, output)
+
+                with self.get_connection() as conn:
+                    placeholders = ", ".join(["?"] * len(proj))
+                    columns = ", ".join(proj)
+                    conn.execute("BEGIN IMMEDIATE")
+                    conn.execute(
+                        f"INSERT INTO projects ({columns}) VALUES ({placeholders})",
+                        [proj[column] for column in proj]
+                    )
+                    os.rename(staging_dir, target_dir)
+                    target_created = True
+                    conn.commit()
+            except Exception:
+                if target_created:
+                    shutil.rmtree(target_dir)
+                raise
+            finally:
+                if os.path.isdir(staging_dir):
+                    shutil.rmtree(staging_dir)
             return target_id

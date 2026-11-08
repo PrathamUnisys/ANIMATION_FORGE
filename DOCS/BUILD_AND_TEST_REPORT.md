@@ -9,6 +9,10 @@
 > smoke test below observed `ARCH_V1.0.0`. Instruction-authoring and current
 > repository validation results are tracked in
 > [INSTRUCTION_REPOSITORY_AUDIT.md](./INSTRUCTION_REPOSITORY_AUDIT.md).
+> The token, API, and sidecar behavior described below predates CR_002. The
+> current security baseline and remediation status are in
+> [ENGINEERING_REMEDIATION_BASELINE.md](./ENGINEERING_REMEDIATION_BASELINE.md);
+> do not use the historical fixed-token instructions as current setup guidance.
 
 ## Summary (outcome)
 | Area | Status | Evidence |
@@ -129,3 +133,11 @@ cargo build --release   # => target/release/animation-forge-desktop.exe (verifie
 ## Notes
 - This is a local/dev build report; Tauri `security.csp` allows `http://127.0.0.1:8765`. The Vite dev proxy injects the local IPC token for `/api` — **dev convenience only**, not for production exposure.
 - `animation_forge.db` may be modified by seeding/runs; treat as local state.
+
+## CR_002 current source validation (2026-11-09)
+
+- Added ZIP project-bundle path validation and staging, resolved-path sandbox checks, per-launch Tauri IPC tokens and loopback ports, fail-closed API token/origin checks, authenticated sidecar readiness/shutdown, and signed-in Windows reviewer confirmation.
+- Current Python regression run: **27 passed**. API auth was also smoke-tested through Uvicorn using a temporary database; the live `animation_forge.db` was not used for the smoke test.
+- `npm run build` passed; `cargo check` passed.
+- `cargo fmt --check` could not run because `rustfmt` is not installed for the active Rust toolchain.
+- The ignored PyInstaller sidecar artifact was not rebuilt or replaced. Rebuild it from the updated source before testing the Tauri desktop flow. Packaged application-resource discovery remains an open verification item.

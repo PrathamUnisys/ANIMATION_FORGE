@@ -1,10 +1,14 @@
 import os
 import json
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from backend.database import DatabaseManager
 from backend.governance.rule_loader import GovernanceEngine
 from backend.governance.approval_engine import ApprovalEngine
+from backend.governance.windows_reviewer import (
+    confirm_windows_human_action,
+    confirm_windows_human_decision,
+)
 from backend.providers.manager import ProviderManager
 from backend.orchestration.agent_executor import AgentExecutor
 from backend.departments.story_pipeline import StoryAndScreenplayPipeline
@@ -16,6 +20,23 @@ from backend.integrations.blender_unreal_adapters import SafeBlenderAndUnrealAda
 from backend.qc.quality_controller import QualityControlEngine
 from backend.integrations.storyquest_connector import StoryQuestConnector
 from backend.integrations.plugin_manager import PluginManager
+
+
+def _approve_demo_deliverable(
+    approvals: ApprovalEngine,
+    approval_id: str,
+    comments: str,
+    rationale: Optional[str] = None,
+) -> Dict[str, Any]:
+    gate = approvals.get_gate(approval_id)
+    reviewer_id = confirm_windows_human_decision(gate, "APPROVED", comments, rationale)
+    return approvals.submit_human_decision(
+        approval_id,
+        "APPROVED",
+        reviewer_id,
+        comments,
+        rationale,
+    )
 
 
 def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, Any]:
@@ -84,12 +105,11 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
         tone=None  # Let AI propose and mark creative assumption
     )
     storyquest.emit_deliverable_event("deliverable.ready_for_review", project_id, "EP001", "TASK_SCRIPT_001", script_res["script_id"])
-    approvals.submit_human_decision(
-        approval_id=script_res["approval_id"],
-        decision="APPROVED",
-        human_user_id="HUMAN_EXEC_PRODUCER",
-        comments="Approved v1 screenplay. Comedic timing on King Gloop coronation is spot on.",
-        rationale_for_memory="Approved 3-act 45s screenplay structure with 4 shots."
+    _approve_demo_deliverable(
+        approvals,
+        script_res["approval_id"],
+        "Approved v1 screenplay. Comedic timing on King Gloop coronation is spot on.",
+        "Approved 3-act 45s screenplay structure with 4 shots.",
     )
     storyquest.emit_deliverable_event("deliverable.approved", project_id, "EP001", "TASK_SCRIPT_001", script_res["script_id"], approved=True)
 
@@ -98,15 +118,30 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
 
     # Step 3: Mandatory Online Tool Research & R&D
     rnd_res = rnd_engine.run_mandatory_project_rnd(project_id, script_res["script_id"], online_available=True)
+    confirm_windows_human_action(
+        "Authorize the local proof of concept for TOOL_COMFYUI_FLUX_IPADAPTER. "
+        "The declared budget and download size are both zero."
+    )
     poc_res = rnd_engine.execute_authorized_poc(project_id, "TOOL_COMFYUI_FLUX_IPADAPTER", human_authorized=True, estimated_cost_usd=0.0, download_mb=0.0)
 
     # Step 4: Human Toolchain Approval Gate #2 -> Generates APPROVED_TOOLCHAIN.json
+    selected_tool_ids = [
+        "TOOL_COMFYUI_FLUX_IPADAPTER",
+        "TOOL_BLENDER_HEADLESS_5_2",
+        "TOOL_ELEVENLABS_TTS_V3",
+        "TOOL_KOKORO_LOCAL_TTS",
+    ]
+    rationale = "Selected local ComfyUI Flux+IPAdapter for character lock, Blender 5.2 LTS for 2.5D parallax camera, and ElevenLabs/Kokoro TTS."
+    toolchain_reviewer_id = confirm_windows_human_action(
+        f"Approve and lock the selected toolchain: {json.dumps(selected_tool_ids)}\n"
+        f"Cost limit: USD 15.00\nRationale: {json.dumps(rationale)}"
+    )
     toolchain_profile = rnd_engine.approve_and_lock_toolchain(
         project_id=project_id,
-        selected_tool_ids=["TOOL_COMFYUI_FLUX_IPADAPTER", "TOOL_BLENDER_HEADLESS_5_2", "TOOL_ELEVENLABS_TTS_V3", "TOOL_KOKORO_LOCAL_TTS"],
-        human_user_id="HUMAN_EXEC_PRODUCER",
+        selected_tool_ids=selected_tool_ids,
+        human_user_id=toolchain_reviewer_id,
         cost_limit_usd=15.0,
-        rationale="Selected local ComfyUI Flux+IPAdapter for character lock, Blender 5.2 LTS for 2.5D parallax camera, and ElevenLabs/Kokoro TTS."
+        rationale=rationale
     )
 
     # Step 5: Character Design Studio (Sir Pip, Gloop, Stone Golem) + Human Approval
@@ -120,7 +155,7 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
         voice_profile={"pitch": "bright_tenor", "cadence": "eager_heroic"},
         palette_rgb=[(20, 28, 44), (212, 175, 55), (56, 189, 248)]
     )
-    approvals.submit_human_decision(char_pip["approval_id"], "APPROVED", "HUMAN_EXEC_PRODUCER", "Locked Sir Pip turnaround & dented pauldron identity.", "Locked Sir Pip visual identity.")
+    _approve_demo_deliverable(approvals, char_pip["approval_id"], "Locked Sir Pip turnaround & dented pauldron identity.", "Locked Sir Pip visual identity.")
 
     char_gloop = studios.register_and_generate_character(
         project_id=project_id,
@@ -132,7 +167,7 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
         voice_profile={"pitch": "dry_baritone_blorp", "cadence": "sarcastic_deadpan"},
         palette_rgb=[(12, 42, 36), (16, 185, 129), (250, 204, 21)]
     )
-    approvals.submit_human_decision(char_gloop["approval_id"], "APPROVED", "HUMAN_EXEC_PRODUCER", "Approved Gloop emerald translucency and monocle.", "Locked Gloop visual identity.")
+    _approve_demo_deliverable(approvals, char_gloop["approval_id"], "Approved Gloop emerald translucency and monocle.", "Locked Gloop visual identity.")
 
     char_golem = studios.register_and_generate_character(
         project_id=project_id,
@@ -144,7 +179,7 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
         voice_profile={"pitch": "sub_bass_echo", "cadence": "robotic_statute_reader"},
         palette_rgb=[(28, 32, 38), (245, 158, 11), (74, 222, 128)]
     )
-    approvals.submit_human_decision(char_golem["approval_id"], "APPROVED", "HUMAN_EXEC_PRODUCER", "Approved Stone Golem proportions.", "Locked Stone Golem visual identity.")
+    _approve_demo_deliverable(approvals, char_golem["approval_id"], "Approved Stone Golem proportions.", "Locked Stone Golem visual identity.")
 
     # Step 6: Environment Studio + Human Approval
     env_throne = studios.register_and_generate_environment(
@@ -154,21 +189,20 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
         environment_type="INT_RUINED_CASTLE_2_5D",
         bible_data={"architecture": "Mossy gothic arches", "lighting": "Amber morning god-rays", "layers": ["FG_Pillars", "MG_Throne_Dais", "BG_Vaulted_Ruins"]}
     )
-    approvals.submit_human_decision(env_throne["approval_id"], "APPROVED", "HUMAN_EXEC_PRODUCER", "Approved 2.5D multi-plane throne room plate.", "Locked LOC_THRONE_ROOM for reuse across SCN_001 and SCN_002.")
+    _approve_demo_deliverable(approvals, env_throne["approval_id"], "Approved 2.5D multi-plane throne room plate.", "Locked LOC_THRONE_ROOM for reuse across SCN_001 and SCN_002.")
 
     # Step 7: Audio Studio + Human Approval
     audio_pkg = studios.generate_audio_production_package(project_id, "SCN_001", provider_id="LOCAL_KOKORO_TTS")
     for line in audio_pkg["lines"]:
-        approvals.submit_human_decision(line["approval_id"], "APPROVED", "HUMAN_EXEC_PRODUCER", f"Approved voice line {line['line_id']}")
+        _approve_demo_deliverable(approvals, line["approval_id"], f"Approved voice line {line['line_id']}")
 
     # Step 8: Storyboard, Camera & Previs Animatic + Mandatory Animatic Gate #3 Approval
     sb_res = studios.generate_storyboards_and_animatic(project_id)
     for shot in sb_res["shots"]:
-        approvals.submit_human_decision(shot["approval_id"], "APPROVED", "HUMAN_EXEC_PRODUCER", f"Approved storyboard panel {shot['shot_id']}")
-    approvals.submit_human_decision(
+        _approve_demo_deliverable(approvals, shot["approval_id"], f"Approved storyboard panel {shot['shot_id']}")
+    _approve_demo_deliverable(
+        approvals,
         sb_res["animatic_approval_id"],
-        "APPROVED",
-        "HUMAN_EXEC_PRODUCER",
         "Animatic pacing and 45s timing approved for full animation production.",
         "Approved Animatic Gate #3."
     )
@@ -181,10 +215,9 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
 
     # Step 12: Final Human Approval Gate #4
     storyquest.emit_deliverable_event("deliverable.ready_for_review", project_id, "EP001", "TASK_FINAL_001", anim_post_res["final_package_id"])
-    approvals.submit_human_decision(
+    _approve_demo_deliverable(
+        approvals,
         anim_post_res["final_approval_id"],
-        "APPROVED",
-        "HUMAN_EXEC_PRODUCER",
         "Final Episode 1 package approved for release.",
         "Completed final human approval for The Forgotten Kingdom."
     )
@@ -195,6 +228,9 @@ def run_forgotten_kingdom_e2e_project(root_dir: str, db_path: str) -> Dict[str, 
         plg_manifest = json.load(f)
     plugin_mgr.register_discovered_plugin(plg_manifest)
     plugin_mgr.transition_plugin_state("PLG_OTIO_TIMELINE_EXPORTER", "EVALUATED")
+    confirm_windows_human_action(
+        "Authorize installation and enabling of the open_timeline_exporter example plugin."
+    )
     plugin_mgr.transition_plugin_state("PLG_OTIO_TIMELINE_EXPORTER", "APPROVED_FOR_INSTALLATION", human_authorized=True)
     plugin_mgr.transition_plugin_state("PLG_OTIO_TIMELINE_EXPORTER", "INSTALLED", human_authorized=True)
     plugin_mgr.transition_plugin_state("PLG_OTIO_TIMELINE_EXPORTER", "ENABLED", human_authorized=True)

@@ -1,23 +1,36 @@
 import os
 import json
-from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, Header, HTTPException, Depends
-from pydantic import BaseModel
+import uvicorn
+from typing import Any, Dict, Optional
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, ConfigDict, Field
 from backend.database import DatabaseManager, DEFAULT_DB_PATH
 from backend.governance.rule_loader import GovernanceEngine
 from backend.governance.approval_engine import ApprovalEngine, ApprovalPolicyViolationError
+from backend.governance.local_ipc import TRUSTED_IPC_ORIGINS, verify_local_ipc_token
+from backend.governance.windows_reviewer import (
+    HumanConfirmationDeclinedError,
+    WindowsReviewerUnavailableError,
+    confirm_windows_human_decision,
+)
 from backend.rnd.research_engine import ProductionRndEngine
 from backend.integrations.mcp_gateway import AnimationForgeMcpGateway
 from backend.integrations.comfyui_adapter import ComfyUIAdapter
 from backend.qc.quality_controller import QualityControlEngine
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOCAL_IPC_TOKEN = os.environ.get("ANIMATION_FORGE_IPC_TOKEN", "af-local-ipc-token-2026")
 
 app = FastAPI(
     title="Animation Forge Local Production Engine",
     version="1.0.0",
     description="Tool-Agnostic, AI-Driven, Human-Directed Animation Production OS Sidecar API"
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=sorted(TRUSTED_IPC_ORIGINS),
+    allow_methods=["GET", "POST"],
+    allow_headers=["content-type", "x-forge-token"],
 )
 
 db = DatabaseManager(DEFAULT_DB_PATH)
@@ -29,18 +42,13 @@ comfyui = ComfyUIAdapter(ROOT_DIR, db)
 qc_engine = QualityControlEngine(db)
 
 
-def verify_local_ipc_token(x_forge_token: str = Header(default="af-local-ipc-token-2026")) -> str:
-    if x_forge_token != LOCAL_IPC_TOKEN:
-        raise HTTPException(status_code=401, detail="Unauthorized local IPC token")
-    return x_forge_token
-
-
 class HumanDecisionPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     approval_id: str
     decision: str
-    human_user_id: str = "HUMAN_EXEC_PRODUCER"
-    comments: str
-    rationale: Optional[str] = None
+    comments: str = Field(max_length=4000)
+    rationale: Optional[str] = Field(default=None, max_length=4000)
 
 
 class CreateProjectPayload(BaseModel):
@@ -91,7 +99,10 @@ def get_dashboard_summary(_: str = Depends(verify_local_ipc_token)) -> Dict[str,
 
 
 @app.post("/api/projects")
-def create_project(payload: CreateProjectPayload, _: str = Depends(verify_local_ipc_token)) -> Dict[str, Any]:
+def create_project(
+    payload: CreateProjectPayload,
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
     with db.get_connection() as conn:
@@ -111,14 +122,43 @@ def create_project(payload: CreateProjectPayload, _: str = Depends(verify_local_
 
 
 @app.post("/api/approvals/decide")
-def submit_approval_decision(payload: HumanDecisionPayload, _: str = Depends(verify_local_ipc_token)) -> Dict[str, Any]:
+def submit_approval_decision(
+    payload: HumanDecisionPayload,
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
     try:
+        if payload.decision not in {"APPROVED", "REVISION_REQUESTED", "REJECTED"}:
+            raise ApprovalPolicyViolationError(f"Invalid human review decision: {payload.decision}")
+        gate = approvals.get_gate(payload.approval_id)
+        if gate["state"] != "AWAITING_HUMAN_REVIEW":
+            raise ApprovalPolicyViolationError(
+                f"Deliverable is in state '{gate['state']}', not 'AWAITING_HUMAN_REVIEW'."
+            )
+        human_user_id = confirm_windows_human_decision(
+            gate,
+            payload.decision,
+            payload.comments,
+            payload.rationale,
+        )
         return approvals.submit_human_decision(
             approval_id=payload.approval_id,
             decision=payload.decision,
-            human_user_id=payload.human_user_id,
+            human_user_id=human_user_id,
             comments=payload.comments,
             rationale_for_memory=payload.rationale
         )
     except ApprovalPolicyViolationError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except HumanConfirmationDeclinedError as exc:
+        raise HTTPException(status_code=403, detail="Windows reviewer declined the decision") from exc
+    except WindowsReviewerUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("ANIMATION_FORGE_PORT", "8765"))
+    if not 1 <= port <= 65535:
+        raise ValueError("ANIMATION_FORGE_PORT must be between 1 and 65535")
+    uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")

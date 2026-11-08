@@ -93,7 +93,7 @@ class ApprovalEngine:
         rationale_for_memory: Optional[str] = None
     ) -> Dict[str, Any]:
         if not human_user_id.startswith("HUMAN_"):
-            raise ApprovalPolicyViolationError("Creative review decisions require an authenticated HUMAN_ reviewer ID.")
+            raise ApprovalPolicyViolationError("Creative review decisions require a human reviewer ID.")
         if decision not in ("APPROVED", "REVISION_REQUESTED", "REJECTED"):
             raise ApprovalPolicyViolationError(f"Invalid human review decision: {decision}")
 

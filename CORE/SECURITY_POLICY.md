@@ -1,6 +1,6 @@
 ---
 prompt_id: CORE_SECURITY_POLICY
-version: 1.1.0
+version: 1.2.0
 modified_date: 2026-11-09
 description: Security boundaries, secret handling, path sandboxing, and MCP permissions
 dependencies: ["CORE_SYSTEM_CONSTITUTION"]
@@ -11,6 +11,9 @@ change_history:
   - version: 1.1.0
     date: 2026-11-09
     summary: Clarify untrusted inputs, least privilege, local IPC, and enforcement status
+  - version: 1.2.0
+    date: 2026-11-09
+    summary: Require per-launch IPC credentials and trusted Windows reviewer confirmation
 ---
 # SECURITY POLICY
 
@@ -62,12 +65,20 @@ only as needed to explain the risk. Record provenance for external research.
 
 ## Local API and integration boundary
 
-The backend is documented to bind to loopback and use `x-forge-token`
-authentication (`ANIMATION_FORGE_IPC_TOKEN`, with a development fallback).
-Keep it bound to `127.0.0.1`; do not expose it on a public interface. Use the
-configured token only for the local application proxy/sidecar. Do not embed a
-real secret in source or frontend assets. Verify current configuration rather
-than assuming the development default is safe for deployment.
+The backend binds to `127.0.0.1` and requires a strong
+`ANIMATION_FORGE_IPC_TOKEN`; there is no default or source-controlled token.
+The Tauri host generates an unpredictable per-launch token, passes it only to
+the backend sidecar, and provides it to the trusted desktop frontend over
+Tauri IPC. Web development must configure the same secret in the backend and
+the Vite proxy environment; never put it in frontend assets or source.
+
+The backend accepts browser origins only from the configured local Vite and
+Tauri origins. An origin check is defense in depth, not authentication.
+Creative approval requests must not accept a reviewer ID as proof of
+identity. On Windows, the backend derives the reviewer from the signed-in
+Windows account and requires a native confirmation for each action. If the
+identity API or native dialog is unavailable, the decision must fail closed.
+Approval remains unavailable through this flow on other operating systems.
 
 ## Incident handling
 

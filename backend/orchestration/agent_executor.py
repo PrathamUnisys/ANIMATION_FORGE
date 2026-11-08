@@ -5,6 +5,7 @@ import jsonschema
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 from backend.database import DatabaseManager
+from backend.filesystem_security import is_safe_path_component
 from backend.governance.rule_loader import GovernanceEngine
 from backend.governance.approval_engine import ApprovalEngine
 from backend.providers.manager import ProviderManager, redact_secrets
@@ -16,6 +17,13 @@ class SecurityViolationError(Exception):
 
 class SchemaValidationError(Exception):
     """Raised when an agent output fails JSON schema validation."""
+
+
+def _path_is_within(base_path: str, candidate_path: str) -> bool:
+    try:
+        return os.path.normcase(os.path.commonpath((base_path, candidate_path))) == os.path.normcase(base_path)
+    except ValueError:
+        return False
 
 
 INJECTION_PATTERNS = [
@@ -51,13 +59,26 @@ class AgentExecutor:
         return "<untrusted_external_data>\n" + text + "\n</untrusted_external_data>"
 
     def resolve_safe_project_path(self, project_id: str, rel_subpath: str, allowed_subdirs: List[str], write_mode: bool = False) -> str:
-        if ".." in rel_subpath or rel_subpath.startswith("/") or "\\" in rel_subpath:
+        if not is_safe_path_component(project_id):
+            self._log_security_event("PROJECT_ID_SANDBOX_VIOLATION", "Blocked unsafe project ID")
+            raise SecurityViolationError("Unsafe project ID blocked")
+
+        if not isinstance(rel_subpath, str) or not rel_subpath or any(
+            not is_safe_path_component(part) for part in rel_subpath.split("/")
+        ):
             self._log_security_event("PATH_TRAVERSAL_BLOCKED", f"Blocked path: {rel_subpath}")
             raise SecurityViolationError(f"Path traversal or absolute path blocked: {rel_subpath}")
 
-        proj_base = os.path.abspath(os.path.join(self.root_dir, "PROJECTS", project_id))
-        target_full = os.path.abspath(os.path.join(proj_base, rel_subpath))
-        if not target_full.startswith(proj_base + os.sep):
+        projects_root = os.path.realpath(os.path.join(self.root_dir, "PROJECTS"))
+        project_path = os.path.join(projects_root, project_id)
+        if os.path.islink(project_path):
+            raise SecurityViolationError(f"Project directory cannot be a symbolic link: {project_id}")
+        proj_base = os.path.realpath(project_path)
+        if not _path_is_within(projects_root, proj_base):
+            raise SecurityViolationError(f"Project directory escapes the projects root: {project_id}")
+
+        target_full = os.path.realpath(os.path.join(proj_base, *rel_subpath.split("/")))
+        if not _path_is_within(proj_base, target_full):
             raise SecurityViolationError(f"Path escapes project sandbox: {rel_subpath}")
 
         top_subdir = rel_subpath.split("/")[0]
@@ -65,8 +86,15 @@ class AgentExecutor:
             self._log_security_event("SANDBOX_DIR_VIOLATION", f"Subdir '{top_subdir}' not in {allowed_subdirs}")
             raise SecurityViolationError(f"Agent is not permitted to access project subdirectory '{top_subdir}'. Allowed: {allowed_subdirs}")
 
+        allowed_base_path = os.path.join(proj_base, top_subdir)
+        if os.path.islink(allowed_base_path):
+            raise SecurityViolationError(f"Project subdirectory cannot be a symbolic link: {top_subdir}")
+        allowed_base = os.path.realpath(allowed_base_path)
+        if not _path_is_within(proj_base, allowed_base) or not _path_is_within(allowed_base, target_full):
+            raise SecurityViolationError(f"Path escapes allowed project subdirectory: {rel_subpath}")
+
         if write_mode:
-            if top_subdir == "APPROVED":
+            if os.path.normcase(top_subdir) == os.path.normcase("APPROVED"):
                 raise SecurityViolationError("Direct agent writes to APPROVED/ are strictly prohibited.")
             if os.path.exists(target_full):
                 # Check if existing file is locked as approved in DB

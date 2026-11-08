@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { invoke, isTauri } from '@tauri-apps/api/core';
 import { useForgeStore } from './store/useForgeStore';
 
 type Dashboard = {
@@ -8,6 +9,14 @@ type Dashboard = {
 };
 
 const NAV = ['dashboard','projects','approvals','assets','toolchains','integrations','qc'] as const;
+
+async function apiFetch(path: string): Promise<Response> {
+  if (!isTauri()) return fetch(path);
+  const [baseUrl, token] = await invoke<[string, string]>('get_sidecar_connection');
+  return fetch(`${baseUrl}${path}`, {
+    headers: { 'x-forge-token': token },
+  });
+}
 
 export default function App() {
   const { activeNav, setActiveNav, activeProjectId, operatingMode } = useForgeStore();
@@ -19,8 +28,8 @@ export default function App() {
     try {
       setError(null);
       const [h, d] = await Promise.all([
-        fetch('/api/health').then(r => { if(!r.ok) throw new Error('health '+r.status); return r.json(); }),
-        fetch('/api/dashboard').then(r => { if(!r.ok) throw new Error('dashboard '+r.status); return r.json(); }),
+        apiFetch('/api/health').then(r => { if(!r.ok) throw new Error('health '+r.status); return r.json(); }),
+        apiFetch('/api/dashboard').then(r => { if(!r.ok) throw new Error('dashboard '+r.status); return r.json(); }),
       ]);
       setHealth(h); setData(d);
     } catch (e: any) { setError(e.message || String(e)); }
