@@ -28,7 +28,21 @@
       "type": "string"
     },
     "genre": {
-      "type": "string"
+      "type": "string",
+      "description": "Human-readable legacy genre label; use primary_genre_id and secondary_genre_ids for profile selection."
+    },
+    "primary_genre_id": {
+      "type": "string",
+      "pattern": "^GENRE_[A-Z0-9_]+$"
+    },
+    "secondary_genre_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^GENRE_[A-Z0-9_]+$" }
+    },
+    "channel_style_id": {
+      "type": ["string", "null"],
+      "pattern": "^STYLE_[A-Z0-9_]+$"
     },
     "target_audience": {
       "type": "string"
