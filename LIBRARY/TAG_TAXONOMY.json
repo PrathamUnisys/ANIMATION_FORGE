@@ -1,0 +1,71 @@
+{
+  "taxonomy_version": "1.0.0",
+  "dimensions": {
+    "media_type": [
+      "character",
+      "environment",
+      "prop",
+      "texture",
+      "model",
+      "rig",
+      "animation",
+      "storyboard",
+      "image",
+      "audio",
+      "video",
+      "subtitle",
+      "project_file",
+      "document"
+    ],
+    "usage": [
+      "thumbnail",
+      "background",
+      "turnaround",
+      "voice",
+      "reference",
+      "episode_render",
+      "social_cutdown"
+    ],
+    "status": [
+      "draft",
+      "awaiting_review",
+      "approved",
+      "rejected",
+      "archived"
+    ],
+    "licence": [
+      "commercial_ok",
+      "non_commercial_only",
+      "attribution_required",
+      "review_required",
+      "unknown"
+    ],
+    "style": [
+      "fantasy",
+      "dark_fantasy",
+      "stylized",
+      "photoreal",
+      "anime_inspired",
+      "low_poly",
+      "cinematic"
+    ],
+    "mood": [
+      "ominous",
+      "whimsical",
+      "heroic",
+      "melancholic",
+      "comic",
+      "mysterious",
+      "calm"
+    ],
+    "palette": [
+      "warm",
+      "cool",
+      "monochrome",
+      "amber",
+      "teal",
+      "high_contrast"
+    ]
+  },
+  "custom_tag_namespace": "custom:"
+}
