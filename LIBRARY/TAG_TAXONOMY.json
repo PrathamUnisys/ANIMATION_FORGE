@@ -69,8 +69,14 @@
   },
   "custom_tag_namespace": "custom:",
   "reference_dimensions": {
-    "project": "PROJECT_ID",
-    "series": "SERIES_ID",
-    "channel": "STYLE_ID"
+    "project": {
+      "id_pattern": "^PROJECT_[A-Z0-9_]+$"
+    },
+    "series": {
+      "id_pattern": "^SERIES_[A-Z0-9_]+$"
+    },
+    "channel": {
+      "id_pattern": "^STYLE_[A-Z0-9_]+$"
+    }
   }
 }
