@@ -13,9 +13,11 @@ change_history:
 
 ## Purpose
 
-`STYLES/` stores the creative and publishing identity of each YouTube channel or content brand. Each channel gets its own folder:
+`STYLES/` stores the creative and publishing identity of each YouTube channel or content brand. Each channel gets its own slug folder:
 
-`STYLES/<CHANNEL_ID>/STYLE_GUIDE.md`
+`STYLES/<CHANNEL_SLUG>/STYLE_GUIDE.md`
+
+Its registry ID uses the `STYLE_` prefix (for example, a `FANTASY_SHORTS` folder can be registered as `STYLE_FANTASY_SHORTS`).
 
 Do not create one global style guide and apply it to every channel. One production system may support multiple channels with different audiences, content formats, pacing and brand identity.
 
