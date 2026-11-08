@@ -4,8 +4,12 @@
 
 ## Directory layout
 - `CORE/` & `MODES/`: Versioned Markdown constitution and mode rules.
+- `GENRES/`: Reusable versioned genre instructions and genre registry.
+- `STYLES/`: Separate versioned style guides and registry for each publishing channel.
+- `TOOLS/`: Per-tool manuals plus a task/tag-based tool catalogue; availability is verified separately from adapter maturity.
+- `LIBRARY/`: Asset metadata index, controlled tag taxonomy and configurable storage-root references; binary assets are stored outside Git.
 - `AGENTS/`: 16 specialized agent Markdown contracts.
-- `SCHEMAS/`: 12 JSON Schemas (Draft 2020-12) validating all machine-to-machine data contracts.
+- `SCHEMAS/`: JSON Schemas (Draft 2020-12) validating machine-to-machine data contracts, including genre/style registries, tool catalogue, asset index and screenplay context manifest.
 - `backend/`: Modular Python packages (`governance`, `orchestration`, `providers`, `rnd`, `integrations`, `departments`, `qc`). FastAPI binds to loopback (port 8765 in standalone development) and requires a strong `x-forge-token`.
 - `src-tauri/`: Rust Tauri 2 desktop shell selects a loopback port, launches and monitors the bundled `externalBin` backend, creates a per-launch IPC token, waits for authenticated readiness, and stops the sidecar on exit.
 - `frontend/`: React + TypeScript + Tailwind (Vite). Tauri uses the sidecar connection returned over Tauri IPC; the Vite proxy injects a token only when configured in the local environment.
@@ -15,6 +19,8 @@
 - Python: project `.venv` + `requirements.txt` (`fastapi, uvicorn, pydantic, jsonschema, Pillow, pytest`). Run tests via `.\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py`.
 - Node: **local** `frontend/node_modules` (`npm install --no-audit --no-fund`); no global npm installs. Tauri CLI is a local devDependency (`@tauri-apps/cli`, `frontend\node_modules\.bin\tauri.cmd`).
 - Generated/ignored: `.venv/`, `frontend/node_modules/`, `frontend/dist/`, `src-tauri/target/`, `src-tauri/binaries/`, `.pyi-build/`, `.pyi-spec/` (see `.gitignore`).
+- Screenplay context contract: `DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md`; current `StoryAndScreenplayPipeline` still does not implement it.
+- Project selectors: `primary_genre_id`, `secondary_genre_ids`, and optional `channel_style_id` are defined in `SCHEMAS/PROJECT.schema.json`; database migration and UI support remain future work.
 
 ## Backend notes
 - Datetimes are timezone-aware UTC (`datetime.now(timezone.utc)`; ISO stamps normalized to `Z`). Keep new code consistent (no `utcnow`).
