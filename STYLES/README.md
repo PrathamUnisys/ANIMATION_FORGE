@@ -38,6 +38,10 @@ A style guide is not a genre, screenplay template or story bible. It must not re
 
 Do not copy another creator's distinctive scripts, characters, logos or exact presentation. Convert references into high-level original traits and record which parts are inspiration versus approved channel identity.
 
+## Performance feedback loop
+
+Use channel analytics to refine future formats without letting short-term metrics rewrite the channel promise. Review appeal (impressions and click-through rate), engagement (views and audience retention), and satisfaction signals. Compare like-for-like formats such as Shorts versus long-form videos and compare against the channel's own historical performance rather than assuming one universal good CTR. Titles and thumbnails should accurately represent the delivered story and keep the channel's visual identity clear. See [YouTube video performance guidance](https://support.google.com/youtube/answer/16559650), [thumbnail and title tips](https://support.google.com/youtube/answer/12340300), and [channel branding tips](https://support.google.com/youtube/answer/12950272).
+
 ## Selection and versioning
 
 A project may select one channel style guide using `channel_style_id`. Record its version in screenplay-generation provenance. Channel-neutral work may leave this unset and use project direction alone.
