@@ -11,6 +11,8 @@ change_history:
 ---
 # YouTube Channel Style Guide Template
 
+When creating a real guide, replace the front-matter `prompt_id` with its stable `STYLE_<CHANNEL_ID>` ID and register the exact path and version in `STYLES/CHANNELS.json`.
+
 ## Channel identity
 
 - **Channel ID:** `STYLE_<CHANNEL_ID>`
