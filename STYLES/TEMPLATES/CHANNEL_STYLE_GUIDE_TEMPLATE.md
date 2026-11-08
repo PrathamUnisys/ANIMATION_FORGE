@@ -88,6 +88,18 @@ When creating a real guide, replace the front-matter `prompt_id` with its stable
 - [ ] References were translated into original traits.
 - [ ] Any deliberate deviation is recorded.
 
+## Analytics-informed iteration
+
+- Formats measured separately: [Shorts / long-form / other]
+- Appeal signals: [Impressions, click-through rate, discovery sources]
+- Engagement signals: [Views, audience retention, average view duration]
+- Satisfaction/return signals: [Available audience feedback and returning-viewer trends]
+- Strong patterns to preserve: [Evidence from this channel's own history]
+- Experiments to run: [One variable at a time; record outcome and date]
+- Guardrail: compare like-for-like formats and this channel's own historical baseline; do not hard-code a universal CTR or retention target.
+
+Official YouTube references: [video performance](https://support.google.com/youtube/answer/16559650), [thumbnail and title tips](https://support.google.com/youtube/answer/12340300), [analytics tips](https://support.google.com/youtube/answer/12942217).
+
 ## Approval and version history
 
 Record the reviewer decision, rationale and date outside the draft. An updated channel guide applies to new work only unless an explicit revision is requested for existing projects.
