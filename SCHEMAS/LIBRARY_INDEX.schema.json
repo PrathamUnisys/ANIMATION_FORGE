@@ -212,7 +212,7 @@
           "relative_path": {
             "type": "string",
             "minLength": 1,
-            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.(?:/|$)).+$"
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
           },
           "technical_metadata": {
             "type": "object",
