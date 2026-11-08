@@ -15,7 +15,7 @@ change_history:
 
 Build the screenwriter's context from reusable modules rather than one giant prompt. Keep genre conventions, channel identity, project canon, task instructions and provider configuration separate so they can be reused and versioned independently.
 
-This is a target runtime contract. The current `StoryAndScreenplayPipeline` still creates a fixed demonstration screenplay and does not yet implement this assembler.
+This is a target runtime contract. The current `StoryAndScreenplayPipeline` still creates a fixed demonstration screenplay and does not yet implement this assembler. The current provider manager also records usage estimates and metadata without making a real LLM request. The first executable screenplay milestone must implement and test at least one actual provider call before this flow is labelled operational.
 
 ## Inputs
 
