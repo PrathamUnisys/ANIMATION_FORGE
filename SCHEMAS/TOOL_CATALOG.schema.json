@@ -22,7 +22,8 @@
           "task_id",
           "display_name",
           "tags",
-          "candidate_tool_ids"
+          "candidate_tool_ids",
+          "candidate_provider_ids"
         ],
         "properties": {
           "task_id": {
@@ -217,7 +218,8 @@
           "category",
           "capability_tags",
           "integration_status",
-          "limitations"
+          "limitations",
+          "tasks"
         ],
         "properties": {
           "provider_id": {
@@ -253,6 +255,13 @@
           },
           "limitations": {
             "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tasks": {
+            "type": "array",
+            "uniqueItems": true,
             "items": {
               "type": "string"
             }
