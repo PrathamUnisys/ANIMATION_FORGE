@@ -13,9 +13,11 @@ change_history:
 
 ## Purpose
 
-`GENRES/` stores reusable creative instructions for narrative genres. Each genre has its own folder and an `INSTRUCTION.md` file:
+`GENRES/` stores reusable creative instructions for narrative genres. Each genre has its own slug folder and an `INSTRUCTION.md` file:
 
-`GENRES/<GENRE_ID>/INSTRUCTION.md`
+`GENRES/<GENRE_SLUG>/INSTRUCTION.md`
+
+The registered ID includes the `GENRE_` prefix (for example, the `FANTASY` folder is registered as `GENRE_FANTASY`).
 
 Examples included initially: `GENRES/FANTASY/INSTRUCTION.md` and `GENRES/COMEDY/INSTRUCTION.md`.
 
