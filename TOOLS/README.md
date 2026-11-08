@@ -32,7 +32,7 @@ Never guess a local executable path, installed version, endpoint or credential s
 
 ## Task-based catalogue
 
-The catalogue answers: **Which desktop tools and AI providers are candidates for this task, and what evidence do we have about their availability and implementation?** Desktop tools are defined under `tools`; hosted/local model providers are referenced under `providers` and retain their configuration profiles in `PROVIDERS/`.
+The catalogue answers: **Which desktop tools and AI providers are candidates for this task, and what evidence do we have about their availability and implementation?** Desktop tools are defined under `tools`; hosted/local model providers are referenced under `providers` and retain their configuration profiles in `PROVIDERS/`. Task groups list both `candidate_tool_ids` and `candidate_provider_ids`, so a screenplay task can discover a registered LLM provider without pretending that its API adapter already works.
 
 Select by task group and tags such as `screenplay_generation`, `image_generation`, `character_consistency`, `3d_modeling`, `animation`, `rendering`, `tts`, `video_encoding` and `subtitle_burning`. A task group with no candidate tools explicitly records a capability gap; do not fill it with a fictional or unverified integration.
 
