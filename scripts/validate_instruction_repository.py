@@ -222,8 +222,7 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
         if data is None or schema is None:
             return
         try:
-            resolver = jsonschema.RefResolver(base_uri=(root / schema_path).as_uri(), referrer=schema)
-            validator = jsonschema.Draft202012Validator(schema, resolver=resolver)
+            validator = jsonschema.Draft202012Validator(schema)
             for error in validator.iter_errors(data):
                 errors.append(f"{label}: {error.message} at {'/'.join(str(part) for part in error.absolute_path)}")
         except Exception as exc:
@@ -269,6 +268,7 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
 
     catalogue = load_json("TOOLS/CATALOG.json")
     validate_document(catalogue, "SCHEMAS/TOOL_CATALOG.schema.json", "TOOLS/CATALOG.json")
+    tool_profile_schema = load_json("SCHEMAS/TOOL_PROFILE.schema.json")
     if isinstance(catalogue, dict):
         tools = {item.get("tool_id"): item for item in catalogue.get("tools", [])}
         groups = {item.get("task_id"): item for item in catalogue.get("task_groups", [])}
@@ -277,6 +277,12 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
         if len(groups) != len(catalogue.get("task_groups", [])):
             errors.append("TOOLS/CATALOG.json: duplicate task IDs")
         for tool_id, tool in tools.items():
+            if tool_profile_schema is not None:
+                try:
+                    for schema_error in jsonschema.Draft202012Validator(tool_profile_schema).iter_errors(tool):
+                        errors.append(f"TOOLS/CATALOG.json: invalid profile {tool_id}: {schema_error.message}")
+                except jsonschema.SchemaError as exc:
+                    errors.append(f"SCHEMAS/TOOL_PROFILE.schema.json: invalid schema: {exc}")
             manual = root / tool.get("manual_path", "")
             if not manual.is_file():
                 errors.append(f"TOOLS/CATALOG.json: missing manual for {tool_id}")
@@ -295,6 +301,9 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
                     errors.append(f"TOOLS/CATALOG.json: task {task_id} references unknown tool {tool_id}")
                 elif task_id not in tools[tool_id].get("tasks", []):
                     errors.append(f"TOOLS/CATALOG.json: {tool_id} does not list task {task_id}")
+
+    storage_roots = load_json("LIBRARY/STORAGE_ROOTS.example.json")
+    validate_document(storage_roots, "SCHEMAS/STORAGE_ROOTS.schema.json", "LIBRARY/STORAGE_ROOTS.example.json")
 
     asset_index = load_json("LIBRARY/ASSET_INDEX.json")
     validate_document(asset_index, "SCHEMAS/LIBRARY_INDEX.schema.json", "LIBRARY/ASSET_INDEX.json")
