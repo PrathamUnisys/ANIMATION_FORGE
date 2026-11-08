@@ -11,6 +11,8 @@ change_history:
 ---
 # Tool Manual Template
 
+When creating a real manual, replace the front-matter `prompt_id` with the stable `TOOL_<TOOL_ID>` ID. Add the same tool ID and matching manual path to `TOOLS/CATALOG.json`.
+
 ## Identity and verification
 
 - Tool ID / name: [Stable ID and display name]
