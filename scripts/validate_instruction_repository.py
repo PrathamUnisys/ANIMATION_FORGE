@@ -263,8 +263,8 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
             metadata, _, parse_error = parse_frontmatter(guide_path)
             if parse_error or not metadata:
                 errors.append(f"STYLES/CHANNELS.json: invalid front matter for {profile_id}: {parse_error}")
-            elif metadata.get("version") != profile.get("version"):
-                errors.append(f"STYLES/CHANNELS.json: version mismatch for {profile_id}")
+            elif metadata.get("prompt_id") != profile_id or metadata.get("version") != profile.get("version"):
+                errors.append(f"STYLES/CHANNELS.json: ID/version mismatch for {profile_id}")
 
     catalogue = load_json("TOOLS/CATALOG.json")
     validate_document(catalogue, "SCHEMAS/TOOL_CATALOG.schema.json", "TOOLS/CATALOG.json")
@@ -286,6 +286,12 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
             manual = root / tool.get("manual_path", "")
             if not manual.is_file():
                 errors.append(f"TOOLS/CATALOG.json: missing manual for {tool_id}")
+            else:
+                manual_metadata, _, manual_error = parse_frontmatter(manual)
+                if manual_error or not manual_metadata:
+                    errors.append(f"TOOLS/CATALOG.json: invalid manual front matter for {tool_id}: {manual_error}")
+                elif manual_metadata.get("prompt_id") != f"TOOL_{tool_id}":
+                    errors.append(f"TOOLS/CATALOG.json: manual prompt ID mismatch for {tool_id}")
             for task_id in tool.get("tasks", []):
                 if task_id not in groups:
                     errors.append(f"TOOLS/CATALOG.json: {tool_id} references unknown task {task_id}")
@@ -307,10 +313,27 @@ def _validate_reference_catalogues(root: Path) -> list[str]:
 
     asset_index = load_json("LIBRARY/ASSET_INDEX.json")
     validate_document(asset_index, "SCHEMAS/LIBRARY_INDEX.schema.json", "LIBRARY/ASSET_INDEX.json")
+    taxonomy = load_json("LIBRARY/TAG_TAXONOMY.json")
     if isinstance(asset_index, dict):
         asset_ids = [asset.get("asset_id") for asset in asset_index.get("assets", [])]
         if len(asset_ids) != len(set(asset_ids)):
             errors.append("LIBRARY/ASSET_INDEX.json: duplicate asset IDs")
+        storage_ids = {root_item.get("root_id") for root_item in (storage_roots or {}).get("storage_roots", [])}
+        dimensions = (taxonomy or {}).get("dimensions", {})
+        reference_dimensions = (taxonomy or {}).get("reference_dimensions", {})
+        for asset in asset_index.get("assets", []):
+            if asset.get("storage_root_id") not in storage_ids:
+                errors.append(f"LIBRARY/ASSET_INDEX.json: unknown storage root {asset.get(chr(115)+chr(116)+chr(111)+chr(114)+chr(97)+chr(103)+chr(101)+chr(95)+chr(114)+chr(111)+chr(111)+chr(116)+chr(95)+chr(105)+chr(100))} for {asset.get(chr(97)+chr(115)+chr(115)+chr(101)+chr(116)+chr(95)+chr(105)+chr(100))}")
+            for tag in asset.get("tags", []):
+                if tag.startswith("custom:") and len(tag) > len("custom:"):
+                    continue
+                dimension, separator, value = tag.partition(":")
+                if not separator or not value:
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: malformed tag {tag!r}")
+                elif dimension in dimensions and value not in dimensions[dimension]:
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: unknown {dimension} tag value {value!r}")
+                elif dimension not in dimensions and dimension not in reference_dimensions:
+                    errors.append(f"LIBRARY/ASSET_INDEX.json: unknown tag dimension {dimension!r}")
 
     return errors
 
