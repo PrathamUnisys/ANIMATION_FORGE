@@ -15,7 +15,7 @@ When creating a real guide, replace the front-matter `prompt_id` with its stable
 
 ## Channel identity
 
-- **Channel ID:** `STYLE_<CHANNEL_ID>`
+- **Channel style ID:** `STYLE_<CHANNEL_SLUG>`
 - **Channel name:** [Name]
 - **Platform(s):** [YouTube, Shorts, other]
 - **Language and region:** [Locale]
