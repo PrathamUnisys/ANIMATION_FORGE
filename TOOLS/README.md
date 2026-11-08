@@ -32,11 +32,11 @@ Never guess a local executable path, installed version, endpoint or credential s
 
 ## Task-based catalogue
 
-The catalogue answers: **Which tools could perform this task, and what evidence do we have that they are available?**
+The catalogue answers: **Which desktop tools and AI providers are candidates for this task, and what evidence do we have about their availability and implementation?** Desktop tools are defined under `tools`; hosted/local model providers are referenced under `providers` and retain their configuration profiles in `PROVIDERS/`.
 
 Select by task group and tags such as `screenplay_generation`, `image_generation`, `character_consistency`, `3d_modeling`, `animation`, `rendering`, `tts`, `video_encoding` and `subtitle_burning`. A task group with no candidate tools explicitly records a capability gap; do not fill it with a fictional or unverified integration.
 
-A candidate is not an available tool. Before dispatch, verify:
+A provider candidate is not a live provider connection, and a desktop tool candidate is not an available application. Before dispatch, verify:
 1. The tool is installed or its service is reachable.
 2. The required version and capability are present.
 3. Inputs/outputs and hardware requirements are compatible.
