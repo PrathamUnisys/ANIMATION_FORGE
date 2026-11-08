@@ -3,7 +3,7 @@ prompt_id: LIBRARY_ASSET_INDEX
 version: 1.0.0
 modified_date: 2026-11-09
 description: Asset library index policy for locating, grouping, tagging and tracing animation production files
-dependencies: ["CORE_ASSET_VERSIONING", "CORE_SYSTEM_CONSTITUTION", "SCHEMAS/LIBRARY_INDEX.schema.json"]
+dependencies: ["CORE_ASSET_VERSIONING", "CORE_SYSTEM_CONSTITUTION", "SCHEMAS/LIBRARY_INDEX.schema.json", "SCHEMAS/STORAGE_ROOTS.schema.json"]
 change_history:
   - version: 1.0.0
     date: 2026-11-09
@@ -15,7 +15,7 @@ change_history:
 
 `LIBRARY/` manages metadata and locations for project and reusable media. It is an index, not a folder that must contain every large binary file.
 
-The machine-readable catalogue lives in `LIBRARY/ASSET_INDEX.json`. The schema is `SCHEMAS/LIBRARY_INDEX.schema.json`.
+The machine-readable catalogue lives in `LIBRARY/ASSET_INDEX.json`, validated by `SCHEMAS/LIBRARY_INDEX.schema.json`. Copy `STORAGE_ROOTS.example.json` to the ignored local file `STORAGE_ROOTS.json`, configure verified storage URIs, and validate it with `SCHEMAS/STORAGE_ROOTS.schema.json`.
 
 ## Logical groups
 
@@ -42,7 +42,7 @@ Actual machine paths must be registered in local configuration and verified. Do 
 
 ## Tags and search
 
-Every asset should have controlled tags plus optional freeform tags using a clearly namespaced `custom:` prefix. Suggested dimensions:
+Every controlled tag uses the canonical `dimension:value` form. Allowed dimension values are defined in `LIBRARY/TAG_TAXONOMY.json`; project, series and channel identifiers use their stable IDs. Optional freeform tags must use a clearly namespaced `custom:` prefix. Suggested dimensions:
 
 - `type:character`, `type:environment`, `type:prop`, `type:audio`
 - `project:PROJECT_ID`, `series:SERIES_ID`, `channel:STYLE_ID`
@@ -65,4 +65,4 @@ For embedded image metadata, map useful descriptive, rights and AI-generation pr
 
 ## Current state
 
-The index and storage-root example contain no real machine paths or asset records. Populate them only after the relevant directories have been inspected and the storage roots configured.
+The index and storage-root example contain no real machine paths or asset records. The actual local `STORAGE_ROOTS.json` is ignored by Git. Populate it only after the relevant directories have been inspected and the storage roots configured.
