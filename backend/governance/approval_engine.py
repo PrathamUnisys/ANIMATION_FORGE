@@ -102,6 +102,49 @@ class ApprovalEngine:
             raise ApprovalPolicyViolationError(
                 f"Deliverable '{gate['target_id']}' (rev {gate['revision']}) is in state '{gate['state']}', not 'AWAITING_HUMAN_REVIEW'."
             )
+        # HARD GATE (H5): staged screenplays (episode_id set) require exact-revision QC.
+        # Legacy scaffolds (episode_id NULL) keep MANUAL_INSPECTION history.
+        if decision == "APPROVED" and gate["target_type"] == "script":
+            with self.db.get_connection() as conn:
+                script_row = conn.execute(
+                    "SELECT episode_id FROM scripts WHERE script_id = ?", (gate["target_id"],)
+                ).fetchone()
+                staged = bool(script_row and script_row["episode_id"])
+            if staged:
+                with self.db.get_connection() as conn:
+                    qc = conn.execute(
+                        "SELECT * FROM screenplay_qc_reports WHERE project_id = ? AND script_id = ? AND script_version = ? AND validator_name = 'DETERMINISTIC_SCREENPLAY_VALIDATOR' ORDER BY created_at DESC LIMIT 1",
+                        (gate["project_id"], gate["target_id"], gate["revision"]),
+                    ).fetchone()
+                    if not qc:
+                        raise ApprovalPolicyViolationError(
+                            f"Cannot approve script {gate['target_id']} v{gate['revision']}: no deterministic QC report for this exact revision."
+                        )
+                    issues = json.loads(qc["issues_json"] or "[]")
+                    blockers = [i for i in issues if i.get("severity") == "BLOCKER"]
+                    if blockers:
+                        raise ApprovalPolicyViolationError(
+                            f"Cannot approve script {gate['target_id']} v{gate['revision']}: {len(blockers)} unresolved BLOCKER finding(s) in {qc['report_id']}."
+                        )
+                    if qc["outcome"] == "FAIL":
+                        raise ApprovalPolicyViolationError(
+                            f"Cannot approve script {gate['target_id']} v{gate['revision']}: deterministic QC outcome is FAIL ({qc['report_id']})."
+                        )
+                    critique = conn.execute(
+                        "SELECT * FROM screenplay_qc_reports WHERE project_id = ? AND script_id = ? AND script_version = ? AND validator_name = 'SCRIPT_CRITIC_CREATIVE_REVIEW' ORDER BY created_at DESC LIMIT 1",
+                        (gate["project_id"], gate["target_id"], gate["revision"]),
+                    ).fetchone()
+                    if critique is None:
+                        raise ApprovalPolicyViolationError(
+                            f"Cannot approve script {gate['target_id']} v{gate['revision']}: creative critique missing."
+                        )
+                    critique_issues = json.loads(critique["issues_json"] or "[]")
+                    majors = [i for i in critique_issues if i.get("severity") == "MAJOR"]
+                    if majors and "acknowledge" not in (comments or "").lower():
+                        raise ApprovalPolicyViolationError(
+                            f"Script has {len(majors)} MAJOR creative findings. Acknowledge them in the approval comments before approving."
+                        )
+
 
         now = datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
         with self.db.get_connection() as conn:

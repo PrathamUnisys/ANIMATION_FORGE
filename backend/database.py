@@ -599,6 +599,18 @@ SCHEMA_MIGRATIONS = [
         error_detail TEXT,
         created_at TEXT NOT NULL
     );
+    """),
+    (3, "cr006_hardening_source_refs", """
+    -- CR_006 hardening: exact source-revision tracking for every downstream artifact.
+    ALTER TABLE story_artifacts ADD COLUMN source_refs_json TEXT;
+    ALTER TABLE story_artifacts ADD COLUMN context_package_json TEXT;
+    ALTER TABLE scripts ADD COLUMN episode_id TEXT;
+    ALTER TABLE scripts ADD COLUMN context_hash_sha256 TEXT;
+    ALTER TABLE scripts ADD COLUMN source_refs_json TEXT;
+    ALTER TABLE screenplay_qc_reports ADD COLUMN episode_id TEXT;
+    ALTER TABLE screenplay_qc_reports ADD COLUMN context_hash_sha256 TEXT;
+    ALTER TABLE screenplay_qc_reports ADD COLUMN validator_version TEXT;
+    ALTER TABLE screenplay_qc_reports ADD COLUMN source_refs_json TEXT;
     """)
 ]
 

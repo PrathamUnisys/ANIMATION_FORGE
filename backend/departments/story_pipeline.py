@@ -256,35 +256,63 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
     # ---- CR_006 M3: Staged screenplay generation ----
 
     def _persist_artifact(self, project_id: str, episode_id: str, artifact_type: str, content: Any,
-                          context_hash: str = None, provider: Dict[str, Any] = None) -> Dict[str, Any]:
+                          context_hash: str = None, provider: Dict[str, Any] = None,
+                          source_refs: Dict[str, Any] = None, context_package: Dict[str, Any] = None,
+                          status: str = "PROPOSED") -> Dict[str, Any]:
         import hashlib
+        import sqlite3
+        import uuid
         raw = json.dumps(content, sort_keys=True, separators=(",", ":")).encode()
         h = hashlib.sha256(raw).hexdigest()
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        aid = f"ART_{project_id}_{episode_id}_{artifact_type}_{uuid.uuid4().hex[:8].upper()}"
+        for attempt in range(5):
+            try:
+                with self.db.get_connection() as conn:
+                    conn.execute("BEGIN IMMEDIATE")
+                    row = conn.execute(
+                        "SELECT MAX(revision) AS m FROM story_artifacts WHERE project_id = ? AND episode_id = ? AND artifact_type = ?",
+                        (project_id, episode_id, artifact_type),
+                    ).fetchone()
+                    nxt = (row["m"] or 0) + 1
+                    conn.execute(
+                        """INSERT INTO story_artifacts
+                           (artifact_id, project_id, episode_id, artifact_type, revision, previous_revision,
+                            status, content_json, content_hash_sha256, context_hash_sha256,
+                            provider_id, model_id, request_id, usage_json, created_at, source_refs_json, context_package_json)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            aid, project_id, episode_id, artifact_type, nxt, nxt - 1 if nxt > 1 else None,
+                            status, json.dumps(content), h, context_hash,
+                            provider.get("provider_id") if provider else None,
+                            provider.get("model_id") if provider else None,
+                            provider.get("request_id") if provider else None,
+                            json.dumps(provider.get("usage") if provider else None), now,
+                            json.dumps(source_refs or {}), json.dumps(context_package or {}),
+                        ),
+                    )
+                    conn.commit()
+                return {"artifact_id": aid, "artifact_type": artifact_type, "revision": nxt, "content_hash_sha256": h}
+            except sqlite3.IntegrityError:
+                aid = f"ART_{project_id}_{episode_id}_{artifact_type}_{uuid.uuid4().hex[:8].upper()}"
+                if attempt == 4:
+                    raise
+                continue
+
+    def _latest_artifact_row(self, project_id: str, episode_id: str, artifact_type: str):
         with self.db.get_connection() as conn:
-            row = conn.execute(
-                "SELECT MAX(revision) AS m FROM story_artifacts WHERE project_id = ? AND episode_id = ? AND artifact_type = ?",
+            return conn.execute(
+                "SELECT * FROM story_artifacts WHERE project_id = ? AND episode_id = ? AND artifact_type = ? ORDER BY revision DESC LIMIT 1",
                 (project_id, episode_id, artifact_type),
             ).fetchone()
-            nxt = (row["m"] or 0) + 1
-            aid = f"ART_{project_id}_{artifact_type}_R{nxt:03d}"
-            conn.execute(
-                """INSERT INTO story_artifacts
-                   (artifact_id, project_id, episode_id, artifact_type, revision, previous_revision,
-                    status, content_json, content_hash_sha256, context_hash_sha256,
-                    provider_id, model_id, request_id, usage_json, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    aid, project_id, episode_id, artifact_type, nxt, nxt - 1 if nxt > 1 else None,
-                    "PROPOSED", json.dumps(content), h, context_hash,
-                    provider.get("provider_id") if provider else None,
-                    provider.get("model_id") if provider else None,
-                    provider.get("request_id") if provider else None,
-                    json.dumps(provider.get("usage") if provider else None), now,
-                ),
-            )
-            conn.commit()
-        return {"artifact_id": aid, "artifact_type": artifact_type, "revision": nxt, "content_hash_sha256": h}
+
+    def _require_approved_outline(self, project_id: str, episode_id: str):
+        row = self._latest_artifact_row(project_id, episode_id, "OUTLINE")
+        if row is None:
+            raise PermissionError(f"No OUTLINE exists for {project_id}/{episode_id}; approve an outline before this stage.")
+        if row["status"] != "APPROVED":
+            raise PermissionError(f"Latest OUTLINE revision {row['revision']} is {row['status']}; approve the latest revision before this stage.")
+        return dict(row)
 
     def get_artifact(self, project_id: str, episode_id: str, artifact_type: str) -> Dict[str, Any]:
         with self.db.get_connection() as conn:
@@ -298,16 +326,21 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
             d["content"] = json.loads(d.pop("content_json"))
             return d
 
+    def _ctx_text(self, context_package: Dict[str, Any] = None) -> str:
+        if not context_package:
+            return ""
+        return context_package.get("prompt_context_text", "") if isinstance(context_package, dict) else ""
+
     def generate_story_analysis(self, project_id: str, episode_id: str, brief_content: Dict[str, Any],
                                 canon_content: Dict[str, Any] = None, providers: Any = None,
-                                provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b") -> Dict[str, Any]:
-        from backend.departments.story_context import StoryContextService
-        ctx = StoryContextService(self.root_dir, self.db)
+                                provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b",
+                                context_package: Dict[str, Any] = None, context_hash: str = None) -> Dict[str, Any]:
+        ctx_text = self._ctx_text(context_package)
         prompt = (
             "You are the screenwriter story analyst. Analyze the story idea into JSON with EXACT keys: "
             "dramatic_engine, theme, protagonist, objective, opposition, conflict, stakes, audience_promise, "
             "constraints (array), ending_requirements. Base every field on the brief/canon below; do not invent scores.\n"
-            f"BRIEF:\n{json.dumps(brief_content)[:4000]}\nCANON:\n{json.dumps(canon_content or {})[:4000]}"
+            f"BRIEF:\n{json.dumps(brief_content)[:4000]}\nCANON:\n{json.dumps(canon_content or {})[:4000]}\nASSEMBLED_CONTEXT:\n{ctx_text[:6000]}"
         )
         result = providers.generate_text(project_id=project_id, provider_id=provider_id, model_id=model_id, prompt=prompt)
         required = ["dramatic_engine", "theme", "protagonist", "objective", "opposition", "conflict", "stakes", "audience_promise", "constraints", "ending_requirements"]
@@ -326,17 +359,21 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
             }
         else:
             analysis = providers.validate_structured(result["content"], required)
-        meta = self._persist_artifact(project_id, episode_id, "STORY_ANALYSIS", analysis, provider=result)
+        meta = self._persist_artifact(project_id, episode_id, "STORY_ANALYSIS", analysis, provider=result,
+                                      context_hash=context_hash, context_package=context_package,
+                                      source_refs={"brief_revision": (context_package or {}).get("brief_revision_id")})
         return {**meta, "analysis": analysis, "status": result["status"]}
 
     def generate_hooks(self, project_id: str, episode_id: str, analysis: Dict[str, Any],
                        brief_content: Dict[str, Any], providers: Any = None,
-                       provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b") -> Dict[str, Any]:
+                       provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b",
+                       context_package: Dict[str, Any] = None, context_hash: str = None) -> Dict[str, Any]:
+        ctx_text = self._ctx_text(context_package)
         prompt = (
             "Generate 3 opening-hook alternatives as JSON {\"hooks\": [{\"id\": \"H1\", \"what_audience_sees\": \"\", "
             "\"question_created\": \"\", \"information_promised\": \"\", \"connection_to_episode\": \"\", \"payoff\": \"\"}, ...]}. "
             "Each hook must connect to the actual episode and state how the story pays it off. No universal intervals.\n"
-            f"ANALYSIS:\n{json.dumps(analysis)[:4000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}"
+            f"ANALYSIS:\n{json.dumps(analysis)[:4000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}\nASSEMBLED_CONTEXT:\n{ctx_text[:4000]}"
         )
         result = providers.generate_text(project_id=project_id, provider_id=provider_id, model_id=model_id, prompt=prompt)
         if provider_id == "DETERMINISTIC_MOCK":
@@ -347,17 +384,20 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
             ]}
         else:
             hooks = providers.validate_structured(result["content"], ["hooks"])
-        meta = self._persist_artifact(project_id, episode_id, "HOOKS", hooks, provider=result)
+        meta = self._persist_artifact(project_id, episode_id, "HOOKS", hooks, provider=result,
+                                      context_hash=context_hash, context_package=context_package)
         return {**meta, "hooks": hooks, "status": result["status"]}
 
     def generate_outline(self, project_id: str, episode_id: str, analysis: Dict[str, Any],
                          brief_content: Dict[str, Any], providers: Any = None,
-                         provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b") -> Dict[str, Any]:
+                         provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b",
+                         context_package: Dict[str, Any] = None, context_hash: str = None) -> Dict[str, Any]:
+        ctx_text = self._ctx_text(context_package)
         prompt = (
             "Generate a 3-act outline as JSON {\"acts\": [{\"name\": \"ACT I\", \"beats\": [\"...\"]}, ...], "
             "\"beats\": [{\"id\": \"B1\", \"label\": \"\", \"description\": \"\"}]}. Include setup, inciting incident, "
             "escalation, turning points, midpoint where applicable, climax, resolution, character development.\n"
-            f"ANALYSIS:\n{json.dumps(analysis)[:4000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}"
+            f"ANALYSIS:\n{json.dumps(analysis)[:4000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}\nASSEMBLED_CONTEXT:\n{ctx_text[:4000]}"
         )
         result = providers.generate_text(project_id=project_id, provider_id=provider_id, model_id=model_id, prompt=prompt)
         if provider_id == "DETERMINISTIC_MOCK":
@@ -371,7 +411,17 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
             ], "status": "PROPOSED"}
         else:
             outline = providers.validate_structured(result["content"], ["acts", "beats"])
-        meta = self._persist_artifact(project_id, episode_id, "OUTLINE", outline, provider=result)
+        meta = self._persist_artifact(project_id, episode_id, "OUTLINE", outline, provider=result,
+                                      context_hash=context_hash, context_package=context_package)
+        # A new outline never inherits approval: supersede every older APPROVED outline.
+        with self.db.get_connection() as conn:
+            conn.execute(
+                """UPDATE story_artifacts SET status = 'SUPERSEDED'
+                   WHERE project_id = ? AND episode_id = ? AND artifact_type = 'OUTLINE'
+                     AND status = 'APPROVED' AND artifact_id != ?""",
+                (project_id, episode_id, meta["artifact_id"]),
+            )
+            conn.commit()
         return {**meta, "outline": outline, "status": result["status"]}
 
     def approve_outline(self, project_id: str, episode_id: str, human_confirmed: bool = False) -> Dict[str, Any]:
@@ -390,12 +440,15 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
 
     def generate_scene_cards(self, project_id: str, episode_id: str, outline: Dict[str, Any],
                              brief_content: Dict[str, Any], providers: Any = None,
-                             provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b") -> Dict[str, Any]:
+                             provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b",
+                             context_hash: str = None, context_package: Dict[str, Any] = None) -> Dict[str, Any]:
+        outline_row = self._require_approved_outline(project_id, episode_id)
+        ctx_text = self._ctx_text(context_package)
         prompt = (
             "Generate 5 scene cards as JSON array. Each: scene_id (SC01...), location, time, characters (array), "
             "objective, conflict, action, dramatic_turn, clue_or_reveal, emotional_purpose, visual_storytelling, "
             "estimated_runtime_sec (number).\n"
-            f"OUTLINE:\n{json.dumps(outline)[:4000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}"
+            f"OUTLINE:\n{json.dumps(outline)[:4000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}\nASSEMBLED_CONTEXT:\n{ctx_text[:4000]}"
         )
         result = providers.generate_text(project_id=project_id, provider_id=provider_id, model_id=model_id, prompt=prompt)
         if provider_id == "DETERMINISTIC_MOCK":
@@ -422,7 +475,9 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
                 raise ValueError("Scene card output is not valid JSON")
             if not isinstance(cards, list):
                 raise ValueError("Scene card output must be a JSON array")
-        meta = self._persist_artifact(project_id, episode_id, "SCENE_CARDS", cards, provider=result)
+        meta = self._persist_artifact(project_id, episode_id, "SCENE_CARDS", cards, provider=result, context_hash=context_hash,
+                                      context_package=context_package,
+                                      source_refs={"outline_artifact_id": outline_row["artifact_id"], "outline_revision": outline_row["revision"]})
         return {**meta, "scene_cards": cards, "status": result["status"]}
 
     def generate_screenplay(self, project_id: str, episode_id: str, scene_cards: List[Dict[str, Any]],
@@ -430,20 +485,20 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
                             title: str = "Untitled", target_audience: str = "General",
                             intended_duration_sec: int = 300, providers: Any = None,
                             provider_id: str = "OLLAMA_OPENAI_COMPATIBLE", model_id: str = "ornith:9b",
-                            context_hash: str = None) -> Dict[str, Any]:
-        # Gate: outline must be APPROVED before drafting
-        with self.db.get_connection() as conn:
-            outline = conn.execute(
-                "SELECT status FROM story_artifacts WHERE project_id = ? AND episode_id = ? AND artifact_type = 'OUTLINE' ORDER BY revision DESC LIMIT 1",
-                (project_id, episode_id),
-            ).fetchone()
-        if outline and outline["status"] != "APPROVED":
-            raise PermissionError(f"Outline status is {outline['status']}; approve the outline before drafting the screenplay.")
+                            context_hash: str = None, context_package: Dict[str, Any] = None,
+                            source_refs: Dict[str, Any] = None) -> Dict[str, Any]:
+        # HARD GATES (H1): outline must exist AND latest must be APPROVED.
+        outline_row = self._require_approved_outline(project_id, episode_id)
+        cards_row = self._latest_artifact_row(project_id, episode_id, "SCENE_CARDS")
+        if cards_row is None:
+            raise PermissionError(f"No SCENE_CARDS exists for {project_id}/{episode_id}; generate scene cards before the screenplay.")
+        cards_rev = cards_row["revision"]
+        cards_aid = cards_row["artifact_id"]
         prompt = (
             "Write a complete screenplay as Markdown with scene headings (INT./EXT. LOCATION - TIME), filmable action, "
             "character entrances, dialogue (CHARACTER: line), transitions, visual direction, audio suggestions. "
             "Use the scene cards exactly; do not invent unresolved placeholders.\n"
-            f"SCENE CARDS:\n{json.dumps(scene_cards)[:6000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}\nCANON:\n{json.dumps(canon_content or {})[:2000]}"
+            f"SCENE CARDS:\n{json.dumps(scene_cards)[:6000]}\nBRIEF:\n{json.dumps(brief_content)[:4000]}\nCANON:\n{json.dumps(canon_content or {})[:2000]}\nASSEMBLED_CONTEXT:\n{self._ctx_text(context_package)[:6000]}"
         )
         result = providers.generate_text(project_id=project_id, provider_id=provider_id, model_id=model_id, prompt=prompt)
         if provider_id == "DETERMINISTIC_MOCK":
@@ -471,16 +526,21 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
             nxt = (prev or 0) + 1
         script_id = f"SCR_{project_id}_V{nxt:02d}"
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        source_refs_full = {
+            "outline_artifact_id": outline_row["artifact_id"], "outline_revision": outline_row["revision"],
+            "scene_cards_artifact_id": cards_aid, "scene_cards_revision": cards_rev,
+            **(source_refs or {}),
+        }
         with self.db.get_connection() as conn:
             conn.execute(
                 """INSERT INTO scripts
-                   (script_id, project_id, version, previous_version, change_summary, agent_responsible, reason_for_changes, reviewer_comments, scores_json, passes_completed_json, content_markdown, approval_status, is_immutable, created_at)
-                   VALUES (?, ?, ?, ?, ?, 'SCREENWRITER', ?, '', ?, ?, ?, 'AWAITING_HUMAN_REVIEW', 0, ?)""",
+                   (script_id, project_id, version, previous_version, change_summary, agent_responsible, reason_for_changes, reviewer_comments, scores_json, passes_completed_json, content_markdown, approval_status, is_immutable, created_at, episode_id, context_hash_sha256, source_refs_json)
+                   VALUES (?, ?, ?, ?, ?, 'SCREENWRITER', ?, '', ?, ?, ?, 'AWAITING_HUMAN_REVIEW', 0, ?, ?, ?, ?)""",
                 (
                     script_id, project_id, nxt, prev,
                     "Generated screenplay via staged pipeline (CR_006 M3)",
                     "Staged generation " + result["status"], json.dumps({}), json.dumps([]),
-                    screenplay_md, now,
+                    screenplay_md, now, episode_id, context_hash, json.dumps(source_refs_full),
                 ),
             )
             conn.commit()
@@ -489,12 +549,14 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
         self.approvals.advance_system_state(approval_id, "GENERATING", "SCREENWRITER")
         self.approvals.advance_system_state(approval_id, "QUALITY_CHECK", "SCRIPT_CRITIC", "MANUAL_INSPECTION_REQUIRED", "Run deterministic validation + creative critique before human review.")
         self.approvals.advance_system_state(approval_id, "AWAITING_HUMAN_REVIEW", "PRODUCTION_DIRECTOR", "MANUAL_INSPECTION_REQUIRED", "Screenplay generated; validation and critique required before approval.")
-        self._persist_artifact(project_id, episode_id, "SCREENPLAY", {"script_id": script_id, "version": nxt, "markdown_chars": len(screenplay_md)}, context_hash=context_hash, provider=result)
+        self._persist_artifact(project_id, episode_id, "SCREENPLAY", {"script_id": script_id, "version": nxt, "markdown_chars": len(screenplay_md)},
+                               context_hash=context_hash, provider=result, context_package=context_package,
+                               source_refs=source_refs_full)
         return {
             "script_id": script_id, "approval_id": approval_id, "version": nxt,
             "previous_version": prev, "status": result["status"], "provider_id": result["provider_id"],
             "model_id": result["model_id"], "request_id": result["request_id"],
-            "markdown": screenplay_md, "context_hash": context_hash,
+            "markdown": screenplay_md, "context_hash": context_hash, "source_refs": source_refs_full,
         }
 
     def run_revision_passes(self, project_id: str, script_id: str, passes: List[str]) -> Dict[str, Any]:
