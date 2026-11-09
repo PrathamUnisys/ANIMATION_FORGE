@@ -34,7 +34,7 @@ operating systems.
 | `GET /api/health` | Return integrity and architecture health summary. | Requires local IPC token. |
 | `GET /api/dashboard` | Read project and production dashboard records. | Requires local IPC token. |
 | `POST /api/projects` | Insert a project at `USER_STORY_IDEA`. | Requires local IPC token; database errors are not translated to a structured validation response. |
-| `POST /api/approvals/decide` | Submit a decision through the approval engine. | Requires local IPC token; a `HUMAN_` ID prefix is not, by itself, identity authentication. |
+| `POST /api/approvals/decide` | Submit a decision through the approval engine. | Requires local IPC token plus Windows-derived reviewer identity and native confirmation; unavailable on non-Windows systems. |
 | `GET /api/projects` | List projects for the project selector. | Read-only; requires local IPC token. |
 | `GET /api/projects/{project_id}` | Read one project record. | Read-only; 404 for unknown project. |
 | `GET /api/projects/{project_id}/steps` | Aggregate the 17 workflow stages with progress/capability/evidence status derived from records and files. | Read-only; derivation never backfills DONE from `current_stage`; unavailable stages are labelled, not simulated. |
