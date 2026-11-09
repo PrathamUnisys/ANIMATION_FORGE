@@ -1,6 +1,6 @@
 ---
 prompt_id: DOCS_CAPABILITY_REGISTRY
-version: 1.0.0
+version: 1.1.0
 modified_date: 2026-11-09
 description: Evidence-based index of exposed API routes and registered MCP catalog operations
 dependencies: ["CORE/OUTPUT_CONTRACTS.md", "CORE/SECURITY_POLICY.md"]
@@ -8,6 +8,9 @@ change_history:
   - version: 1.0.0
     date: 2026-11-09
     summary: Record the current exposed route and MCP operation surface with implementation caveats
+  - version: 1.1.0
+    date: 2026-11-09
+    summary: Register CR_004 project workspace read routes (steps, detail views, sandboxed file reader) with implementation caveats
 ---
 # Application Capability Registry (Observed)
 
@@ -28,6 +31,21 @@ the route does not establish a logged-in human identity.
 | `GET /api/dashboard` | Read project and production dashboard records. | Requires local IPC token. |
 | `POST /api/projects` | Insert a project at `USER_STORY_IDEA`. | Requires local IPC token; database errors are not translated to a structured validation response. |
 | `POST /api/approvals/decide` | Submit a decision through the approval engine. | Requires local IPC token; a `HUMAN_` ID prefix is not, by itself, identity authentication. |
+| `GET /api/projects` | List projects for the project selector. | Read-only; requires local IPC token. |
+| `GET /api/projects/{project_id}` | Read one project record. | Read-only; 404 for unknown project. |
+| `GET /api/projects/{project_id}/steps` | Aggregate the 17 workflow stages with progress/capability/evidence status derived from records and files. | Read-only; derivation never backfills DONE from `current_stage`; unavailable stages are labelled, not simulated. |
+| `GET /api/projects/{project_id}/scripts` | List screenplay revisions (metadata, scores, passes) for a project. | Read-only; does not include full screenplay text. |
+| `GET /api/projects/{project_id}/scripts/{script_id}` | Read one screenplay revision with DB text and on-disk file text, flagging disagreement. | Read-only; DB/file mismatch is reported as INCONSISTENT, never silently resolved. |
+| `GET /api/projects/{project_id}/audio` | List dialogue audio lines with TTS payload and file references. | Read-only; WAV files are tone demos, not provider speech; model comes only from the recorded TTS payload. |
+| `GET /api/projects/{project_id}/assets` | List assets with their revisions, provenance and workflow metadata. | Read-only; prompt/seed/SHA-256 are shown only where recorded in `asset_revisions`. |
+| `GET /api/projects/{project_id}/scenes` | List scenes for a project. | Read-only. |
+| `GET /api/projects/{project_id}/shots` | List shots with camera, placement and storyboard references. | Read-only. |
+| `GET /api/projects/{project_id}/research` | Return research reports, tool candidates, evaluations and toolchain profiles. | Read-only; research data is preconfigured, not a live web search. |
+| `GET /api/projects/{project_id}/tasks` | List production tasks with dependencies and generation jobs. | Read-only; tasks record no selected tool or outputs — those fields are explicitly null with a note. |
+| `GET /api/projects/{project_id}/qc` | List QC reports with checks, issues and recommendations. | Read-only; checks are predetermined, no media inspection; technical QC is not creative approval. |
+| `GET /api/projects/{project_id}/executions` | Return redacted agent executions, prompt metadata/hashes, and execution logs. | Read-only; server-side redaction; `agent_prompts` has no prompt bodies to return. |
+| `GET /api/projects/{project_id}/files` | List servable project files under `PROJECTS/{project_id}/`. | Read-only; extension allowlist only. |
+| `GET /api/projects/{project_id}/file` | Serve one project file (text, image or audio) by root-relative path. | Read-only; path is resolved and contained inside the project directory (traversal/symlink escapes rejected); size-capped. |
 
 ## MCP built-in catalog
 

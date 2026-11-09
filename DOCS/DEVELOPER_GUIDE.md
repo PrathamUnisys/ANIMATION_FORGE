@@ -29,7 +29,7 @@
 
 ## Frontend notes
 - Build: `cd frontend && npm run build` (`tsc && vite build`) → `dist/`. Dev: `npm run dev` on `127.0.0.1:1420`.
-- `src/App.tsx` consumes `/api/health` + `/api/dashboard`; Tauri obtains the per-launch URL/token through the registered host command. Browser dev uses the Vite proxy.
+- `src/App.tsx` is the CR_004 workflow workspace: project selector (`GET /api/projects`), 17-stage stepper (`GET /api/projects/{id}/steps`), per-stage viewers (scripts/audio/assets/scenes/shots/research/tasks/qc), sandboxed file/media explorer (`GET .../files`, `GET .../file`), and Provenance/Debug panel (`GET .../executions`). Formatted views are default; raw source appears only in Source/Debug toggles. Tauri obtains the per-launch URL/token through the registered host command; file/media blobs are fetched with the token and shown via object URLs (img/audio tags cannot send headers). Browser dev uses the Vite proxy.
 
 ## Instruction repository validation
 - Governed instruction Markdown uses YAML front matter with a unique `prompt_id`, version, date, dependencies, and change history.

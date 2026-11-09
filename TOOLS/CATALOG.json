@@ -1,5 +1,5 @@
 {
-  "catalog_version": "1.0.0",
+  "catalog_version": "1.1.0",
   "task_groups": [
     {
       "task_id": "SCREENPLAY_DEVELOPMENT",
@@ -43,7 +43,15 @@
       "candidate_tool_ids": [
         "COMFYUI",
         "BLENDER",
-        "UNREAL_ENGINE"
+        "UNREAL_ENGINE",
+        "CASCADEUR",
+        "CHARACTER_CREATOR",
+        "ACCURIG",
+        "QUICKSEL_BRIDGE",
+        "ZBRUSH",
+        "MARVELOUS_DESIGNER",
+        "FACEFORM_WRAP",
+        "DAZ_STUDIO"
       ],
       "candidate_provider_ids": [
         "COMFYUI_LOCAL_GRAPH"
@@ -61,7 +69,9 @@
       "candidate_tool_ids": [
         "COMFYUI",
         "BLENDER",
-        "UNREAL_ENGINE"
+        "UNREAL_ENGINE",
+        "QUICKSEL_BRIDGE",
+        "GAEA"
       ],
       "candidate_provider_ids": [
         "COMFYUI_LOCAL_GRAPH"
@@ -96,7 +106,10 @@
       ],
       "candidate_tool_ids": [
         "BLENDER",
-        "UNREAL_ENGINE"
+        "UNREAL_ENGINE",
+        "ACCURIG",
+        "ZBRUSH",
+        "FACEFORM_WRAP"
       ],
       "candidate_provider_ids": []
     },
@@ -111,7 +124,12 @@
       ],
       "candidate_tool_ids": [
         "BLENDER",
-        "UNREAL_ENGINE"
+        "UNREAL_ENGINE",
+        "CASCADEUR",
+        "RIGBY2D",
+        "MOHO",
+        "FREEMOCAP",
+        "DAZ_STUDIO"
       ],
       "candidate_provider_ids": []
     },
@@ -170,7 +188,8 @@
         "muxing"
       ],
       "candidate_tool_ids": [
-        "BLENDER"
+        "BLENDER",
+        "DAVINCI_RESOLVE"
       ],
       "candidate_provider_ids": []
     }
@@ -200,13 +219,20 @@
         "storyboard_images",
         "video_generation"
       ],
-      "availability_status": "NOT_VERIFIED",
+      "availability_status": "INSTALLED",
       "integration_status": "SIMULATION_ONLY",
       "connection_type": "LOCAL_HTTP_WEBSOCKET",
       "default_endpoint_reference": "http://127.0.0.1:8188",
       "verified_version": null,
-      "last_verified_at": null,
-      "evidence": [],
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion",
+          "result": "Portable at D:/Downloads/ComfyUI_windows_portable_nvidia/ComfyUI_windows_portable/run_nvidia_gpu.bat (offline)"
+        }
+      ],
       "limitations": [
         "Animation Forge adapter currently validates and records caller-supplied bytes; no live workflow dispatch or output retrieval."
       ]
@@ -238,13 +264,20 @@
         "compositing",
         "video_editing"
       ],
-      "availability_status": "NOT_VERIFIED",
+      "availability_status": "INSTALLED",
       "integration_status": "SIMULATION_ONLY",
       "connection_type": "LOCAL_PROCESS",
       "default_endpoint_reference": null,
-      "verified_version": null,
-      "last_verified_at": null,
-      "evidence": [],
+      "verified_version": "5.2",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion",
+          "result": "FileVersion D:/Program Files/BlenderFoudation/blender.exe = 5.2; datafolders 5.0,5.2"
+        }
+      ],
       "limitations": [
         "Animation Forge adapter writes demonstration files and does not launch Blender or verify a render."
       ]
@@ -274,15 +307,458 @@
         "cinematography",
         "rendering"
       ],
-      "availability_status": "NOT_VERIFIED",
+      "availability_status": "INSTALLED",
       "integration_status": "SIMULATION_ONLY",
       "connection_type": "LOCAL_PROCESS",
       "default_endpoint_reference": null,
-      "verified_version": null,
-      "last_verified_at": null,
-      "evidence": [],
+      "verified_version": "5.8 (also 5.6,5.7)",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion",
+          "result": "UnrealEditor.exe 5.6 CL-44394996, 5.7 CL-51494982, 5.8 CL-58902052"
+        }
+      ],
       "limitations": [
         "Animation Forge adapter does not launch Unreal Editor or verify a rendered output."
+      ]
+    },
+    {
+      "tool_id": "CASCADEUR",
+      "display_name": "Cascadeur",
+      "category": "CHAR_ANIM",
+      "manual_path": "TOOLS/CASCADEUR/TOOL.md",
+      "official_docs": [
+        "https://www.cascadeur.com/"
+      ],
+      "tasks": [
+        "ANIMATION",
+        "CHARACTER_ASSETS"
+      ],
+      "capability_tags": [
+        "character_animation",
+        "physics_pose",
+        "live_link"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "2026.1.2.0.15343",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "CASCADEUR observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "CHARACTER_CREATOR",
+      "display_name": "Character Creator 5",
+      "category": "CHAR_GEN",
+      "manual_path": "TOOLS/CHARACTER_CREATOR/TOOL.md",
+      "official_docs": [
+        "https://www.reallusion.com/"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS"
+      ],
+      "capability_tags": [
+        "character_generation",
+        "cc5_hub_pipeline"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "5.12.1927.1",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "CHARACTER_CREATOR observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "ACCURIG",
+      "display_name": "AccuRIG",
+      "category": "AUTO_RIG",
+      "manual_path": "TOOLS/ACCURIG/TOOL.md",
+      "official_docs": [
+        "https://www.reallusion.com/auto-rig/"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS",
+        "3D_MODELING_RIGGING"
+      ],
+      "capability_tags": [
+        "auto_rig",
+        "actor_core"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "ACCURIG observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "QUICKSEL_BRIDGE",
+      "display_name": "Quixel Bridge",
+      "category": "ASSET_BROWSER",
+      "manual_path": "TOOLS/QUICKSEL_BRIDGE/TOOL.md",
+      "official_docs": [
+        "https://www.quixely.com/"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS",
+        "ENVIRONMENT_ASSETS"
+      ],
+      "capability_tags": [
+        "asset_browser",
+        "megascans"
+      ],
+      "availability_status": "CONFIGURATION_REQUIRED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "QUICKSEL_BRIDGE observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "RIGBY2D",
+      "display_name": "Rigby2D",
+      "category": "SKELETAL_2D",
+      "manual_path": "TOOLS/RIGBY2D/TOOL.md",
+      "official_docs": [
+        "https://github.com/"
+      ],
+      "tasks": [
+        "ANIMATION"
+      ],
+      "capability_tags": [
+        "2d_skeletal_animation",
+        "rigby_pipeline"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "RIGBY2D observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "ZBRUSH",
+      "display_name": "ZBrush",
+      "category": "SCULPT",
+      "manual_path": "TOOLS/ZBRUSH/TOOL.md",
+      "official_docs": [
+        "https://www.maxon.net/en/zbrush"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS",
+        "3D_MODELING_RIGGING"
+      ],
+      "capability_tags": [
+        "sculpting",
+        "highpoly"
+      ],
+      "availability_status": "CONFIGURATION_REQUIRED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "ZBRUSH observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "MARVELOUS_DESIGNER",
+      "display_name": "Marvelous Designer",
+      "category": "CLOTH",
+      "manual_path": "TOOLS/MARVELOUS_DESIGNER/TOOL.md",
+      "official_docs": [
+        "https://www.marvelousdesigner.com/"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS"
+      ],
+      "capability_tags": [
+        "cloth_simulation",
+        "garment"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "2025.2.143",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "MARVELOUS_DESIGNER observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "MOHO",
+      "display_name": "Moho",
+      "category": "ANIMATION_2D",
+      "manual_path": "TOOLS/MOHO/TOOL.md",
+      "official_docs": [
+        "https://moho.lostmarble.com/"
+      ],
+      "tasks": [
+        "ANIMATION"
+      ],
+      "capability_tags": [
+        "2d_animation",
+        "vector_animation"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "14.4",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "MOHO observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "DAVINCI_RESOLVE",
+      "display_name": "DaVinci Resolve",
+      "category": "VIDEO_EDIT",
+      "manual_path": "TOOLS/DAVINCI_RESOLVE/TOOL.md",
+      "official_docs": [
+        "https://www.blackmagicdesign.com/products/davinciresolve"
+      ],
+      "tasks": [
+        "EDITING_DELIVERY"
+      ],
+      "capability_tags": [
+        "video_editing",
+        "color_grading"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "21.0.0.48",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "DAVINCI_RESOLVE observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "GAEA",
+      "display_name": "Gaea",
+      "category": "WORLD_GEN",
+      "manual_path": "TOOLS/GAEA/TOOL.md",
+      "official_docs": [
+        "https://quadspinner.com/"
+      ],
+      "tasks": [
+        "ENVIRONMENT_ASSETS"
+      ],
+      "capability_tags": [
+        "procedural_terrain",
+        "worldbuilding"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "GAEA observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "FACEFORM_WRAP",
+      "display_name": "Faceform Wrap",
+      "category": "FACE_PIPELINE",
+      "manual_path": "TOOLS/FACEFORM_WRAP/TOOL.md",
+      "official_docs": [
+        "https://faceform.com/"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS",
+        "3D_MODELING_RIGGING"
+      ],
+      "capability_tags": [
+        "topology_transfer",
+        "digital_double"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "2025.11.14",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "FACEFORM_WRAP observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "FREEMOCAP",
+      "display_name": "FreeMoCap",
+      "category": "MOCAP",
+      "manual_path": "TOOLS/FREEMOCAP/TOOL.md",
+      "official_docs": [
+        "https://freemocap.org/"
+      ],
+      "tasks": [
+        "ANIMATION"
+      ],
+      "capability_tags": [
+        "markerless_mocap",
+        "opensource_mocap"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "FREEMOCAP observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "DAZ_STUDIO",
+      "display_name": "DAZ Studio",
+      "category": "DCC_3D",
+      "manual_path": "TOOLS/DAZ_STUDIO/TOOL.md",
+      "official_docs": [
+        "https://www.daz3d.com/"
+      ],
+      "tasks": [
+        "CHARACTER_ASSETS",
+        "ANIMATION"
+      ],
+      "capability_tags": [
+        "character_pose",
+        "daz_library"
+      ],
+      "availability_status": "CONFIGURATION_REQUIRED",
+      "integration_status": "DOCUMENTED_ONLY",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "PowerShell Test-Path/FileVersion + vendor fetch",
+          "result": "DAZ_STUDIO observed on disk 2026-11-09"
+        }
+      ],
+      "limitations": [
+        "Documentation only - no live adapter verified yet."
       ]
     }
   ],

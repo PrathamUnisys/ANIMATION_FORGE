@@ -1,0 +1,115 @@
+# Creative Software + Projects + Asset Map — C:\ and D:\
+Generated 2026-11-09 by read-only scan. Nothing was started live (Blender MCP, ComfyUI, UE servers all offline as requested).
+Verify method: `Test-Path`, exe `FileVersion`, directory listings. No files modified during scan.
+
+## Drives
+- `C:\` — 489 GB used / **19 GB free (critically low)**
+- `D:\` — 885 GB used / 115 GB free
+- Workspace in use: `D:\Work\ANIMATION_FORGE` (git repo: backend/, frontend/, CORE/, TOOLS/, DOCS/, LIBRARY/ etc, `animation_forge.db`)
+
+## Software (verified versions)
+
+### Blender + MCP
+- Install: `D:\Program Files\BlenderFoudation\` (note spelling) — `blender.exe` FileVersion **5.2**; datafolders `5.0\`, `5.2\`
+- User config: `C:\Users\sb291\AppData\Roaming\Blender Foundation\Blender\` versions `2.93,3.6,4.0,4.1,4.2,4.3,4.4,4.5,5.0,5.2`
+- Extensions 5.2: `extensions\blender_org`, `lab_blender_org`, `user_default`, `.cache`, `.local`
+- MCP in `C:\Users\sb291\opencode.json`:
+  ```json
+  "mcp": { "blender-mcp": { "type":"local","command":["npx","-y","@ahujasid/blender-mcp"],"enabled":true } }
+  ```
+  Note: AGENTS.md says `uvx blender-mcp` at `localhost:9876` — **config on disk says npx**. We'll check later which is live when you start Blender.
+- Add-ons staged: `C:\Users\sb291\TrueDepth-blender-addon\`, `C:\Users\sb291\Downloads\blender-mcp-main.zip`
+
+### Unreal Engine (3 full engine installs)
+- `C:\Program Files\Epic Games\UE_5.6\` — Engine + FeaturePacks + Templates + Samples
+- `D:\Work\Epic\UE_5.7\` — Engine + Templates + FeaturePacks + `ToolComplete.txt`
+- `D:\Work\Epic\UE_5.8\` — same (plus `zen-manifest.json`, `Directory.Build.*`)
+- VaultCache: `D:\Program Files\Epic\VaultCache\` and `D:\Work\Epic\VaultCache\`
+- MCP noted in AGENTS.md at `127.0.0.1:8000/mcp` — not probed (offline).
+
+### Cascadeur
+- `C:\Program Files\Cascadeur\cascadeur.exe` FileVersion **2026.1.2.0.15343** + `C:\Program Files\CascadeurOriginal\`
+- LiveLink DLLs present (`UnrealLiveLink.dll`, `tool_ue_live_link.dll`)
+
+### Reallusion Character Creator 5 + iClone/iCity
+- CC5: `C:\Program Files\Reallusion\Character Creator 5\Bin64\CharacterCreator.exe` FileVersion **5.12.1927.1**, `Shared Plugins\`
+- iClone: **no iClone install found** in `C:\Program Files\Reallusion` — only CC5 + Shared Plugins. Confirm if iClone is CC5-only or elsewhere.
+- iCity packs: `D:\Content Creation\iCity Cyberpunk 1.7.1 - Individual License\`, `D:\Library\Blender\iCity\`, `D:\Library\Blender\iCity - Cyberpunk Theme\`
+
+### Quixel (Bridge / Mixer)
+- `C:\Program Files\Bridge\` **exists but 0 files listed at depth 1-2** — suspicious. Likely needs later live check (exe inside subfolder not enumerated) or empty shim.
+- Project folder: `D:\Work\Quxeil Bridge\New folder\` (almost empty)
+- Megascans library **not yet located** — check `D:\Library`, `D:\Content Creation\Material\`, AppData later.
+
+### ComfyUI (offline, not running)
+- Portable install: `D:\Downloads\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable\` — contains `ComfyUI\`, `python_embeded\`, `run_nvidia_gpu.bat`, `run_cpu.bat`, README
+- Workflows only: `D:\Comfyui Workflow\` = 5 `PixelArtistry_*.json`; `D:\Work\Workflows\` = `zimage_gguf.json`, `wanvideo_WanAnimate_example_01.json`, `image_z_image_turbo.json`
+- ANIMATION_FORGE stub: `D:\Work\ANIMATION_FORGE\TOOLS\COMFYUI\TOOL.md` (no install there)
+- `D:\Downloads\` also has many `ComfyUI_windows_portable_nvi*` zips/extracts — clean later.
+
+### Rigby2D
+- Portable: `D:\Work\Rigby2D_x64_portable.exe`, tools: `D:\Work\Tools\rigby2d\`
+- Projects: `D:\Work\Rigby2D-Projects\` (see Projects)
+
+### Other creative apps seen in `C:\Program Files` / `D:\Program Files`
+- DAZ 3D, Maxon ZBrush 2025, Marvelous Designer Enterprise Network Offline (`D:\Program Files\Marvelous Designer Enterprise Network Offline\`), PlantFactory, Unity + Unity Hub, Blackmagic DaVinci Resolve, The Foundry (Nuke), Gaea, AccuRIG, Moho 14, Krita, PureRef, Faceform
+- Gaea: `D:\Work\Gaea 2.0\Gaea.exe` + project `D:\Work\Gaea\Document,Project,Output`
+- Elden Ring Mod Engine 2: `D:\Games\ModEngine-2.1.0.0-win64\` (read its AGENTS.md before modding)
+
+## Projects (user content, not engine templates)
+
+### Unreal — `D:\Projects\` (6 projects)
+`Detactive_Env`, `MyVfxProject`, `SamuraiProject`, `StylizedProceduralEn`, `Stylized_env`, `Stylized_FullVid`
+- `.uproject` confirmed via glob for at least 3; all have `Saved/logs`, `DerivedDataCache/VT`
+- Engine template `.uproject`s under `UE_5.7/UE_5.8/Templates` ignored (not user content).
+
+### Rigby2D — `D:\Work\Rigby2D-Projects\`
+- `flat-man.psd` + `flat-man.rigby`, `rigbytron.rigby`, `fight-audio.wav`
+- `frames/`, `frames-flat/`, `frames-rigby/`, `preview-kick.png`, `preview-punch.png`, `rigbytron-fight.mp4`, `Rigby2D-Fight-Documentation.md`
+- `D:\Work\Rigby2D-PunchKick.zip`, `D:\Work\Rigby2D-Fight.mp4`
+
+### Blender
+- `D:\Library\Blender\MedievalCityGenerator_v1.2 vfxMed.blend`, `MedivalCityGeneratorEdit.blend`, `Fantasy Hut Generator/`, `Procedural Building Generator V2/`
+- `D:\Downloads\robot.blend`
+- Desktop render flood: `C:\Users\sb291\Desktop\medieval_alley_*.png` (150+ frames 0001-0150 + mp4 frames dump)
+
+### Cascadeur / Animation
+- `D:\Library\Cascadeur\Maximo_model.casc`, `maximo_model_without_animation.casc`
+- `D:\Library\Animations\CascadeurManny/`, `CascadeurMaximo/`, `MannyPoses/`, `Maximo/`
+- `D:\Content Creation\Mocap\`
+
+### Reallusion CC5 libraries
+- `D:\Work\Reallusion Custom\` = Accessory, Actor, ActorMIXER, Animation, Avatar Preset, Cloth, Hair, Makeup, Media, Project, Props, Set, Skin, Stage + `ccic_blender_pipeline_plugin.txt`
+- `D:\Work\Reallision\` = Reallusion Custom, Reallusion Templates, Temp
+- `D:\Library\CC to Blender\Base.fbx / Base.3dxProfile / Base.ccFacialProfile / textures/`
+
+### ComfyUI workflows
+- See ComfyUI section above.
+
+## Asset Libraries & folders
+- `D:\Library\` — 3d Characters, Animations, Blender, Cascadeur, CC to Blender, Characters, City Meshes (iCity), Clothes, Landscape Material, Metahuman export, Road, Rocks for Unreal, Tree, Unreal Landscape Materials etc
+- `D:\Content Creation\` — faceform, fSpy-1.0.3-win, iCity Cyberpunk 1.7.1, Inspirations, Material, Mocap
+- `D:\Work\` — ANIMATION_FORGE, Content Creation, Epic (UE 5.7/5.8), Gaea, Gaea 2.0, Mods, Quxeil Bridge, Reallision, Reallusion Custom, Rigby2D-Projects, storyquest-studio, Tools, Workflows
+- `D:\Exports\` — Blender, Hairs, Metahuman, OBS Exports, PlantFactory, Unreal Animation, Unreal Metahuman fbx
+- `D:\Images\Back serious guy.png`, `Front Serious guy.png`
+- `D:\Courses\` — AI Metahuman Tutorial, Unreal Engine Course, Boundless Unreal for Filmmakers, Bloop Animations, CharacterClass, huahua vfxmed
+- `D:\Downloads\` — staging: ActorMIXER_PRO_Plugin, Cascadeur v2026.1.2, Dreamscape Nature Tower, Faceform Wrap, Hair_Tool, VRM4U_5_7 / 5_8, armorpain, Baldur, etc. — **lots of dupes/zips to clean**
+- `C:\Users\sb291\Downloads\` — .fbx/.glb/.obj staging (LisaFace, Ignis, prowler_dragon, stylized_women etc), CC5 installers (`Character_Creator_512_Full.rar`, `Character_Creator_and_iClone_Auto_Setup_201_0317_for_Unreal.exe`, `Blender_Pipeline_Plugin_for_CC5_Hub.exe`), UE5 pipeline zips, VRM4U_5_8 zip, fSpy zips
+- `D:\Games\` — AC Black Flag Resynced, Black Myth Wukong, ELDEN RING, Horizon Zero Dawn Remastered, ModEngine-2.1.0.0-win64, Mods, Stellar Blade
+
+## MCP / Config summary (offline — to check later)
+- Blender MCP — `C:\Users\sb291\opencode.json` → npx `@ahujasid/blender-mcp`, enabled. AGENTS.md says uvx + 9876 — discrepancy to resolve on first live run.
+- Unreal MCP — AGENTS.md `127.0.0.1:8000/mcp` — no config file yet found in scope.
+- Rigby2D MCP — workspace is `D:\Work\Rigby2D-Projects` per AGENTS.md; server not started.
+- ComfyUI — portable at `D:\Downloads\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable\`, `run_nvidia_gpu.bat` to start. No MCP wired yet.
+- Ollama — 0.40.14, models in `D:\Ollama` (`ornith:9b` primary, `qwen3.5:4b` fallback), `ollama stop` frees VRAM.
+
+## TODO / cleanup candidates (safe to review, not deleted)
+- [ ] C: free 19 GB — archive `D:\Downloads` dupes (ComfyUI portable zips, VRM4U 5_7/5_8, Cascadeur installer) and Desktop `medieval_alley_*` frames (150+ PNGs) to D:
+- [ ] Decide canonical ComfyUI location: portable in `D:\Downloads` vs `D:\Work` — move later after you approve
+- [ ] Resolve Bridge exe mystery (`C:\Program Files\Bridge` empty at top) — find real Bridge install / Megascans path
+- [ ] Confirm iClone present? CC5-only right now
+- [ ] Align Blender MCP docs (npx vs uvx) before first live run
+
+## Re-verify
+File re-read after write + counts above cross-checked against scan output. Full recursive size scan was skipped intentionally (timed out on 885 GB tree) — folder-level map only, as planned.

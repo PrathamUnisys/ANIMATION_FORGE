@@ -1,87 +1,739 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { useForgeStore } from './store/useForgeStore';
 
+/* CR_004: Workflow Stepper, Output Viewer & Debug Explorer.
+   Formatted views by default; raw source only inside the Debug toggle.
+   Missing values are shown as not recorded / unavailable, never invented. */
+
+type Step = {
+  stage_number: number; stage: string; progress: string;
+  capability_status: string; capability_note?: string | null;
+  evidence_status: string; input_count: number; output_count: number;
+  approval_state?: string | null; is_current_stage: boolean;
+  blockers: string[]; warnings: string[];
+};
+type Project = Record<string, any>;
 type Dashboard = {
   projects: any[]; pending_approvals: any[]; recent_approvals: any[];
   recent_assets: any[]; toolchains: any[]; integrations: any[];
   creative_decisions: any[]; qc_reports: any[];
 };
 
-const NAV = ['dashboard','projects','approvals','assets','toolchains','integrations','qc'] as const;
+const STAGE_ENDPOINTS: Record<string, string[]> = {
+  USER_STORY_IDEA: ['project'],
+  STORY_ANALYSIS: ['files', 'executions'],
+  SCRIPT_DEVELOPMENT: ['scripts'],
+  SCREENPLAY_APPROVAL: ['scripts', 'dashboard'],
+  PRODUCTION_REQUIREMENT_ANALYSIS: ['scenes'],
+  ONLINE_TOOL_RESEARCH_AND_RND: ['research'],
+  TOOL_COMPARISON: ['research'],
+  PROOF_OF_CONCEPT: ['tasks', 'research'],
+  HUMAN_TOOLCHAIN_APPROVAL: ['research', 'dashboard'],
+  PRODUCTION_PLANNING: ['tasks'],
+  AUDIO_AND_VISUAL_PRODUCTION: ['audio', 'assets'],
+  STORYBOARD_AND_ANIMATIC: ['shots', 'scenes', 'files'],
+  ANIMATION: ['tasks', 'files'],
+  POST_PRODUCTION: ['files'],
+  QUALITY_CONTROL: ['qc'],
+  HUMAN_FINAL_APPROVAL: ['qc', 'dashboard'],
+  COMPLETED_PRODUCTION_PACKAGE: ['files', 'steps'],
+};
 
 async function apiFetch(path: string): Promise<Response> {
   if (!isTauri()) return fetch(path);
   const [baseUrl, token] = await invoke<[string, string]>('get_sidecar_connection');
-  return fetch(`${baseUrl}${path}`, {
-    headers: { 'x-forge-token': token },
+  return fetch(`${baseUrl}${path}`, { headers: { 'x-forge-token': token } });
+}
+async function apiJson(path: string): Promise<any> {
+  const r = await apiFetch(path);
+  if (!r.ok) throw new Error(`${path} -> ${r.status}`);
+  return r.json();
+}
+/** Fetch a project file as a blob URL (token header cannot be sent by <img>/<audio> tags). */
+async function apiBlobUrl(projectId: string, filePath: string): Promise<string> {
+  const rel = filePath.startsWith(`PROJECTS/${projectId}/`)
+    ? filePath.slice(`PROJECTS/${projectId}/`.length) : filePath;
+  const r = await apiFetch(`/api/projects/${projectId}/file?path=${encodeURIComponent(rel)}`);
+  if (!r.ok) throw new Error(`file ${rel} -> ${r.status}`);
+  const blob = await r.blob();
+  return URL.createObjectURL(blob);
+}
+async function apiText(projectId: string, filePath: string): Promise<string> {
+  const rel = filePath.startsWith(`PROJECTS/${projectId}/`)
+    ? filePath.slice(`PROJECTS/${projectId}/`.length) : filePath;
+  const r = await apiFetch(`/api/projects/${projectId}/file?path=${encodeURIComponent(rel)}`);
+  if (!r.ok) throw new Error(`file ${rel} -> ${r.status}`);
+  return r.text();
+}
+
+function Chip({ label, tone }: { label: string; tone?: string }) {
+  const colors: Record<string, string> = {
+    DONE: 'bg-green-900/50 text-green-200 border-green-700',
+    CURRENT: 'bg-amber-900/50 text-amber-200 border-amber-700',
+    BLOCKED: 'bg-red-900/50 text-red-200 border-red-700',
+    NOT_STARTED: 'bg-slate-800 text-slate-300 border-slate-600',
+    PLANNED_UNAVAILABLE: 'bg-purple-900/50 text-purple-200 border-purple-700',
+    NOT_TRACKED: 'bg-slate-800 text-slate-400 border-slate-600',
+    IMPLEMENTED: 'bg-green-900/40 text-green-200 border-green-700',
+    PARTIAL: 'bg-amber-900/40 text-amber-200 border-amber-700',
+    SIMULATED: 'bg-orange-900/50 text-orange-200 border-orange-600',
+    UNAVAILABLE: 'bg-purple-900/50 text-purple-200 border-purple-700',
+    NOT_VERIFIED: 'bg-slate-800 text-slate-300 border-slate-600',
+    AVAILABLE: 'bg-green-900/40 text-green-200 border-green-700',
+    MISSING: 'bg-slate-800 text-slate-400 border-slate-600',
+    INCONSISTENT: 'bg-red-900/50 text-red-200 border-red-600',
+    NOT_APPLICABLE: 'bg-slate-800 text-slate-400 border-slate-600',
+    APPROVED: 'bg-green-900/50 text-green-200 border-green-700',
+    AWAITING_HUMAN_REVIEW: 'bg-amber-900/50 text-amber-200 border-amber-700',
+  };
+  return <span className={`inline-block px-2 py-0.5 rounded border text-[11px] ${colors[tone || label] || 'bg-slate-800 text-slate-300 border-slate-600'}`}>{label}</span>;
+}
+
+function DebugToggle({ title, children, debug }: { title: string; children: React.ReactNode; debug: any }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-slate-700 rounded mb-3">
+      <div className="flex items-center justify-between px-3 py-2 bg-slate-800/60">
+        <span className="text-sm font-semibold">{title}</span>
+        <button onClick={() => setOpen(!open)} className="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600">
+          {open ? 'Formatted view' : 'Source / Debug'}
+        </button>
+      </div>
+      <div className="p-3">
+        {open ? (
+          <pre className="text-xs overflow-auto max-h-[60vh] text-slate-300 whitespace-pre-wrap">{typeof debug === 'string' ? debug : JSON.stringify(debug, null, 2)}</pre>
+        ) : children}
+      </div>
+    </div>
+  );
+}
+
+function KV({ k, v }: { k: string; v: any }) {
+  return (
+    <div className="flex gap-2 text-sm py-0.5">
+      <span className="text-slate-400 w-44 shrink-0">{k}</span>
+      <span className="text-slate-100">{v === null || v === undefined || v === '' ? <em className="text-slate-500">not recorded</em> : String(v)}</span>
+    </div>
+  );
+}
+
+/** Minimal safe Markdown-ish renderer (headings, bold, lists, paragraphs). No HTML injection. */
+function renderMarkdown(md: string) {
+  const lines = md.split('\n');
+  const out: React.ReactNode[] = [];
+  lines.forEach((line, i) => {
+    const text = line.replace(/\*\*(.+?)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1');
+    if (line.startsWith('# ')) out.push(<h1 key={i} className="text-xl font-bold mt-4 mb-2">{text.slice(2)}</h1>);
+    else if (line.startsWith('## ')) out.push(<h2 key={i} className="text-lg font-semibold mt-4 mb-2 text-amber-300">{text.slice(3)}</h2>);
+    else if (line.startsWith('### ')) out.push(<h3 key={i} className="text-base font-semibold mt-3 mb-1">{text.slice(4)}</h3>);
+    else if (line.trim().startsWith('- ')) out.push(<div key={i} className="ml-4 text-sm">• {text.trim().slice(2)}</div>);
+    else if (line.trim() === '') out.push(<div key={i} className="h-2" />);
+    else out.push(<p key={i} className="text-sm text-slate-200 my-1">{text}</p>);
   });
+  return <div>{out}</div>;
+}
+
+function MediaImage({ projectId, filePath, caption }: { projectId: string; filePath: string; caption?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [big, setBig] = useState(false);
+  useEffect(() => {
+    let alive = true; let obj = '';
+    apiBlobUrl(projectId, filePath).then(u => { if (alive) { obj = u; setUrl(u); } }).catch(e => alive && setErr(String(e.message || e)));
+    return () => { alive = false; if (obj) URL.revokeObjectURL(obj); };
+  }, [projectId, filePath]);
+  if (err) return <div className="text-xs text-red-300">Image unavailable: {err} ({filePath})</div>;
+  if (!url) return <div className="text-xs text-slate-400">Loading image…</div>;
+  return (
+    <figure>
+      <img src={url} alt={caption || filePath} onClick={() => setBig(!big)} className={`rounded border border-slate-700 cursor-pointer ${big ? 'max-w-full' : 'max-w-[220px]'}`} />
+      <figcaption className="text-xs text-slate-400 mt-1">{caption || filePath}</figcaption>
+    </figure>
+  );
+}
+
+function AudioLine({ projectId, line }: { projectId: string; line: any }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true; let obj = '';
+    if (line.file_path) apiBlobUrl(projectId, line.file_path).then(u => { if (alive) { obj = u; setUrl(u); } }).catch(e => alive && setErr(String(e.message || e)));
+    return () => { alive = false; if (obj) URL.revokeObjectURL(obj); };
+  }, [projectId, line.file_path]);
+  return (
+    <DebugToggle title={`${line.line_id} — ${line.character_id}`} debug={line}>
+      <div className="text-sm space-y-1">
+        <div className="text-base text-slate-50">“{line.spoken_text}”</div>
+        <KV k="Scene" v={line.scene_id} />
+        <KV k="Emotion direction" v={line.emotion_direction} />
+        <KV k="Pronunciation" v={line.pronunciation_notes && Object.keys(line.pronunciation_notes).length ? JSON.stringify(line.pronunciation_notes) : null} />
+        <KV k="TTS provider" v={line.provider_id} />
+        <KV k="Model (from TTS payload)" v={line.model || 'not recorded'} />
+        <KV k="Duration (recorded)" v={line.duration_sec ? `${line.duration_sec}s` : null} />
+        <KV k="Approval" v={line.approval_status} />
+        <KV k="Audio file" v={line.file_path} />
+        <div className="mt-2">
+          <span className="text-xs text-orange-300 border border-orange-600 rounded px-2 py-0.5">SIMULATED / TONE DEMO — playback is a sine tone, not spoken dialogue</span>
+          {url ? <audio controls src={url} className="w-full mt-2" /> : <span className="text-xs text-slate-400 ml-2">{err || 'Loading audio…'}</span>}
+        </div>
+        {line.synthesis_note && <div className="text-xs text-slate-400">{line.synthesis_note}</div>}
+      </div>
+    </DebugToggle>
+  );
+}
+
+function ScreenplayViewer({ projectId, scriptsData }: { projectId: string; scriptsData: any }) {
+  const scripts = scriptsData?.scripts || [];
+  const [selected, setSelected] = useState<string>('');
+  const [detail, setDetail] = useState<any>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { if (scripts.length && !selected) setSelected(scripts[0].script_id); }, [scripts, selected]);
+  useEffect(() => {
+    if (!selected) return;
+    apiJson(`/api/projects/${projectId}/scripts/${selected}`).then(setDetail).catch(e => setErr(String(e.message || e)));
+  }, [projectId, selected]);
+  if (!scripts.length) return <div className="text-sm text-slate-400">No screenplay revisions recorded for this project. (Stage capability: PARTIAL — demo pipeline only.)</div>;
+  const s = detail?.script;
+  return (
+    <div>
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {scripts.map((x: any) => (
+          <button key={x.script_id} onClick={() => setSelected(x.script_id)} className={`text-xs px-2 py-1 rounded ${selected === x.script_id ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>
+            v{x.version} · {x.script_id} · {x.approval_status}
+          </button>
+        ))}
+      </div>
+      {err && <div className="text-red-300 text-sm">{err}</div>}
+      {s && (
+        <DebugToggle title={`Screenplay ${s.script_id} (v${s.version})`} debug={{ ...s, file_content_markdown: s.file_content_markdown ? '[shown in debug below]' : null, raw_markdown: s.content_markdown }}>
+          <div className="space-y-2">
+            {s.db_file_consistent === false && <div className="text-sm text-red-200 border border-red-600 rounded p-2">INCONSISTENT: database screenplay differs from the SCRIPTS file. Both are preserved below; neither was silently preferred.</div>}
+            <div className="flex gap-2 flex-wrap">
+              <Chip label={s.approval_status} />
+              <span className="text-xs text-slate-400">Agent: {s.agent_responsible} · Created: {s.created_at} · Immutable: {s.is_immutable ? 'yes' : 'no'}</span>
+            </div>
+            <KV k="Change summary" v={s.change_summary} />
+            <KV k="Reason for changes" v={s.reason_for_changes} />
+            <KV k="Reviewer comments" v={s.reviewer_comments} />
+            {s.scores && Object.keys(s.scores).length > 0 && (
+              <div className="text-sm"><span className="text-slate-400">Scores: </span>{Object.entries(s.scores).map(([k, v]: any) => <span key={k} className="mr-2">{k}: <b>{String(v)}</b></span>)}</div>
+            )}
+            {s.passes_completed && s.passes_completed.length > 0 && (
+              <div className="text-sm"><span className="text-slate-400">Passes: </span>{s.passes_completed.join(', ')}</div>
+            )}
+            <div className="border-t border-slate-700 pt-2">{renderMarkdown(s.content_markdown || '')}</div>
+            {s.file_content_markdown && s.db_file_consistent === false && (
+              <div className="border-t border-slate-700 pt-2"><div className="text-xs text-slate-400 mb-1">On-disk file version ({s.file_path}):</div>{renderMarkdown(s.file_content_markdown)}</div>
+            )}
+          </div>
+        </DebugToggle>
+      )}
+    </div>
+  );
+}
+
+function FilesExplorer({ projectId, filesData, filterPrefix }: { projectId: string; filesData: any; filterPrefix?: string }) {
+  const files: string[] = (filesData?.files || []).filter((f: string) => !filterPrefix || f.startsWith(filterPrefix));
+  const [selected, setSelected] = useState<string>('');
+  const [content, setContent] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const isImage = selected.endsWith('.png') || selected.endsWith('.jpg') || selected.endsWith('.jpeg');
+  const isAudio = selected.endsWith('.wav');
+  const isVideo = selected.endsWith('.mp4');
+  useEffect(() => {
+    setContent(null); setBlobUrl(null); setErr(null);
+    if (!selected) return;
+    if (isImage || isAudio || isVideo) {
+      apiBlobUrl(projectId, selected).then(setBlobUrl).catch(e => setErr(String(e.message || e)));
+    } else {
+      apiText(projectId, selected).then(setContent).catch(e => setErr(String(e.message || e)));
+    }
+  }, [projectId, selected, isImage, isAudio, isVideo]);
+  if (!files.length) return <div className="text-sm text-slate-400">No files under {filterPrefix || 'project folder'}.</div>;
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1 mb-3">
+        {files.map((f: string) => (
+          <button key={f} onClick={() => setSelected(f)} className={`text-xs px-2 py-1 rounded ${selected === f ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>{f}</button>
+        ))}
+      </div>
+      {err && <div className="text-red-300 text-sm">{err}</div>}
+      {selected && (
+        <DebugToggle title={selected} debug={content ?? { path: selected, type: isImage ? 'image' : isAudio ? 'audio' : isVideo ? 'video (listed-only)' : 'text' }}>
+          {isImage && blobUrl && <MediaImage projectId={projectId} filePath={selected} />}
+          {isAudio && blobUrl && <audio controls src={blobUrl} className="w-full" />}
+          {isVideo && <div className="text-sm text-slate-400">Video files are listed-only in this milestone (no playback implied). Path: {selected}</div>}
+          {!isImage && !isAudio && !isVideo && (content !== null ? <div className="text-sm">{renderMarkdown(content)}</div> : <div className="text-xs text-slate-400">Loading…</div>)}
+        </DebugToggle>
+      )}
+    </div>
+  );
+}
+
+function stageViewer(projectId: string, stage: string, data: Record<string, any>, stepsData: any) {
+  const d = data;
+  switch (stage) {
+    case 'USER_STORY_IDEA': {
+      const p = d.project?.project || {};
+      return (
+        <DebugToggle title="Project brief" debug={p}>
+          <KV k="Title" v={p.title} /><KV k="Project ID" v={p.project_id} />
+          <KV k="Synopsis" v={p.synopsis} /><KV k="Genre (display)" v={p.genre} />
+          <KV k="Target audience" v={p.target_audience} /><KV k="Runtime" v={p.intended_runtime_sec ? `${p.intended_runtime_sec}s` : null} />
+          <KV k="Language" v={p.language} /><KV k="Creative brief" v={p.creative_brief} />
+          <KV k="Visual direction" v={p.visual_direction} /><KV k="Technique" v={p.animation_technique} />
+          <KV k="Status" v={p.status} /><KV k="Current stage" v={p.current_stage} />
+          <KV k="Updated" v={p.updated_at} />
+          <div className="text-xs text-slate-400 mt-2">Genre/style IDs live in the project schema; DB migration + UI selectors are separate work — shown here only if recorded.</div>
+        </DebugToggle>
+      );
+    }
+    case 'SCRIPT_DEVELOPMENT':
+    case 'SCREENPLAY_APPROVAL':
+      return <ScreenplayViewer projectId={projectId} scriptsData={d.scripts} />;
+    case 'PRODUCTION_REQUIREMENT_ANALYSIS': {
+      const scenes = d.scenes?.scenes || [];
+      if (!scenes.length) return <div className="text-sm text-slate-400">No scenes recorded. Breakdown requires an approved script (NOT_TRACKED — no requirement-analysis record exists).</div>;
+      return scenes.map((s: any) => (
+        <DebugToggle key={s.scene_id} title={`${s.scene_id} — ${s.title}`} debug={s}>
+          <KV k="Location" v={s.location_id} /><KV k="Duration" v={`${s.duration_sec}s`} />
+          <KV k="Characters" v={(s.characters || []).join(', ')} /><KV k="Required assets" v={(s.required_assets || []).join(', ')} />
+          <KV k="Animation method" v={s.animation_method} /><KV k="Shots" v={(s.required_shots || []).join(', ')} />
+          <KV k="Camera" v={s.camera_requirements} /><KV k="Lighting" v={s.lighting} />
+          <KV k="Audio dependencies" v={(s.audio_dependencies || []).join(', ')} />
+        </DebugToggle>
+      ));
+    }
+    case 'ONLINE_TOOL_RESEARCH_AND_RND':
+    case 'TOOL_COMPARISON':
+    case 'HUMAN_TOOLCHAIN_APPROVAL': {
+      const reports = d.research?.research_reports || [];
+      const cands = d.research?.tool_candidates || [];
+      const evals = d.research?.tool_evaluations || [];
+      const chains = d.research?.toolchain_profiles || [];
+      return (
+        <div>
+          {reports.map((r: any) => (
+            <DebugToggle key={r.report_id} title={`Research ${r.report_id} (${r.decision_status})`} debug={r}>
+              <KV k="Date" v={r.research_date} /><KV k="Methodology" v={r.search_methodology} />
+              <KV k="Markdown file" v={r.markdown_path} /><KV k="Decision" v={r.decision_status} />
+              <div className="text-xs text-slate-400 mt-1">{r.research_note}</div>
+              {r.sources && r.sources.length > 0 && <div className="text-sm mt-1">Sources: {r.sources.map((s: any, i: number) => <span key={i} className="mr-2">{typeof s === 'string' ? s : JSON.stringify(s)}</span>)}</div>}
+            </DebugToggle>
+          ))}
+          {cands.length > 0 && (
+            <div className="overflow-auto border border-slate-700 rounded mb-3">
+              <table className="w-full text-xs">
+                <thead><tr className="bg-slate-800">{['Tool', 'Category', 'Version', 'State', 'Licence', 'Commercial', 'Est. cost', 'HW compat', 'Source'].map(h => <th key={h} className="p-2 text-left">{h}</th>)}</tr></thead>
+                <tbody>{cands.map((c: any) => (
+                  <tr key={c.tool_id} className="border-t border-slate-800">
+                    <td className="p-2">{c.name}<div className="text-slate-500">{c.tool_id}</div></td>
+                    <td className="p-2">{c.category}</td><td className="p-2">{c.version}</td><td className="p-2">{c.state}</td>
+                    <td className="p-2">{c.license}</td><td className="p-2">{c.commercial_use_allowed ? 'yes' : 'no'}</td>
+                    <td className="p-2">{c.estimated_cost_usd}</td><td className="p-2">{c.hardware_compatible ? 'yes' : 'no'}</td>
+                    <td className="p-2">{c.source_url}</td>
+                  </tr>))}</tbody>
+              </table>
+            </div>
+          )}
+          {evals.map((e: any) => (
+            <DebugToggle key={e.eval_id} title={`Evaluation ${e.eval_id} — ${e.tool_id}`} debug={e}>
+              <KV k="Weighted total" v={e.weighted_total} /><KV k="Evaluated" v={e.evaluated_at} />
+              <KV k="Evidence" v={e.evidence_notes} />
+              <div className="text-sm">{Object.entries(e.scores || {}).map(([k, v]: any) => <span key={k} className="mr-2">{k}: <b>{String(v)}</b></span>)}</div>
+            </DebugToggle>
+          ))}
+          {chains.map((t: any) => (
+            <DebugToggle key={t.toolchain_id} title={`Toolchain ${t.toolchain_id} v${t.version} ${t.locked ? '(locked)' : ''}`} debug={t}>
+              <KV k="Approved by" v={t.approved_by} /><KV k="Approved at" v={t.approved_at} /><KV k="File" v={t.file_path} />
+              <pre className="text-xs mt-2 whitespace-pre-wrap">{JSON.stringify(t.profile, null, 2)}</pre>
+            </DebugToggle>
+          ))}
+          {!reports.length && !cands.length && !chains.length && <div className="text-sm text-slate-400">No research/tool records for this project.</div>}
+        </div>
+      );
+    }
+    case 'PROOF_OF_CONCEPT': {
+      const jobs = d.tasks?.generation_jobs || [];
+      const reports = d.research?.research_reports || [];
+      return (
+        <div>
+          {jobs.map((j: any) => (
+            <DebugToggle key={j.job_id} title={`Job ${j.job_id} — ${j.status}`} debug={j}>
+              <KV k="Backend" v={j.backend_type} /><KV k="Workflow" v={j.workflow_id} />
+              <KV k="Submitted" v={j.submitted_at} /><KV k="Completed" v={j.completed_at} />
+              <KV k="Outputs" v={(j.output_paths || []).join(', ') || 'none recorded'} />
+              <KV k="Error" v={j.error_message} />
+            </DebugToggle>
+          ))}
+          {reports.map((r: any) => <div key={r.report_id} className="text-sm"><KV k={`PoC results (${r.report_id})`} v={JSON.stringify(r.poc_results || 'none recorded')} /></div>)}
+          {!jobs.length && !reports.length && <div className="text-sm text-slate-400">No proof-of-concept records. This stage is NOT_VERIFIED — no authorised test is recorded.</div>}
+        </div>
+      );
+    }
+    case 'PRODUCTION_PLANNING': {
+      const tasks = d.tasks?.tasks || [];
+      return <TaskViewer tasks={tasks} jobs={d.tasks?.generation_jobs || []} />;
+    }
+    case 'AUDIO_AND_VISUAL_PRODUCTION': {
+      const lines = d.audio?.audio_lines || [];
+      const assets = d.assets?.assets || [];
+      return (
+        <div>
+          {lines.map((l: any) => <AudioLine key={l.audio_id} projectId={projectId} line={l} />)}
+          {!lines.length && <div className="text-sm text-slate-400 mb-3">No dialogue lines recorded.</div>}
+          <ImageGallery projectId={projectId} assets={assets} />
+        </div>
+      );
+    }
+    case 'STORYBOARD_AND_ANIMATIC': {
+      const shots = d.shots?.shots || [];
+      const scenes = d.scenes?.scenes || [];
+      const [sel, setSel] = useState('');
+      const shot = shots.find((s: any) => s.shot_id === sel) || shots[0];
+      return (
+        <div>
+          <div className="text-sm mb-2">Scenes: {scenes.map((s: any) => s.scene_id).join(', ') || 'none recorded'} · Shots: {shots.length}</div>
+          <div className="flex gap-1 flex-wrap mb-3">
+            {shots.map((s: any) => (
+              <button key={s.shot_id} onClick={() => setSel(s.shot_id)} className={`text-xs px-2 py-1 rounded ${(shot && shot.shot_id === s.shot_id) ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>{s.shot_id}</button>
+            ))}
+          </div>
+          {shot && (
+            <DebugToggle title={`${shot.shot_id} — ${shot.shot_size} · ${shot.duration_sec}s`} debug={shot}>
+              <KV k="Scene" v={shot.scene_id} /><KV k="Camera angle/position" v={`${shot.camera_angle} / ${shot.camera_position}`} />
+              <KV k="Movement" v={shot.camera_movement} /><KV k="Focal length" v={shot.focal_length_mm ? `${shot.focal_length_mm}mm` : null} />
+              <KV k="Character placement" v={shot.character_placement} /><KV k="Character movement" v={shot.character_movement} />
+              <KV k="Expression" v={shot.facial_expression} /><KV k="Lighting" v={shot.lighting} />
+              <KV k="Audio cues" v={JSON.stringify(shot.audio_cues || [])} />
+              <KV k="Approval" v={shot.approval_status} />
+              {shot.storyboard_panel_path && <div className="mt-2"><MediaImage projectId={projectId} filePath={shot.storyboard_panel_path} caption={shot.storyboard_panel_path} /></div>}
+            </DebugToggle>
+          )}
+          <div className="mt-4"><div className="text-sm font-semibold mb-2">Animatic manifests & panels (files)</div>
+            <FilesExplorer projectId={projectId} filesData={d.files} filterPrefix="ANIMATICS/" /></div>
+        </div>
+      );
+    }
+    case 'ANIMATION':
+      return (
+        <div>
+          <div className="text-sm text-purple-200 border border-purple-700 rounded p-2 mb-3">PLANNED_UNAVAILABLE: no animation execution capability is implemented. Drafts below are files only.</div>
+          <FilesExplorer projectId={projectId} filesData={d.files} filterPrefix="DRAFTS/" />
+        </div>
+      );
+    case 'POST_PRODUCTION':
+      return <FilesExplorer projectId={projectId} filesData={d.files} filterPrefix="EDITING/" />;
+    case 'QUALITY_CONTROL':
+    case 'HUMAN_FINAL_APPROVAL': {
+      const reports = d.qc?.qc_reports || [];
+      const approvals = [...(d.dashboard?.pending_approvals || []), ...(d.dashboard?.recent_approvals || [])]
+        .filter((a: any) => a.project_id === projectId);
+      return (
+        <div>
+          {stage === 'HUMAN_FINAL_APPROVAL' && (
+            <div className="mb-3">
+              <div className="text-sm font-semibold mb-1">Human approvals for this project</div>
+              {approvals.length === 0 && <div className="text-sm text-slate-400">No approval records found in dashboard data.</div>}
+              {approvals.map((a: any) => (
+                <DebugToggle key={a.approval_id} title={`${a.approval_id} — ${a.state}`} debug={a}>
+                  <KV k="Target" v={`${a.target_type} ${a.target_id} rev ${a.revision}`} />
+                  <KV k="Reviewer" v={a.reviewer_id} /><KV k="Decided" v={a.decided_at} /><KV k="Comments" v={a.comments} />
+                </DebugToggle>
+              ))}
+            </div>
+          )}
+          {reports.map((r: any) => {
+            const checks = r.checks || {};
+            const passed = Object.entries(checks).filter(([, v]: any) => v === true).map(([k]) => k);
+            const failed = Object.entries(checks).filter(([, v]: any) => v !== true).map(([k]) => k);
+            return (
+              <DebugToggle key={r.qc_id} title={`${r.qc_category} — ${r.outcome}`} debug={r}>
+                <KV k="Target" v={`${r.target_type} ${r.target_id}`} /><KV k="Created" v={r.created_at} />
+                <div className="text-sm mt-1"><span className="text-green-300">Passed ({passed.length}): </span>{passed.join(', ') || 'none'}</div>
+                <div className="text-sm"><span className="text-red-300">Failed ({failed.length}): </span>{failed.join(', ') || 'none'}</div>
+                <div className="text-sm"><span className="text-slate-400">Untested: </span>none recorded separately — checks not in the report were not run</div>
+                <div className="text-sm mt-1">Recommendations: {(r.recommendations || []).join(' ') || 'none'}</div>
+                <div className="text-xs text-orange-300 mt-2">SIMULATED: predetermined checks, no media inspection. Technical QC is not creative approval (grants_creative_approval: false).</div>
+              </DebugToggle>
+            );
+          })}
+          {!reports.length && <div className="text-sm text-slate-400">No QC reports recorded.</div>}
+        </div>
+      );
+    }
+    case 'COMPLETED_PRODUCTION_PACKAGE': {
+      const step17 = stepsData?.steps?.find((s: any) => s.stage === 'COMPLETED_PRODUCTION_PACKAGE');
+      return (
+        <div>
+          <div className="text-sm mb-2">Package stage progress: <Chip label={step17?.progress || 'NOT_TRACKED'} /> <span className="text-slate-400">COMPLETED is shown only when required deliverables and approvals are verifiable — currently not established.</span></div>
+          <FilesExplorer projectId={projectId} filesData={d.files} />
+        </div>
+      );
+    }
+    default:
+      return <div className="text-sm text-slate-400">No viewer for this stage yet. Files and provenance below remain available.</div>;
+  }
+}
+
+function ImageGallery({ projectId, assets }: { projectId: string; assets: any[] }) {
+  const [sel, setSel] = useState('');
+  const asset = assets.find((a: any) => a.asset_id === sel) || assets[0];
+  const revs = asset?.revisions || [];
+  if (!assets.length) return <div className="text-sm text-slate-400">No image assets recorded. (Character/environment files, when present, are listed under Files.)</div>;
+  return (
+    <div>
+      <div className="flex gap-1 flex-wrap mb-3">
+        {assets.map((a: any) => (
+          <button key={a.asset_id} onClick={() => setSel(a.asset_id)} className={`text-xs px-2 py-1 rounded ${(asset && asset.asset_id === a.asset_id) ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>{a.asset_id}</button>
+        ))}
+      </div>
+      {asset && (
+        <DebugToggle title={`${asset.asset_id} — ${asset.name} (${asset.approval_status})`} debug={asset}>
+          <KV k="Type" v={asset.type} /><KV k="Description" v={asset.description} />
+          <KV k="Current revision" v={asset.current_revision} /><KV k="Licence" v={asset.license_info} />
+          <KV k="Created" v={asset.created_at} />
+          {revs.map((r: any) => (
+            <div key={r.revision_id} className="border-t border-slate-700 mt-2 pt-2">
+              <div className="text-sm font-semibold">Revision {r.revision} · {r.tool_used} / {r.provider} / {r.model}</div>
+              <KV k="File" v={r.file_location} /><KV k="SHA-256" v={r.file_sha256} />
+              <KV k="Seed" v={r.seed} /><KV k="Prompt (recorded)" v={r.prompt} /><KV k="Negative prompt" v={r.negative_prompt} />
+              <KV k="Approval" v={r.approval_status} />
+              {r.file_location && <div className="mt-2"><MediaImage projectId={projectId} filePath={r.file_location} caption={r.file_location} /></div>}
+            </div>
+          ))}
+          {!revs.length && <div className="text-xs text-slate-400 mt-1">No revisions recorded for this asset.</div>}
+        </DebugToggle>
+      )}
+    </div>
+  );
+}
+
+function TaskViewer({ tasks, jobs }: { tasks: any[]; jobs: any[] }) {
+  const [dept, setDept] = useState('');
+  const [status, setStatus] = useState('');
+  const filtered = tasks.filter((t: any) => (!dept || t.department === dept) && (!status || t.status === status));
+  const depts = [...new Set(tasks.map((t: any) => t.department))];
+  const statuses = [...new Set(tasks.map((t: any) => t.status))];
+  return (
+    <div>
+      <div className="flex gap-2 mb-3">
+        <select value={dept} onChange={e => setDept(e.target.value)} className="bg-slate-800 text-sm rounded px-2 py-1">
+          <option value="">All departments</option>{depts.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select value={status} onChange={e => setStatus(e.target.value)} className="bg-slate-800 text-sm rounded px-2 py-1">
+          <option value="">All statuses</option>{statuses.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <span className="text-xs text-slate-400">{filtered.length} / {tasks.length} tasks</span>
+      </div>
+      {filtered.map((t: any) => (
+        <DebugToggle key={t.task_id} title={`${t.task_id} — ${t.title} (${t.status})`} debug={t}>
+          <KV k="Department" v={t.department} /><KV k="Assigned agent" v={t.assigned_agent} />
+          <KV k="Retries" v={`${t.retry_count} / ${t.max_retries}`} /><KV k="Error category" v={t.error_category} />
+          <KV k="Dependencies" v={(t.dependencies || []).map((d: any) => `${d.depends_on_task_id} (${d.dependency_type})`).join(', ') || 'none recorded'} />
+          <KV k="Selected tool" v={t.selected_tool} /><KV k="Expected outputs" v={t.expected_outputs} /><KV k="Actual outputs" v={t.actual_outputs} />
+          <div className="text-xs text-slate-400">{t.tool_note}</div>
+        </DebugToggle>
+      ))}
+      {!filtered.length && <div className="text-sm text-slate-400">No tasks match the filters / none recorded.</div>}
+      {jobs.length > 0 && <div className="text-sm font-semibold mt-3 mb-1">Generation jobs</div>}
+      {jobs.map((j: any) => (
+        <DebugToggle key={j.job_id} title={`Job ${j.job_id} — ${j.status}`} debug={j}>
+          <KV k="Backend" v={j.backend_type} /><KV k="Workflow" v={j.workflow_id} />
+          <KV k="Submitted" v={j.submitted_at} /><KV k="Error" v={j.error_message} />
+        </DebugToggle>
+      ))}
+    </div>
+  );
 }
 
 export default function App() {
-  const { activeNav, setActiveNav, activeProjectId, operatingMode } = useForgeStore();
-  const [data, setData] = useState<Dashboard | null>(null);
+  const { activeProjectId, setActiveProjectId, operatingMode } = useForgeStore();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
+  const [stepsData, setStepsData] = useState<any>(null);
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [health, setHealth] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStage, setSelectedStage] = useState<string>('USER_STORY_IDEA');
+  const [stageData, setStageData] = useState<Record<string, any>>({});
+  const [loadingStage, setLoadingStage] = useState(false);
+  const [showFiles, setShowFiles] = useState(false);
+  const [showProvenance, setShowProvenance] = useState(false);
 
-  async function load() {
+  const loadProjects = useCallback(async () => {
+    try {
+      const [h, list] = await Promise.all([
+        apiJson('/api/health'),
+        apiJson('/api/projects'),
+      ]);
+      setHealth(h);
+      const ps = list.projects || [];
+      setProjects(ps);
+      if (ps.length && !ps.some((p: any) => p.project_id === activeProjectId)) {
+        setActiveProjectId(ps[0].project_id);
+      }
+    } catch (e: any) { setError(e.message || String(e)); }
+  }, [activeProjectId, setActiveProjectId]);
+
+  const loadProject = useCallback(async () => {
+    if (!activeProjectId) return;
     try {
       setError(null);
-      const [h, d] = await Promise.all([
-        apiFetch('/api/health').then(r => { if(!r.ok) throw new Error('health '+r.status); return r.json(); }),
-        apiFetch('/api/dashboard').then(r => { if(!r.ok) throw new Error('dashboard '+r.status); return r.json(); }),
+      const [p, s, d] = await Promise.all([
+        apiJson(`/api/projects/${activeProjectId}`),
+        apiJson(`/api/projects/${activeProjectId}/steps`),
+        apiJson('/api/dashboard'),
       ]);
-      setHealth(h); setData(d);
+      setProject(p.project);
+      setStepsData(s);
+      setDashboard(d);
     } catch (e: any) { setError(e.message || String(e)); }
-  }
-  useEffect(() => { load(); }, []);
+  }, [activeProjectId]);
 
-  const listFor = (nav: string) => {
-    if (!data) return [];
-    const map: Record<string, any[]> = {
-      dashboard: [], projects: data.projects, approvals: data.pending_approvals,
-      assets: data.recent_assets, toolchains: data.toolchains,
-      integrations: data.integrations, qc: data.qc_reports,
-    };
-    return map[nav] || [];
-  };
-  const items = listFor(activeNav);
+  useEffect(() => { loadProjects(); }, [loadProjects]);
+  useEffect(() => { loadProject(); }, [loadProject]);
+
+  const selectedStep = useMemo(
+    () => stepsData?.steps?.find((s: Step) => s.stage === selectedStage) || null,
+    [stepsData, selectedStage],
+  );
+
+  useEffect(() => {
+    if (!activeProjectId || !selectedStage) return;
+    const keys = STAGE_ENDPOINTS[selectedStage] || [];
+    let alive = true;
+    setLoadingStage(true);
+    (async () => {
+      const out: Record<string, any> = {};
+      for (const key of keys) {
+        try {
+          if (key === 'project') out.project = await apiJson(`/api/projects/${activeProjectId}`);
+          else if (key === 'dashboard') out.dashboard = dashboard || await apiJson('/api/dashboard');
+          else if (key === 'steps') out.steps = stepsData || await apiJson(`/api/projects/${activeProjectId}/steps`);
+          else out[key] = await apiJson(`/api/projects/${activeProjectId}/${key}`);
+        } catch (e: any) { out[key] = { error: String(e.message || e) }; }
+      }
+      if (alive) { setStageData(out); setLoadingStage(false); }
+    })();
+    return () => { alive = false; };
+  }, [activeProjectId, selectedStage, dashboard, stepsData]);
+
+  const [filesData, setFilesData] = useState<any>(null);
+  const [execData, setExecData] = useState<any>(null);
+  useEffect(() => {
+    if (!activeProjectId) return;
+    apiJson(`/api/projects/${activeProjectId}/files`).then(setFilesData).catch(() => setFilesData(null));
+    apiJson(`/api/projects/${activeProjectId}/executions`).then(setExecData).catch(() => setExecData(null));
+  }, [activeProjectId]);
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex">
-      <aside className="w-64 bg-[#111827] border-r border-slate-800 p-4 flex flex-col">
+      <aside className="w-80 shrink-0 bg-[#111827] border-r border-slate-800 p-4 flex flex-col overflow-auto">
         <h1 className="text-lg font-bold text-amber-400 tracking-wide">ANIMATION FORGE</h1>
-        <p className="text-xs text-slate-400 mb-1">Project: {activeProjectId}</p>
-        <p className="text-xs text-slate-500 mb-4">{operatingMode}</p>
-        <nav className="flex flex-col gap-1">
-          {NAV.map(n => (
-            <button key={n} onClick={() => setActiveNav(n)}
-              className={`text-left px-3 py-2 rounded text-sm ${activeNav===n?'bg-amber-500/20 text-amber-300':'text-slate-300 hover:bg-slate-800'}`}>
-              {n.toUpperCase()}
+        <div className="mt-3">
+          <label className="text-xs text-slate-400">Project</label>
+          <select
+            value={activeProjectId}
+            onChange={e => { setActiveProjectId(e.target.value); setSelectedStage('USER_STORY_IDEA'); }}
+            className="w-full mt-1 bg-slate-800 rounded px-2 py-2 text-sm"
+          >
+            {projects.map((p: any) => (
+              <option key={p.project_id} value={p.project_id}>
+                {p.title} ({p.project_id}) — {p.current_stage}
+              </option>
+            ))}
+          </select>
+          {project && (
+            <div className="text-xs text-slate-400 mt-2 space-y-0.5">
+              <div>{project.title} · {project.status}</div>
+              <div>Stage: {project.current_stage} · Mode: {operatingMode}</div>
+              <div>Updated: {project.updated_at}</div>
+            </div>
+          )}
+        </div>
+        <nav className="mt-4 flex flex-col gap-1">
+          {(stepsData?.steps || []).map((s: Step) => (
+            <button
+              key={s.stage}
+              onClick={() => { setSelectedStage(s.stage); setShowFiles(false); setShowProvenance(false); }}
+              className={`text-left px-2 py-1.5 rounded text-xs ${selectedStage === s.stage ? 'bg-amber-500/20 text-amber-300' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <div className="flex justify-between gap-1">
+                <span>{s.stage_number}. {s.stage}</span><Chip label={s.progress} />
+              </div>
+              <div className="flex gap-1 mt-1 flex-wrap">
+                <Chip label={s.capability_status} />
+                <span className="text-slate-500">{s.output_count} outputs · {s.evidence_status}</span>
+              </div>
             </button>
           ))}
         </nav>
+        <div className="mt-3 flex gap-2">
+          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
+          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
+          <button onClick={() => { loadProjects(); loadProject(); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700">Refresh</button>
+        </div>
         <div className="mt-auto pt-4 text-xs text-slate-500">
-          {health ? <>API: <span className={health.status==='healthy'?'text-green-400':'text-red-400'}>{health.status}</span> · {health.architecture_version} · DB {health.database_integrity?.table_count} tbl</> : 'API: …'}
+          {health ? <>API: <span className={health.status === 'healthy' ? 'text-green-400' : 'text-red-400'}>{health.status}</span> · {health.architecture_version} · DB {health.database_integrity?.table_count} tbl</> : 'API: …'}
         </div>
       </aside>
       <main className="flex-1 p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-amber-400 uppercase">{activeNav}</h2>
-          <button onClick={load} className="text-xs px-3 py-1 rounded bg-slate-800 hover:bg-slate-700">Refresh</button>
-        </div>
-        {error && <div className="mb-4 p-3 rounded bg-red-900/40 text-red-200 text-sm">Error loading API: {error} (is backend running on 127.0.0.1:8765?)</div>}
-        {activeNav === 'dashboard' && data && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {([['Projects',data.projects.length],['Pending Approvals',data.pending_approvals.length],['Assets',data.recent_assets.length],['Toolchains',data.toolchains.length],['Integrations',data.integrations.length],['QC Reports',data.qc_reports.length],['Decisions',data.creative_decisions.length],['Recent Approvals',data.recent_approvals.length]] as const).map(([k,v])=>(
-              <div key={k} className="bg-[#111827] border border-slate-800 rounded p-4"><div className="text-xs text-slate-400">{k}</div><div className="text-2xl font-bold text-amber-300">{v}</div></div>
-            ))}
+        {error && <div className="mb-4 p-3 rounded bg-red-900/40 text-red-200 text-sm">Error: {error} (is backend running on 127.0.0.1:8765?)</div>}
+        {showFiles && (
+          <div>
+            <h2 className="text-xl font-semibold text-amber-400 uppercase mb-3">Project files</h2>
+            <FilesExplorer projectId={activeProjectId} filesData={filesData} />
           </div>
         )}
-        {activeNav !== 'dashboard' && (
-          <div className="bg-[#111827] border border-slate-800 rounded">
-            {items.length === 0 ? <div className="p-4 text-slate-400 text-sm">No records. (Backend API is connected; data is empty.)</div> :
-              <pre className="p-4 text-xs overflow-auto max-h-[70vh] text-slate-300">{JSON.stringify(items, null, 2)}</pre>}
+        {showProvenance && (
+          <div>
+            <h2 className="text-xl font-semibold text-amber-400 uppercase mb-3">Provenance / Debug</h2>
+            <div className="text-xs text-slate-400 mb-3">{execData?.agent_prompts_note || ''} Secret-like fields are redacted server-side.</div>
+            {(execData?.agent_executions || []).map((ex: any) => (
+              <DebugToggle key={ex.operation_id} title={`Execution ${ex.operation_id} — ${ex.agent_id} (${ex.status})`} debug={ex}>
+                <KV k="Mode" v={ex.operating_mode} /><KV k="Started" v={ex.started_at} /><KV k="Completed" v={ex.completed_at} />
+                <div className="text-sm mt-1">Prompt versions: {Object.entries(ex.prompt_versions || {}).map(([k, v]: any) => <span key={k} className="mr-2">{k}: {JSON.stringify(v)}</span>)}</div>
+              </DebugToggle>
+            ))}
+            {(execData?.agent_executions || []).length === 0 && <div className="text-sm text-slate-400 mb-3">No agent executions recorded.</div>}
+            <div className="text-sm font-semibold mb-1">Prompt metadata (id / version / hash)</div>
+            <div className="overflow-auto border border-slate-700 rounded mb-3">
+              <table className="w-full text-xs">
+                <thead><tr className="bg-slate-800">{['Prompt', 'Version', 'File', 'Hash (short)', 'Modified'].map(h => <th key={h} className="p-2 text-left">{h}</th>)}</tr></thead>
+                <tbody>{(execData?.agent_prompts || []).map((p: any, i: number) => (
+                  <tr key={i} className="border-t border-slate-800"><td className="p-2">{p.prompt_id}</td><td className="p-2">{p.version}</td><td className="p-2">{p.file_path}</td><td className="p-2">{String(p.content_hash || '').slice(0, 12)}…</td><td className="p-2">{p.modified_date}</td></tr>
+                ))}</tbody>
+              </table>
+            </div>
+            <div className="text-sm font-semibold mb-1">Execution logs (redacted, latest 100)</div>
+            {(execData?.execution_logs || []).map((l: any) => (
+              <DebugToggle key={l.log_id} title={`${l.logged_at} [${l.level}] ${l.component}`} debug={l}>
+                <div className="text-sm">{l.message_redacted}</div>
+              </DebugToggle>
+            ))}
+            {(execData?.execution_logs || []).length === 0 && <div className="text-sm text-slate-400">No execution logs recorded.</div>}
+          </div>
+        )}
+        {!showFiles && !showProvenance && selectedStep && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-semibold text-amber-400 uppercase">{selectedStep.stage_number}. {selectedStep.stage}</h2>
+              <span className="text-xs text-slate-400">{loadingStage ? 'Loading…' : ''}</span>
+            </div>
+            <div className="flex gap-2 flex-wrap mb-3">
+              <Chip label={selectedStep.progress} />
+              <Chip label={selectedStep.capability_status} />
+              <Chip label={selectedStep.evidence_status} />
+              <span className="text-xs text-slate-400">Outputs: {selectedStep.output_count} · Inputs: {selectedStep.input_count} · Approval: {selectedStep.approval_state || 'n/a'}</span>
+            </div>
+            {selectedStep.capability_note && <div className="text-xs text-slate-400 mb-2">{selectedStep.capability_note}</div>}
+            {selectedStep.blockers.map((b: string) => <div key={b} className="text-xs text-amber-300 mb-1">Blocker: {b}</div>)}
+            <div className="text-xs text-slate-500 mb-3">Overview: inputs, processing/provenance and outputs for this stage are shown below. Use Source / Debug on any card for raw records, hashes and paths.</div>
+            {stageData.project?.error && <div className="text-red-300 text-sm">{stageData.project.error}</div>}
+            {stageViewer(activeProjectId, selectedStep.stage, stageData, stepsData)}
           </div>
         )}
       </main>

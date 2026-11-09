@@ -15,3 +15,4 @@ src-tauri/binaries/
 
 # Local machine-specific media-library storage roots
 LIBRARY/STORAGE_ROOTS.json
+.venv-kokoro-test/

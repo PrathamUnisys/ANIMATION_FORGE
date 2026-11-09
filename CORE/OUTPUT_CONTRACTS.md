@@ -1,6 +1,6 @@
 ---
 prompt_id: CORE_OUTPUT_CONTRACTS
-version: 1.1.0
+version: 1.2.0
 modified_date: 2026-11-09
 description: Schema-backed operation, deliverable, and validation output rules
 dependencies: ["CORE_SYSTEM_CONSTITUTION", "CORE/HUMAN_APPROVAL_POLICY.md"]
@@ -11,6 +11,9 @@ change_history:
   - version: 1.1.0
     date: 2026-11-09
     summary: Define validation and truthful capability reporting
+  - version: 1.2.0
+    date: 2026-11-09
+    summary: "Define CR_004 step-by-step presentation, status vocabularies, and Source/Debug contracts"
 ---
 # OUTPUT CONTRACTS
 
@@ -61,3 +64,48 @@ Use only registered operations. Distinguish implemented, unavailable, and
 planned capabilities in both prose and machine-readable output where the
 contract supports it. Include output paths relative to the project root and
 do not report a file as created until persistence is verified.
+
+## Step-by-step presentation contract (CR_004)
+
+The frontend presents the 17 `CORE/GLOBAL_WORKFLOW.md` stages in order for
+the selected project. Each stage uses the layout Overview / Inputs /
+Processing & provenance / Outputs / Source-Debug. A formatted view is the
+default; raw JSON/Markdown is shown only inside a Source/Debug toggle, never
+as the primary user-facing response.
+
+### Separate status dimensions
+
+- **Stage progress:** `DONE`, `CURRENT`, `BLOCKED`, `NOT_STARTED`,
+  `PLANNED_UNAVAILABLE`, `NOT_TRACKED`.
+- **Capability status:** `IMPLEMENTED`, `PARTIAL`, `SIMULATED`, `UNAVAILABLE`,
+  `NOT_VERIFIED`.
+- **Evidence status:** `AVAILABLE`, `MISSING`, `INCONSISTENT`,
+  `NOT_APPLICABLE`.
+
+Rules: never mark an earlier stage DONE because `projects.current_stage` is
+later; never mark an output generated because a task exists; never infer
+approval from a file's existence; use `NOT_TRACKED` when records cannot
+establish completion; use `PLANNED_UNAVAILABLE` when the stage needs an
+unimplemented capability; a simulated output stays labelled SIMULATED; a
+pending human review is shown separately from an execution failure. A stage
+may have evidence while its capability is simulated — preserve both facts.
+
+### Source / Debug contract
+
+Every output offers a Source/Debug toggle showing only what is actually
+recorded: stable IDs, revisions, file paths, hashes (e.g. prompt
+`content_hash`, asset `file_sha256`), prompt ID/version, provider/model IDs
+where recorded, timestamps, and redacted execution metadata. Server-side
+redaction removes secret-like fields. `agent_prompts` stores metadata and
+hashes only — no prompt body is returned. Missing values are null or
+`NOT_AVAILABLE` with a reason; they are never fabricated. Where a database
+record and its file disagree (e.g. screenplay text), both are shown and the
+disagreement is flagged INCONSISTENT.
+
+### Media preview rules
+
+Inline previews: images (character/environment/prop/storyboard), WAV audio
+with dialogue alongside, rendered Markdown/text. Video files are listed only
+in this milestone; no video playback is implied. Tone/demo WAVs are labelled
+as tone demos, not provider speech, and QC reports state their inspection
+method (predetermined checks vs media inspection).
