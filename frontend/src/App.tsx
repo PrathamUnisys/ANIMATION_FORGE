@@ -272,6 +272,37 @@ function FilesExplorer({ projectId, filesData, filterPrefix }: { projectId: stri
   );
 }
 
+function StoryboardAndAnimaticStage({ projectId, data }: { projectId: string; data: Record<string, any> }) {
+  const shots = data.shots?.shots || [];
+  const scenes = data.scenes?.scenes || [];
+  const [selectedShotId, setSelectedShotId] = useState('');
+  const shot = shots.find((item: any) => item.shot_id === selectedShotId) || shots[0];
+
+  return (
+    <div>
+      <div className="text-sm mb-2">Scenes: {scenes.map((s: any) => s.scene_id).join(', ') || 'none recorded'} · Shots: {shots.length}</div>
+      <div className="flex gap-1 flex-wrap mb-3">
+        {shots.map((s: any) => (
+          <button key={s.shot_id} onClick={() => setSelectedShotId(s.shot_id)} className={`text-xs px-2 py-1 rounded ${(shot && shot.shot_id === s.shot_id) ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>{s.shot_id}</button>
+        ))}
+      </div>
+      {shot && (
+        <DebugToggle title={`${shot.shot_id} — ${shot.shot_size} · ${shot.duration_sec}s`} debug={shot}>
+          <KV k="Scene" v={shot.scene_id} /><KV k="Camera angle/position" v={`${shot.camera_angle} / ${shot.camera_position}`} />
+          <KV k="Movement" v={shot.camera_movement} /><KV k="Focal length" v={shot.focal_length_mm ? `${shot.focal_length_mm}mm` : null} />
+          <KV k="Character placement" v={shot.character_placement} /><KV k="Character movement" v={shot.character_movement} />
+          <KV k="Expression" v={shot.facial_expression} /><KV k="Lighting" v={shot.lighting} />
+          <KV k="Audio cues" v={JSON.stringify(shot.audio_cues || [])} />
+          <KV k="Approval" v={shot.approval_status} />
+          {shot.storyboard_panel_path && <div className="mt-2"><MediaImage projectId={projectId} filePath={shot.storyboard_panel_path} caption={shot.storyboard_panel_path} /></div>}
+        </DebugToggle>
+      )}
+      <div className="mt-4"><div className="text-sm font-semibold mb-2">Animatic manifests & panels (files)</div>
+        <FilesExplorer projectId={projectId} filesData={data.files} filterPrefix="ANIMATICS/" /></div>
+    </div>
+  );
+}
+
 function stageViewer(projectId: string, stage: string, data: Record<string, any>, stepsData: any) {
   const d = data;
   switch (stage) {
@@ -388,35 +419,8 @@ function stageViewer(projectId: string, stage: string, data: Record<string, any>
         </div>
       );
     }
-    case 'STORYBOARD_AND_ANIMATIC': {
-      const shots = d.shots?.shots || [];
-      const scenes = d.scenes?.scenes || [];
-      const [sel, setSel] = useState('');
-      const shot = shots.find((s: any) => s.shot_id === sel) || shots[0];
-      return (
-        <div>
-          <div className="text-sm mb-2">Scenes: {scenes.map((s: any) => s.scene_id).join(', ') || 'none recorded'} · Shots: {shots.length}</div>
-          <div className="flex gap-1 flex-wrap mb-3">
-            {shots.map((s: any) => (
-              <button key={s.shot_id} onClick={() => setSel(s.shot_id)} className={`text-xs px-2 py-1 rounded ${(shot && shot.shot_id === s.shot_id) ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>{s.shot_id}</button>
-            ))}
-          </div>
-          {shot && (
-            <DebugToggle title={`${shot.shot_id} — ${shot.shot_size} · ${shot.duration_sec}s`} debug={shot}>
-              <KV k="Scene" v={shot.scene_id} /><KV k="Camera angle/position" v={`${shot.camera_angle} / ${shot.camera_position}`} />
-              <KV k="Movement" v={shot.camera_movement} /><KV k="Focal length" v={shot.focal_length_mm ? `${shot.focal_length_mm}mm` : null} />
-              <KV k="Character placement" v={shot.character_placement} /><KV k="Character movement" v={shot.character_movement} />
-              <KV k="Expression" v={shot.facial_expression} /><KV k="Lighting" v={shot.lighting} />
-              <KV k="Audio cues" v={JSON.stringify(shot.audio_cues || [])} />
-              <KV k="Approval" v={shot.approval_status} />
-              {shot.storyboard_panel_path && <div className="mt-2"><MediaImage projectId={projectId} filePath={shot.storyboard_panel_path} caption={shot.storyboard_panel_path} /></div>}
-            </DebugToggle>
-          )}
-          <div className="mt-4"><div className="text-sm font-semibold mb-2">Animatic manifests & panels (files)</div>
-            <FilesExplorer projectId={projectId} filesData={d.files} filterPrefix="ANIMATICS/" /></div>
-        </div>
-      );
-    }
+    case 'STORYBOARD_AND_ANIMATIC':
+      return <StoryboardAndAnimaticStage projectId={projectId} data={d} />;
     case 'ANIMATION':
       return (
         <div>

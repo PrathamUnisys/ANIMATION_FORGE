@@ -8,13 +8,14 @@
 
 ## 0. Snapshot (verify before trusting)
 
-- **Last verified:** 2026-11-09 (VRM→Unreal research corrected: UE 5.8 at `D:\Work\Epic\UE_5.8` + Faceit 2.3.65 installed; Reallusion v2.01 installed / v2.03 current)
-- **Git:** branch `main`, origin `github.com/PrathamUnisys/ANIMATION_FORGE`, HEAD `f220d9cc` ("added few things") + uncommitted work. **Nothing committed this session.**
-- **Python:** `.venv` = Python 3.12.3. Frontend deps installed. Backend sidecar binary present.
-- **Tests:** `31 passed, 0 failed` (combined suite: application + instruction repository) — re-run after the Gate 1 changes.
-- **Instruction validator:** `127 files, 9 rules, 0 findings` — unchanged by Gate 1 (new files are outside `INSTRUCTIONS/`, so the count stays 127).
-- **DB:** `animation_forge.db`, 38 tables, **tracked in git**.
-- **Pipeline V2 (new, outside the app):** `PIPELINE/PIPELINE_V2.md`, `PIPELINE/BAKEOFF.md`, `PIPELINE/BAKEOFF/scorecard.json`, `scripts/pipeline/env_guard.ps1`, `scripts/pipeline/shot_manifest.py`. See §3.
+- **Last source review:** 2026-11-09. The reviewed main base was dd446f61081f66b215ed593129bfb56055a3e95a; this maintenance change updates the context map in the same commit. Verify resulting HEAD with git rev-parse HEAD.
+- **Git:** default branch is main. Source was read through GitHub; local working-tree cleanliness was not verified.
+- **Local environment:** Python, Node, installed dependencies, sidecar binaries and workstation paths are not verified by this source-only review. Follow DOCS/DEVELOPER_GUIDE.md.
+- **Tests:** not run during this GitHub source review. Historical test counts in older reports are not current pass claims.
+- **Instruction validator:** not run during this review. Re-run scripts/validate_instruction_repository.py locally before relying on a zero-finding result.
+- **DB:** animation_forge.db remains tracked in Git; contents and history were not inspected. Do not delete or rewrite it without a separately reviewed data-preservation and exposure plan.
+- **Audience Experience:** merged through PR #3. Hook library, screenplay templates, playbooks and JSON contracts are documentation/design artifacts only; there is no runtime persistence, API or UI integration yet.
+- **Pipeline V2 (outside the app):** PIPELINE/PIPELINE_V2.md, PIPELINE/BAKEOFF.md, PIPELINE/BAKEOFF/scorecard.json, scripts/pipeline/env_guard.ps1, scripts/pipeline/shot_manifest.py. See section 3.
 
 If any line above is stale, fix it before doing anything else.
 
@@ -75,8 +76,8 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 | QC | SIMULATED | `quality_controller.py` predetermined checks, no media inspection |
 | ComfyUI / Blender / Unreal adapters | SIMULATION_ONLY / DOCUMENTED_ONLY | validate/record only; do not launch apps or dispatch jobs |
 | MCP gateway | CATALOG ONLY | names registered, no real dispatch (`mcp_gateway.py`) |
-| Asset library | INDEX ONLY | 82 manual assets, no hashes, machine-specific roots |
-| Real Kokoro / Rhubarb / ComfyUI Flux / Blender demos | VERIFIED OUTSIDE THE APP | `DEMO_PIPELINE/`, `PIPELINE/PIPELINE.md` |
+| Asset library | INDEX ONLY | Check current asset hashes and machine-specific roots before reuse; local storage-root configuration is separate. |
+| Story acquisition | DOCUMENTATION ONLY | STORY_ACQUISITION contains source/rights templates and workflow guidance; no automated rights clearance engine |\n| Audience Experience | DOCUMENTATION / CONTRACTS ONLY | AUDIENCE_EXPERIENCE has hook patterns, screenplay templates, playbooks and draft JSON contracts; no persistence/API/UI or agent integration |\n| Real Kokoro / Rhubarb / ComfyUI Flux / Blender demos | VERIFIED OUTSIDE THE APP | `DEMO_PIPELINE/`, `PIPELINE/PIPELINE.md` |
 | Pipeline V2 spec + bake-off gate | PARTIALLY EXECUTED | `PIPELINE/PIPELINE_V2.md`, `PIPELINE/BAKEOFF.md`; scorecard has **12 rows** (T1A proof, T1B env-only, measured rows, Shot 1 clip, Shot 2 push, composites, final lit+idle, MH attempt) |
 | Shot 1 VRM clip (track 1a) | RENDERED, UNSCORED | `PIPELINE/BAKEOFF/T20_shot1_angleA.mp4` + angleB: 120 frames, 640×480, 5.0 s @ 24 fps; head turn 40° + arm gesture + mouth from audio; identity perfect across angles (rig) |
 | Shot 2 projection push | RENDERED, UNSCORED | `PIPELINE/BAKEOFF/T21_shot2_projection.mp4`: 120f 640×480 5.0 s; UV_PROJECT alley plate, dolly push; rigid (no bend). AI-video baseline deferred (no WAN weights) |

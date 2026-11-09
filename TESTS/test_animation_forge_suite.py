@@ -283,6 +283,26 @@ class AnimationForgeComprehensiveTestSuite(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.providers.validate_provider_settings("ELEVENLABS_TTS", {"invented_emotion_tag": "hyper_sarcastic"})
 
+        # A provider estimate must not be represented as an actual request or usage record.
+        simulated = self.providers.invoke_llm(
+            "PROJECT_PROVIDER_TEST",
+            "OPENAI_COMPATIBLE_CLOUD",
+            "gpt-4o",
+            "A short test prompt",
+        )
+        self.assertEqual(simulated["status"], "SIMULATED")
+        self.assertFalse(simulated["usage_recorded"])
+        self.assertIsNone(simulated["estimated_cost_usd"])
+        with self.db.get_connection() as conn:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM provider_usage WHERE project_id = 'PROJECT_PROVIDER_TEST'").fetchone()[0],
+                0,
+            )
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM cost_records WHERE project_id = 'PROJECT_PROVIDER_TEST'").fetchone()[0],
+                0,
+            )
+
     # 9. Approval Lifecycle & Separation of Technical QC from Creative Approval
     def test_09_approval_lifecycle_blocks_ai_creative_approval(self):
         self.approvals.register_deliverable_gate("APP_UNIT_01", "PROJECT_001", "asset", "AST_01", 1, "PROPOSED")
@@ -303,23 +323,48 @@ class AnimationForgeComprehensiveTestSuite(unittest.TestCase):
         self.assertEqual(final["state"], "APPROVED")
 
     # 10. Screenplay Pipeline & Immutability of Approved Revisions
-    def test_10_screenplay_13_passes_and_immutability(self):
-        scr = self.story_pipe.develop_screenplay_revision(
-            project_id="PROJECT_001",
+    def test_10_screenplay_scaffold_is_truthful_safe_and_immutable_after_approval(self):
+        isolated_story_pipe = StoryAndScreenplayPipeline(self.temp_dir, self.db, self.approvals)
+        with self.assertRaises(ValueError):
+            isolated_story_pipe.develop_screenplay_revision(
+                project_id="../OUTSIDE",
+                title="Unsafe",
+                premise="Must not write outside PROJECTS",
+                genre="Comedy",
+                target_audience="General",
+                intended_duration_sec=30,
+            )
+
+        scr = isolated_story_pipe.develop_screenplay_revision(
+            project_id="PROJECT_TEST_SCAFFOLD",
             title="Test Short",
             premise="A test premise",
             genre="Comedy",
             target_audience="General",
             intended_duration_sec=30
         )
-        self.assertEqual(len(scr["passes_completed"]), 13)
-        self.approvals.submit_human_decision(scr["approval_id"], "APPROVED", "HUMAN_DIRECTOR", "Approved script")
+        self.assertEqual(scr["execution_status"], "SCAFFOLD_ONLY")
+        self.assertEqual(scr["passes_completed"], [])
+        self.assertEqual(len(scr["planned_passes"]), 13)
+        self.assertEqual(scr["advisory_scores"], {})
+        with open(os.path.join(self.temp_dir, scr["file_path"]), "r", encoding="utf-8") as screenplay_file:
+            screenplay = screenplay_file.read()
+        self.assertIn("A test premise", screenplay)
+        self.assertIn("NOT MODEL-GENERATED", screenplay)
+        self.assertIn("Completed passes:** 0", screenplay)
+        gate = self.approvals.get_gate(scr["approval_id"])
+        self.assertEqual(gate["technical_qc_outcome"], "MANUAL_INSPECTION_REQUIRED")
+
+        self.approvals.submit_human_decision(
+            scr["approval_id"], "APPROVED", "HUMAN_DIRECTOR", "Approved scaffold for further development"
+        )
         with self.assertRaises(ImmutableScriptError):
-            self.story_pipe.attempt_modify_script_in_place(scr["script_id"], "Overwritten text")
+            isolated_story_pipe.attempt_modify_script_in_place(scr["script_id"], "Overwritten text")
 
     # 11. Tool Research, Source URL Validation, PoC Authorization & Toolchain Versioning
     def test_11_rnd_engine_poc_gating_and_toolchain_approval(self):
-        scr = self.story_pipe.develop_screenplay_revision("PROJECT_RND", "R&D Test", "Premise", "Sci-Fi", "Teen", 45)
+        isolated_story_pipe = StoryAndScreenplayPipeline(self.temp_dir, self.db, self.approvals)
+        scr = isolated_story_pipe.develop_screenplay_revision("PROJECT_RND", "R&D Test", "Premise", "Sci-Fi", "Teen", 45)
         # Cannot run R&D before screenplay approval
         with self.assertRaises(PermissionError):
             self.rnd.run_mandatory_project_rnd("PROJECT_RND", scr["script_id"])

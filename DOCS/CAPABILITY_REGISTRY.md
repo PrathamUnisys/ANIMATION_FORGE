@@ -22,8 +22,12 @@ with route decorators in `backend/main.py` and the built-in catalog in
 ## HTTP API routes
 
 These are routes declared by FastAPI. All routes depend on the local IPC token
-check. The reviewer ID accepted by the approval endpoint is a request field;
-the route does not establish a logged-in human identity.
+check. The approval route does not accept a caller-supplied reviewer ID. It
+derives the signed-in Windows account through windows_reviewer.py and requires
+a native Windows confirmation for each decision. Approval therefore fails
+closed when that Windows mechanism is unavailable. This is not password or
+MFA re-authentication and is not available through this route on other
+operating systems.
 
 | Operation ID | Declared behavior | Important boundary |
 |---|---|---|
@@ -46,6 +50,14 @@ the route does not establish a logged-in human identity.
 | `GET /api/projects/{project_id}/executions` | Return redacted agent executions, prompt metadata/hashes, and execution logs. | Read-only; server-side redaction; `agent_prompts` has no prompt bodies to return. |
 | `GET /api/projects/{project_id}/files` | List servable project files under `PROJECTS/{project_id}/`. | Read-only; extension allowlist only. |
 | `GET /api/projects/{project_id}/file` | Serve one project file (text, image or audio) by root-relative path. | Read-only; path is resolved and contained inside the project directory (traversal/symlink escapes rejected); size-capped. |
+
+## Audience Experience status
+
+The merged AUDIENCE_EXPERIENCE directory contains design documents, templates,
+hook patterns and draft JSON contracts. No Audience Experience HTTP routes,
+database persistence, frontend panels or agent dispatch have been implemented.
+The presence of a JSON contract does not imply that the backend validates or
+stores records against it.
 
 ## MCP built-in catalog
 

@@ -98,7 +98,7 @@ fn wait_for_backend(token: &str, port: u16) -> Result<(), String> {
                 .set_read_timeout(Some(Duration::from_secs(1)))
                 .map_err(|error| format!("Could not configure backend readiness check: {error}"))?;
             let request = format!(
-                "GET /api/health HTTP/1.1\r\nHost: 127.0.0.1:8765\r\nX-Forge-Token: {token}\r\nConnection: close\r\n\r\n"
+                "GET /api/health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nX-Forge-Token: {token}\r\nConnection: close\r\n\r\n"
             );
             if stream.write_all(request.as_bytes()).is_ok() {
                 let mut status = [0_u8; 64];

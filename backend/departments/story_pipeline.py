@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from backend.database import DatabaseManager
 from backend.governance.approval_engine import ApprovalEngine
+from backend.filesystem_security import is_safe_path_component
 
 
 SCRIPT_DEVELOPMENT_PASSES = [
@@ -54,85 +55,143 @@ class StoryAndScreenplayPipeline:
         target_audience: str,
         intended_duration_sec: int,
         tone: Optional[str] = None,
-        change_reason: str = "Initial 13-pass screenplay development",
+        change_reason: str = "Initial screenplay scaffold (automated generation unavailable)",
         reviewer_feedback: str = ""
     ) -> Dict[str, Any]:
-        # Identify missing fields & propose marked creative assumptions
-        assumptions = []
-        if not tone:
-            tone = "Dry British fantasy satire with slapstick visual timing"
-            assumptions.append(f"[CREATIVE ASSUMPTION] Tone defaulted to: '{tone}'")
+        """Create a premise-specific scaffold without claiming AI generation or QC.
 
+        The application currently has no live LLM screenplay-generation path.
+        This method creates a human-editable scaffold, not a generated screenplay.
+        """
+        if not is_safe_path_component(project_id):
+            raise ValueError("Project ID must be a single safe path component.")
+        if not title or not title.strip():
+            raise ValueError("A non-empty screenplay title is required.")
+        if not premise or not premise.strip():
+            raise ValueError("A non-empty story premise is required.")
+        if intended_duration_sec < 1:
+            raise ValueError("Target duration must be at least one second.")
+
+        tone_text = tone.strip() if tone and tone.strip() else "Not specified by the user"
         with self.db.get_connection() as conn:
             row = conn.execute(
                 "SELECT MAX(version) as max_v FROM scripts WHERE project_id = ?", (project_id,)
-            ).fetchall()
-            prev_ver = row[0]["max_v"] if row and row[0]["max_v"] is not None else None
+            ).fetchone()
+            prev_ver = row["max_v"] if row and row["max_v"] is not None else None
             next_ver = (prev_ver or 0) + 1
 
         script_id = f"SCR_{project_id}_V{next_ver:02d}"
-        now = datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        duration_minutes = intended_duration_sec // 60
+        duration_seconds = intended_duration_sec % 60
+        runtime_label = f"{duration_minutes}:{duration_seconds:02d}" if duration_minutes else f"{duration_seconds}s"
+        passes_checklist = "\n".join(
+            f"- [ ] {index + 1}. {pass_name}"
+            for index, pass_name in enumerate(SCRIPT_DEVELOPMENT_PASSES)
+        )
 
-        screenplay_md = f"""# {title.upper()} — SCREENPLAY (REVISION v{next_ver})
+        screenplay_md = f"""# {title.strip()} — SCREENPLAY DEVELOPMENT SCAFFOLD (v{next_ver})
 
-- **Project ID**: `{project_id}`
-- **Script ID**: `{script_id}`
-- **Genre**: {genre} | **Target Audience**: {target_audience} | **Target Runtime**: {intended_duration_sec}s
-- **Tone**: {tone}
-- **Creative Assumptions**: {'; '.join(assumptions) if assumptions else 'None (All parameters explicitly specified)'}
+- **Project ID:** {project_id}
+- **Script ID:** {script_id}
+- **Status:** SCAFFOLD ONLY — NOT MODEL-GENERATED
+- **Genre:** {genre}
+- **Target audience:** {target_audience}
+- **Target runtime:** {runtime_label} ({intended_duration_sec} seconds)
+- **Tone:** {tone_text}
 
-## ACT I — THE CRUMBLING THRONE ROOM (0:00 – 0:15)
-**INT. FORGOTTEN CITADEL THRONE ROOM - MORNING**
-Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically.
+> This file is a human-editable development scaffold. No live LLM screenplay-generation request or automated critique has been executed. No creative scores or technical QC result are implied.
 
-**SIR PIP**
-*(whispering, reverent)*
-Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.
+## User-provided premise
 
-**GLOOP**
-*(sarcastic blorp, deadpan)*
-And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.
+{premise.strip()}
 
-## ACT II — THE AWAKENING (0:15 – 0:32)
-**INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS**
-Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard.
+## Story decisions to complete
 
-**STONE GOLEM**
-*(booming, bureaucratic monotone)*
-CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?
+- **Protagonist and immediate objective:** [To be developed]
+- **Central conflict / opposition:** [To be developed]
+- **Stakes:** [To be developed]
+- **Central story question:** [To be developed]
+- **Ending / resolution:** [To be developed]
+- **Audience promise:** [To be developed and checked against the actual story]
+- **Character and world constraints:** [Load from approved project canon before drafting]
 
-**SIR PIP**
-*(nervous gulp, forced heroic grin)*
-Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?
+## Proposed dramatic structure
 
-## ACT III — THE SLAPSTICK SETTLEMENT (0:32 – 0:45)
-Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off.
+### ACT I — SETUP
 
-**STONE GOLEM**
-*(Tilts stone head, stamps clipboard)*
-NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.
+- Establish the protagonist, setting and immediate situation.
+- Introduce the incident or decision that starts the story.
+- State the dramatic question and stakes.
+- **Scenes:** [Not yet drafted]
 
-**GLOOP**
-*(excited royal fanfare voice)*
-Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!
+### ACT II — DEVELOPMENT
+
+- Develop attempts, obstacles and consequences.
+- Introduce evidence or reversals that follow from the premise.
+- Track character decisions and changes in understanding.
+- **Scenes:** [Not yet drafted]
+
+### ACT III — CLIMAX AND RESOLUTION
+
+- Bring the central conflict to a consequential choice or confrontation.
+- Resolve the story question using information established earlier.
+- Show the emotional consequence and any intentional unresolved thread.
+- **Scenes:** [Not yet drafted]
+
+## Screenplay pages
+
+No scene prose has been generated. Draft each scene only after the protagonist, objective, conflict, story rules and ending have been agreed.
+
+    INT./EXT. LOCATION – TIME
+
+    ACTION:
+    [Observable, filmable action.]
+
+    DIALOGUE:
+    CHARACTER: [Dialogue.]
+
+    VISUAL:
+    [Story-relevant staging or clue readability.]
+
+    AUDIO:
+    [Voice intent, ambience, music, silence or effects.]
+
+## Development checklist
+
+{passes_checklist}
+
+**Completed passes:** 0 of {len(SCRIPT_DEVELOPMENT_PASSES)}.
+**Creative scores:** Not assessed.
+**Technical QC:** Manual inspection required.
 """
-
-        scores = {
-            "narrative_coherence": 9.3,
-            "originality": 9.0,
-            "character_consistency": 9.5,
-            "dialogue_naturalness": 9.4,
-            "comedy_effectiveness": 9.2,
-            "emotional_engagement": 8.7,
-            "pacing": 9.4,
-            "visual_potential": 9.5,
-            "production_feasibility": 9.6,
-        }
+        projects_root = os.path.realpath(os.path.join(self.root_dir, "PROJECTS"))
+        requested_project_dir = os.path.join(projects_root, project_id)
+        if os.path.islink(requested_project_dir):
+            raise ValueError("Project directory cannot be a symbolic link.")
+        project_dir = os.path.realpath(requested_project_dir)
+        try:
+            contained = os.path.commonpath((projects_root, project_dir)) == projects_root
+        except ValueError:
+            contained = False
+        if not contained:
+            raise ValueError("Project directory resolves outside the PROJECTS root.")
 
         rel_path = f"PROJECTS/{project_id}/SCRIPTS/{script_id}.md"
-        full_path = os.path.join(self.root_dir, rel_path)
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        with open(full_path, "w", encoding="utf-8") as f:
+        scripts_dir = os.path.join(project_dir, "SCRIPTS")
+        if os.path.islink(scripts_dir):
+            raise ValueError("Project SCRIPTS directory cannot be a symbolic link.")
+        os.makedirs(scripts_dir, exist_ok=True)
+        resolved_scripts_dir = os.path.realpath(scripts_dir)
+        try:
+            scripts_contained = os.path.commonpath((project_dir, resolved_scripts_dir)) == project_dir
+        except ValueError:
+            scripts_contained = False
+        if not scripts_contained:
+            raise ValueError("Project SCRIPTS directory resolves outside the project root.")
+        full_path = os.path.join(resolved_scripts_dir, f"{script_id}.md")
+        # Exclusive creation prevents a stale DB version counter from overwriting a file.
+        with open(full_path, "x", encoding="utf-8") as f:
             f.write(screenplay_md)
 
         with self.db.get_connection() as conn:
@@ -142,10 +201,8 @@ Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start 
                    VALUES (?, ?, ?, ?, ?, 'SCREENWRITER', ?, ?, ?, ?, ?, 'AWAITING_HUMAN_REVIEW', 0, ?)""",
                 (
                     script_id, project_id, next_ver, prev_ver,
-                    f"Completed all 13 screenplay passes (v{next_ver})",
-                    change_reason, reviewer_feedback,
-                    json.dumps(scores),
-                    json.dumps(SCRIPT_DEVELOPMENT_PASSES),
+                    "Created a premise-specific scaffold; no automated screenplay passes executed",
+                    change_reason, reviewer_feedback, json.dumps({}), json.dumps([]),
                     screenplay_md, now
                 )
             )
@@ -154,19 +211,35 @@ Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start 
         approval_id = f"APP_{script_id}"
         self.approvals.register_deliverable_gate(approval_id, project_id, "script", script_id, next_ver, "PROPOSED")
         self.approvals.advance_system_state(approval_id, "GENERATING", "SCREENWRITER")
-        self.approvals.advance_system_state(approval_id, "QUALITY_CHECK", "SCRIPT_CRITIC", "APPROVED_TECHNICALLY", "9-dimension critique complete")
-        self.approvals.advance_system_state(approval_id, "AWAITING_HUMAN_REVIEW", "PRODUCTION_DIRECTOR", "APPROVED_TECHNICALLY", "Ready for Executive Producer screenplay approval")
+        self.approvals.advance_system_state(
+            approval_id, "QUALITY_CHECK", "SCRIPT_CRITIC",
+            "MANUAL_INSPECTION_REQUIRED",
+            "No automated screenplay generation or critique was executed; manual content review is required."
+        )
+        self.approvals.advance_system_state(
+            approval_id, "AWAITING_HUMAN_REVIEW", "PRODUCTION_DIRECTOR",
+            "MANUAL_INSPECTION_REQUIRED",
+            "Premise-specific scaffold submitted for human review; no automated quality pass is claimed."
+        )
 
         return {
             "script_id": script_id,
             "approval_id": approval_id,
             "version": next_ver,
             "previous_version": prev_ver,
-            "passes_completed": SCRIPT_DEVELOPMENT_PASSES,
-            "advisory_scores": scores,
-            "assumptions": assumptions,
+            "passes_completed": [],
+            "planned_passes": SCRIPT_DEVELOPMENT_PASSES,
+            "advisory_scores": {},
+            "assumptions": [],
+            "execution_status": "SCAFFOLD_ONLY",
+            "warnings": [
+                "No live LLM request was made.",
+                "No screenplay development passes were executed.",
+                "No automated creative scores or technical QC result are available."
+            ],
             "file_path": rel_path,
             "approval_status": "AWAITING_HUMAN_REVIEW",
+            "technical_qc_outcome": "MANUAL_INSPECTION_REQUIRED"
         }
 
     def attempt_modify_script_in_place(self, script_id: str, new_text: str) -> None:

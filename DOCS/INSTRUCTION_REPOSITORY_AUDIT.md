@@ -430,3 +430,48 @@ The following files extend the governed corpus. The genre and channel registries
 - Registry validation checks file references, genre/style profile IDs and versions, tool manual IDs, task-to-tool and task-to-provider mappings, ProviderManager registration, duplicate IDs, asset storage-root references, tag vocabulary and evidence requirements for claimed tool availability.
 - Tool availability remains `NOT_VERIFIED` until a real local check is recorded. Integration maturity is separately marked `SIMULATION_ONLY` for the current Blender, Unreal and ComfyUI adapters.
 - The new genre and style project fields are optional in the project schema for backward compatibility. Database migrations, UI selectors, runtime context assembly and local storage-root configuration have not been implemented by CR_003.
+
+
+## Current source reconciliation — main review, 2026-11-09
+
+This addendum supersedes earlier statements in this historical audit where
+they describe the current route surface, reviewer identity flow, or schema
+inventory. It was prepared from the main-branch source review; no application
+tests or local database inspection were performed as part of that review.
+
+### Current observed source facts
+
+- backend/main.py declares 19 HTTP routes: 17 GET routes and 2 POST routes.
+  The route list and limitations are maintained in CAPABILITY_REGISTRY.md.
+- All declared routes depend on the local IPC token check.
+- POST /api/approvals/decide does not accept a reviewer ID in its request
+  model. It obtains the signed-in Windows account and shows a native
+  confirmation dialog through backend/governance/windows_reviewer.py.
+  This is Windows-only and fails closed when unavailable; it is not password
+  or MFA re-authentication.
+- The repository tree contains 18 JSON Schema files under SCHEMAS/.
+  Historical references to 11 schemas describe an earlier repository state.
+- The application database has been documented as 38 tables, but this review
+  did not inspect the tracked database contents or verify table counts from
+  the live file.
+- The merged AUDIENCE_EXPERIENCE module is documentation, templates and
+  draft contracts. No corresponding API routes, persistence, frontend panels
+  or agent integration were found.
+- StoryAndScreenplayPipeline now returns a premise-specific scaffold only.
+  It does not make an LLM request, complete the 13 development passes, assign
+  creative scores or claim automated technical QC. The approval gate records
+  MANUAL_INSPECTION_REQUIRED.
+- ProviderManager's current LLM method is simulation-only. It no longer
+  records estimated token/cost values as actual provider usage. The credential
+  vault remains an in-memory test stub, not a production OS credential store.
+- The storyboard/animatic React state hook was extracted from the stage switch
+  helper into a dedicated component. The Tauri readiness request now uses the
+  selected dynamic backend port in its Host header.
+
+### Verification caveat
+
+The source review did not execute pytest, the instruction validator, the
+frontend build, Rust compilation or the desktop application. Existing
+historical test counts and build reports are not fresh verification for the
+current main commit. Run the commands in DOCS/DEVELOPER_GUIDE.md locally
+and update the evidence with the exact results.

@@ -29,9 +29,10 @@ def redact_secrets(text: str) -> str:
 
 
 class SecureCredentialVault:
-    """
-    Wraps Windows Credential Manager (via keyring when on Windows desktop) or an isolated
-    OS-restricted memory/vault dictionary. Never writes plaintext keys to Markdown or SQLite.
+    """In-memory test stub only; this is not a persistent or OS-backed secure vault.
+
+    Do not use this implementation for production credentials. A platform-backed
+    credential-store adapter must replace it before live provider invocation.
     """
     def __init__(self):
         self._memory_vault: Dict[str, str] = {}
@@ -117,39 +118,36 @@ class ProviderManager:
         temperature: float = 0.4,
         fallback_provider_id: Optional[str] = "LOCAL_DETERMINISTIC_STUDIO"
     ) -> Dict[str, Any]:
+        """Return an explicitly simulated estimate; this method does not call a provider.
+
+        The old implementation wrote invented token counts and estimated costs into
+        tables that represented actual usage. Until a real provider adapter exists,
+        keep estimates out of actual usage and cost records.
+        """
         if provider_id not in self.providers:
             raise ValueError(f"Provider {provider_id} is not registered")
+        requested_provider_id = provider_id
         spec = self.providers[provider_id]
+        if model_id not in spec["models"]:
+            raise ValueError(f"Model {model_id} is not registered for provider {provider_id}")
+
         if spec["requires_api_key"] and not self.vault.has_credential(provider_id):
-            if fallback_provider_id and fallback_provider_id in self.providers and not self.providers[fallback_provider_id]["requires_api_key"]:
+            if fallback_provider_id and fallback_provider_id in self.providers:
                 provider_id = fallback_provider_id
                 spec = self.providers[provider_id]
                 model_id = spec["models"][0]
             else:
-                raise MissingCredentialError(f"Missing API credential in OS Vault for cloud provider '{provider_id}'.")
+                raise MissingCredentialError(f"Missing credential for provider '{provider_id}'.")
 
-        prompt_tokens = max(12, len(prompt.split()))
-        completion_tokens = 180
-        cost_usd = round(((prompt_tokens + completion_tokens) / 1000.0) * spec.get("cost_per_1k_tokens_usd", 0.0), 6)
-        now = datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
-        uid = f"USG_{int(datetime.now(timezone.utc).timestamp()*1000000)}"
-        with self.db.get_connection() as conn:
-            conn.execute(
-                """INSERT INTO provider_usage (usage_id, project_id, provider_id, model_id, operation_type, prompt_tokens, completion_tokens, units_consumed, recorded_at)
-                   VALUES (?, ?, ?, ?, 'LLM_GENERATION', ?, ?, ?, ?)""",
-                (uid, project_id, provider_id, model_id, prompt_tokens, completion_tokens, float(prompt_tokens + completion_tokens), now)
-            )
-            if cost_usd > 0:
-                conn.execute(
-                    """INSERT INTO cost_records (cost_id, project_id, provider_id, task_id, amount_usd, is_estimated, authorized_by_human, recorded_at)
-                       VALUES (?, ?, ?, NULL, ?, 0, 1, ?)""",
-                    (f"CST_{uid}", project_id, provider_id, cost_usd, now)
-                )
-            conn.commit()
+        estimated_prompt_tokens = max(1, len(prompt.split()))
         return {
+            "status": "SIMULATED",
+            "requested_provider_id": requested_provider_id,
             "provider_id": provider_id,
             "model_id": model_id,
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": completion_tokens,
-            "cost_usd": cost_usd,
+            "estimated_prompt_tokens": estimated_prompt_tokens,
+            "estimated_completion_tokens": None,
+            "estimated_cost_usd": None,
+            "usage_recorded": False,
+            "warning": "No provider request was made. No token usage or cost has been recorded."
         }

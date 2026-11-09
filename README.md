@@ -136,6 +136,8 @@ Copy the example to the ignored local file `LIBRARY/STORAGE_ROOTS.json` and set 
 | `DEPARTMENTS/` | Department-level instructions and production responsibilities. |
 | `ORCHESTRATION/` | Production Director and coordination instructions. |
 | `GENRES/` | Versioned narrative genre profiles, registry, and templates. |
+| `STORY_ACQUISITION/` | Source dossiers, rights assessments and story-concept research workflow templates. No automatic legal clearance. |
+| `AUDIENCE_EXPERIENCE/` | Draft audience promise, hooks, screenplay formats, Retention Map contracts, review checklists, packaging and analytics playbooks. Not yet a runtime feature. |
 | `STYLES/` | Independent channel-style profiles, registry, and templates. |
 | `TOOLS/` | Desktop-tool manuals, task catalogue, capability tags, and templates. |
 | `PROVIDERS/` | LLM, image/video, and TTS provider profiles and configuration guidance. |
@@ -225,8 +227,8 @@ The following distinctions are important when planning work or reporting progres
 | Genre profiles | Fantasy and Comedy profiles are registered. |
 | Channel styles | Registry exists but is empty; no channel profile has been supplied yet. |
 | Screenplay context assembly | A detailed contract exists; the runtime assembler is not implemented. |
-| Screenplay generation | The current `StoryAndScreenplayPipeline` in `backend/departments/story_pipeline.py` emits a fixed demonstration screenplay. It is not yet real premise-driven LLM screenplay generation. |
-| LLM providers | Provider IDs, metadata, and usage-estimation paths exist. The inspected `ProviderManager` does not make a live LLM API request or generate model text. |
+| Screenplay workflow | `StoryAndScreenplayPipeline` currently creates a premise-specific human-editable scaffold only. It does not call a live LLM, draft scene prose, complete the 13 passes or assign creative scores. |
+| LLM providers | Provider metadata exists, but `ProviderManager` does not make a live LLM request. Simulated estimates are not persisted as actual token usage or cost. The credential vault is an in-memory test stub. |
 | TTS | Provider metadata exists. The inspected production path creates a simple tone WAV rather than live provider speech. |
 | ComfyUI | Workflow/profile validation and provenance-related code exist. Do not assume that the adapter submits a real job to a running ComfyUI server and retrieves its output. |
 | Blender / Unreal Engine | Tool manuals and adapter-side validation exist. Do not assume the adapter launches the applications, executes a scene, or renders media. |
@@ -234,7 +236,8 @@ The following distinctions are important when planning work or reporting progres
 | Asset library | Metadata schema and empty index exist. No actual asset catalogue or machine-specific storage-root configuration is supplied by the repository. |
 | HTTP API | The observed route surface is documented in `DOCS/CAPABILITY_REGISTRY.md`. Do not infer additional API routes from agent instructions or internal Python methods. |
 | MCP operations | Registered names are not proof of real dispatch. Read the capability registry before using or documenting an operation. |
-| Project selectors | Genre and channel-style fields exist in the project schema. Full database migration and UI support remain separate implementation work. |
+| Project selectors | Genre and channel-style fields exist in the project schema. Full database persistence and UI selection remain separate implementation work. |
+| Audience Experience | Research-derived documents and draft contracts are present under `AUDIENCE_EXPERIENCE/`. There is no runtime persistence, API, UI or agent integration yet. |
 | Desktop packaging | Local build work is documented, but packaged runtime-resource layout still needs verification. |
 
 This table is a navigation aid, not a substitute for checking the current source. When changing implementation, update the relevant audit, capability registry, tests, and status documentation so they do not drift apart.
