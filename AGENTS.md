@@ -8,12 +8,13 @@
 
 ## 0. Snapshot (verify before trusting)
 
-- **Last source review:** 2026-11-09. Reviewed main base: 0dcebb3e4b999c30cae96b210cc186c38edc5feb. This update adds the CR_006 proposal and reconciles the story/screenplay capability map; it does not implement runtime features. Verify resulting HEAD with git rev-parse HEAD.
-- **Git:** default branch is main. Source was read through GitHub; local working-tree cleanliness was not verified.
-- **Local environment:** Python, Node, installed dependencies, sidecar binaries and workstation paths are not verified by this source-only review. Follow DOCS/DEVELOPER_GUIDE.md.
-- **Tests:** not run during this GitHub source review. Historical test counts in older reports are not current pass claims.
-- **Instruction validator:** not run during this review. Re-run scripts/validate_instruction_repository.py locally before relying on a zero-finding result.
-- **DB:** animation_forge.db remains tracked in Git; contents and history were not inspected. Do not delete or rewrite it without a separately reviewed data-preservation and exposure plan.
+- **Last source review:** 2026-11-09. Reviewed main base: 4809e4af38aff3d181e745ec3f4f8b64be14e716. CR_006 implemented under GovernanceEngine approval (ARCH_V1.3.0). Verify resulting HEAD with git rev-parse HEAD.
+- **Git:** default branch is main. Working tree clean at start of CR_006 work (git status empty before implementation). Verify HEAD before every push.
+- **Tests:** 39 passed (18 animation_forge_suite + 13 instruction_repository + 8 cr006_story_screenplay) run locally 2026-11-09.
+- **Instruction validator:** `scripts/validate_instruction_repository.py` — 130 files, 9 rules, 0 findings (run locally 2026-11-09).
+- **Frontend:** `npm run build` passed (vite 5.4.21).
+- **DB:** animation_forge.db tracked; CR_006 added migration v2 (5 new tables, total 43), ARCH_V1.3.0 active, CR_006 APPROVED, pilot PROJECT_BELL persisted (mock-backed, Ollama BLOCKED). Backup taken pre-migration: SHA-256 8c841af75107ee68b109c5ede2b5f5246ed6b47bb1744d3b9c6c2fcbdcaf22b3 (backup file removed after verification).
+- **CR_006:** IMPLEMENTED (M1-M5): versioned Story Bible + Episode Brief services/APIs/UI, real Ollama LLM adapter (opencode local provider http://localhost:11434/v1, models ornith:9b/qwen3.5:4b) + Windows Credential Manager vault + deterministic mock, staged screenplay generation (analysis/hooks/outline/scene cards/screenplay/retention), deterministic QC + SCRIPT_CRITIC critique, governance approval via native Windows dialog. Live smoke test BLOCKED (Ollama not running); pilot PROJECT_BELL ran on DETERMINISTIC_MOCK with QC PASS (V03) and is labelled mock-backed, not real-AI success.
 - **Audience Experience:** merged through PR #3. Hook library, screenplay templates, playbooks and JSON contracts are documentation/design artifacts only; there is no runtime persistence, API or UI integration yet.
 - **CR_006:** a draft proposal for Story Bible/context, real provider integration, staged screenplay generation and script QC is documented under DOCS/CHANGE_REQUESTS. It is not submitted to GovernanceEngine or approved; no protected schemas, CORE rules, agent instructions, DB migrations or runtime code are changed by that proposal.
 - **Pipeline V2 (outside the app):** PIPELINE/PIPELINE_V2.md, PIPELINE/BAKEOFF.md, PIPELINE/BAKEOFF/scorecard.json, scripts/pipeline/env_guard.ps1, scripts/pipeline/shot_manifest.py. See section 3.
@@ -69,17 +70,17 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 | 17-stage workflow derivation | IMPLEMENTED (read-only) | `backend/main.py:322-402`; derives from DB/files, never backfills DONE |
 | Approval engine + Windows confirm | PARTIAL / WINDOWS-ONLY | `approval_engine.py` and `windows_reviewer.py` derive the signed-in Windows account and require a native confirmation dialog. Non-Windows approval fails closed; this is not password/MFA re-authentication. |
 | Project file explorer / media serving | IMPLEMENTED | `backend/main.py:284-303`; traversal + symlink containment |
-| Story Bible / episode brief | PARTIAL FOUNDATION | `series.bible_json` and `episodes` exist in SQLite, but there is no versioned Story Bible / Episode Brief service, API or UI; project genre/style IDs are not wired end-to-end. See draft CR_006. |
-| Screenplay context assembly | CONTRACT ONLY | `DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md` defines the target; runtime profile/canon assembly is not implemented. |
-| Screenplay workflow | SCAFFOLD ONLY | `story_pipeline.py` creates a premise-specific editable scaffold. It does not call an LLM, generate scene prose, complete passes, assign scores or pass automated QC. Manual inspection is required. |
-| Creative script critique | INSTRUCTION ONLY | `AGENTS/SCRIPT_CRITIC/INSTRUCTION.md` defines the review role; no independent evidence-backed critique service is wired. |
+| Story Bible / episode brief | IMPLEMENTED (CR_006 M1) | `story_context.py` versioned Bible (PROPOSED/DRAFT/IN_REVIEW/APPROVED) with SHA-256 revision hash, Episode Brief with genre/channel validation, approved canon only via human-confirmed transition. APIs `GET/POST /api/story-bibles`, `GET/POST /api/projects/{id}/episode-briefs/{ep}`, context assay `GET /api/projects/{id}/story-context`. UI: Story Context panel in `frontend/src/App.tsx`. |
+| Screenplay context assembly | IMPLEMENTED (CR_006 M1/M3) | `StoryContextService.assemble_context()` resolves exact genre/channel profiles + hashes, approved Bible revision, brief, screenwriter instruction into a manifest with `context_hash_sha256`. |
+| Screenplay workflow | IMPLEMENTED (CR_006 M3) | `story_pipeline.py` staged: analysis → hooks → outline (human approve) → scene cards → screenplay → retention map, each persisted as immutable revision in `story_artifacts`. Legacy scaffold `develop_screenplay_revision()` retained for backward compat. Outline-approval gate blocks drafting. Live generation requires Ollama (BLOCKED when down); mock is deterministic and labelled. |
+| Creative script critique | IMPLEMENTED (CR_006 M4) | `backend/qc/screenplay_qc.py` CreativeCritique via provider LLM (SCRIPT_CRITIC contract); every finding cites scene/passage with severity + evidence/interpretation/recommendation. Mock path label explicit. No scores. |
 | Production breakdown | UNAVAILABLE | `generate_production_breakdown()` fails explicitly until a real approved-script-to-scene parser exists; it creates no scene rows. |
-| LLM providers | SIMULATED / NOT CONNECTED | `providers/manager.py` makes no live request and does not persist estimated tokens/cost as actual usage. The credential vault is an in-memory test stub. |
+| LLM providers | LIVE LOCAL + MOCK (CR_006 M2) | `providers/manager.py` OllamaOpenAICompatibleAdapter (opencode local `http://localhost:11434/v1`, ornith:9b/qwen3.5:4b) with timeout/retry, auth/rate-limit handling, structured-output validation, usage recorded only from provider response. `WindowsCredentialVault` (Credential Manager) for cloud keys. `DETERMINISTIC_MOCK` for tests. Legacy `invoke_llm()` still returns SIMULATED (never writes usage). Live smoke test BLOCKED 2026-11-09 (Ollama connection refused). |
 | TTS | SIMULATED | `production_studios.py:176` writes sine-tone WAVs |
 | Character/environment/storyboard images | SIMULATED demo files | generated by `demo_project_runner.py` |
 | Animation execution | UNAVAILABLE | no capability |
 | Post-production | SIMULATED | OTIO/SRT demo files only |
-| Technical QC | SIMULATED | `quality_controller.py` uses predetermined demo checks and does not inspect the submitted screenplay/media. Script-specific deterministic checks and independent creative critique are not implemented. |
+| Technical QC | IMPLEMENTED (script only) | `DeterministicValidator` checks scene-card fields, unique IDs, character refs, placeholders, dialogue, headings, canon agreement, required beats/clues, runtime (SUM_SCENE_CARDS estimate). Media QC remains simulated. |
 | ComfyUI / Blender / Unreal adapters | SIMULATION_ONLY / DOCUMENTED_ONLY | validate/record only; do not launch apps or dispatch jobs |
 | MCP gateway | CATALOG ONLY | names registered, no real dispatch (`mcp_gateway.py`) |
 | Asset library | INDEX ONLY | Check current asset hashes and machine-specific roots before reuse; local storage-root configuration is separate. |
@@ -105,13 +106,13 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 
 ---
 
-## 4. Last recorded local data snapshot (2026-11-09; not verified in this source review)
+## 4. Last recorded local data snapshot (verified 2026-11-09 after CR_006)
 
-- Projects: `PROJECT_001` "The Forgotten Kingdom" (`COMPLETED_PRODUCTION_PACKAGE`), `PROJECT_002` "The Dragon-Slaying Refund" (`STORY_ANALYSIS`).
-- Records: 1 script, 2 scenes, 4 shots, 4 assets / 4 revisions, 4 audio lines, 15 approvals (all `APPROVED`), 5 QC reports, 0 agent executions.
-- Library: 82 assets (`AST_0001`–`AST_0082`); `LIBRARY/STORAGE_ROOTS.json` is gitignored, absolute `D:\` paths; no `content_hash_sha256`.
-- Tool catalog: v1.2.0, 11 task groups, 20 tools, 5 providers.
-- Genres: Fantasy, Comedy. Channel styles: registry intentionally empty.
+- Projects: `PROJECT_001`, `PROJECT_002` (legacy), `PROJECT_BELL` (CR_006 pilot, mock-backed), `PROJECT_CR006` is tests-only (temp DB, not in main DB).
+- Main DB: 43 tables (was 38), migration v2 applied; architecture `ARCH_V1.3.0` active; CR_006 APPROVED, CR_004 still AWAITING.
+- Pilot `PROJECT_BELL`: Series Bible 3 revisions (head APPROVED), Episode Brief 3 revisions, story artifacts (analysis/hooks/outline/cards/screenplay/retention), 3 screenplay revisions (V03 QC PASS).
+- Library/tool catalog/genres unchanged (Fantasy, Comedy; CHANNELS empty).
+- Provider requests: mock entries only; no live usage (Ollama BLOCKED).
 
 ---
 
@@ -122,8 +123,10 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 .\.venv\Scripts\python scripts\validate_instruction_repository.py
 ```
 
-Current verification: not run by this GitHub source-edit operation. Previously recorded `31 passed` / `0 findings` are historical only. Run the commands above locally and record the exact current output.
-Never report a test as passing unless you ran it in this workspace.
+Current verification (2026-11-09, CR_006):
+- `.\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py TESTS/test_instruction_repository.py TESTS/test_cr006_story_screenplay.py` → 39 passed
+- `.\.venv\Scripts\python scripts\validate_instruction_repository.py` → 130 files, 9 rules, 0 findings
+- `npm run build` (frontend) → passed (vite 5.4.21)
 
 **Side effect:** the app suite runs the demo runner against the repo root and rewrites
 tracked files under `PROJECTS/` **and `CORE/GLOBAL_WORKFLOW.md`** (timestamps, research dates,
@@ -141,10 +144,14 @@ manifests). After testing, check `git status` and restore test noise with
 
 ## 6. Verification status and known gaps
 
-No fresh test suite or instruction-validator run was performed during this GitHub
-source review. The old 31 passed / 0 findings values are historical and must
-not be treated as the current main baseline. Re-run the commands in section 5
-and record observed output.
+CR_006 verified: 39 passed / 0 findings / vite build passed (see §5). Prior
+31 passed / 0 findings baseline is superseded by 39 passed (8 new CR_006 tests).
+
+Remaining gaps (not CR_006 scope or BLOCKED):
+- Live Ollama smoke test BLOCKED 2026-11-09 (connection refused on localhost:11434). Adapter + mock tests complete; live generation needs Ollama running.
+- `generate_production_breakdown()` still NotImplementedError by design (no approved-script-to-scene parser).
+- Channel registry empty: channel_style selection requires a registered profile; unknown IDs fail clearly.
+- TTS / animation / post-production remain simulated/unavailable (out of CR_006 scope).
 
 Previously resolved instruction issues included the AGENT_SCREENWRITER /
 DOCS_SCREENPLAY_CONTEXT_ASSEMBLY dependency cycle, the invalid
@@ -195,6 +202,7 @@ If you cannot update this file, stop and say why.
 
 | Date | Change | Files | Verification |
 |---|---|---|---|
+| 2026-11-09 | **CR_006 IMPLEMENTED** (M0-M5): GovernanceEngine CR_006 APPROVED → ARCH_V1.3.0 via Windows dialog; versioned Bible/Brief, Ollama adapter, staged screenplay, deterministic QC + critique, pilot PROJECT_BELL (mock, QC PASS) | `backend/database.py` (v2), `backend/departments/story_context.py`, `backend/departments/story_pipeline.py`, `backend/providers/manager.py`, `backend/qc/screenplay_qc.py`, `backend/main.py` (20 new routes), `backend/governance/rule_loader.py`, `frontend/src/App.tsx`, `SCHEMAS/` (8 new), `TESTS/test_cr006_story_screenplay.py`, `DOCS/CAPABILITY_REGISTRY.md`, `DOCS/INSTRUCTION_REPOSITORY_AUDIT.md`, `DOCS/CHANGE_REQUESTS/CR_005*+CR_006*`, `GENRES/PROPOSED_PROFILE_ROADMAP.md`, `AGENTS.md`, `animation_forge.db` | pytest 39 passed; validator 130 files/0 findings; vite build passed; pilot QC PASS (V03); live Ollama SMOKE BLOCKED (not running) ||
 | 2026-11-09 | **CR_006 draft proposal**: scope Story Bible/context, live LLM provider, staged screenplay generation and evidence-based script QC; no runtime or protected schema changes | `DOCS/CHANGE_REQUESTS/CR_006_STORY_CONTEXT_SCREENPLAY_QC.md`, `DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md`, `DOCS/CAPABILITY_REGISTRY.md`, `DOCS/DEVELOPER_GUIDE.md`, `AGENTS.md` | Source-readback only; proposal not submitted to GovernanceEngine; tests/build not run; no runtime capability added |
 | 2026-11-09 | **T14 MetaHuman headless attempt**: 311 classes, factory exists, Creator GUI-bound | `PIPELINE/BAKEOFF/T14_metahuman_attempt.md`, `scorecard.json` (12 rows), `AGENTS.md`, Library.uproject (Python plugin, backup kept) | UnrealEditor-Cmd + PythonScript runs; audio staged; asset creation needs human 5-min GUI step |
 | 2026-11-09 | **VRM RIG POC M2/M4a**: FBX→UE 5.8 import (skeleton OK, morphs lost) | `PIPELINE/VRM_RIG_POC/{scripts/vrm_export_fbx.py,ue_import_fbx.py,ue_probe*.py,IMPORT_REPORT.md,README.md,outputs/M2*.fbx,ue_import*.log}`, `AGENTS.md` | UE Python import Success 0 errors; 225 bones; `get_all_morph_target_names()==[]` (full + Face-only); validator `0 findings`; pytest `31 passed` |

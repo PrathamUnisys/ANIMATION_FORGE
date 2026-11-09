@@ -1,6 +1,6 @@
 ---
 prompt_id: DOCS_CAPABILITY_REGISTRY
-version: 1.2.0
+version: 1.3.0
 modified_date: 2026-11-09
 description: Evidence-based index of exposed API routes and registered MCP catalog operations
 dependencies: ["CORE/OUTPUT_CONTRACTS.md", "CORE/SECURITY_POLICY.md"]
@@ -14,6 +14,9 @@ change_history:
   - version: 1.2.0
     date: 2026-11-09
     summary: Record CR_006 proposed story-context and screenplay capabilities separately from implemented routes
+  - version: 1.3.0
+    date: 2026-11-09
+    summary: Register CR_006 implemented routes (Story Bible, Episode Brief, staged screenplay, QC, provider) with honest boundaries
 ---
 # Application Capability Registry (Observed)
 
@@ -53,6 +56,25 @@ operating systems.
 | `GET /api/projects/{project_id}/executions` | Return redacted agent executions, prompt metadata/hashes, and execution logs. | Read-only; server-side redaction; `agent_prompts` has no prompt bodies to return. |
 | `GET /api/projects/{project_id}/files` | List servable project files under `PROJECTS/{project_id}/`. | Read-only; extension allowlist only. |
 | `GET /api/projects/{project_id}/file` | Serve one project file (text, image or audio) by root-relative path. | Read-only; path is resolved and contained inside the project directory (traversal/symlink escapes rejected); size-capped. |
+| `POST /api/change-requests` | Create an architecture change request in ARCHITECTURE_MODE (AWAITING_HUMAN_REVIEW). | Requires IPC token; duplicate ID rejected; approval only via trusted Windows reviewer path. |
+| `GET /api/story-bibles/{series_id}` | Read head revision of a Series Bible. | Requires IPC token; 404 if none. |
+| `GET /api/story-bibles/{series_id}/revisions` | List Bible revisions with hashes. | Read-only. |
+| `POST /api/story-bibles` | Create a Bible revision (DRAFT/PROPOSED only, never directly APPROVED). | Requires IPC token; APPROVED canon requires human-confirmed transition. |
+| `POST /api/story-bibles/{bible_revision_id}/transition` | Transition Bible status (DRAFT->IN_REVIEW->APPROVED via Windows dialog). | APPROVED requires native Windows confirmation; AI cannot approve canon. |
+| `GET /api/story-bibles/{series_id}/canon` | Return latest APPROVED canon revision or null. | Read-only. |
+| `POST /api/projects/{project_id}/episode-briefs/{episode_id}` | Create Episode Brief revision with genre/channel validation. | Requires IPC token; unknown genre/channel IDs rejected. |
+| `GET /api/projects/{project_id}/episode-briefs/{episode_id}` | Read latest Episode Brief revision. | Read-only. |
+| `GET /api/projects/{project_id}/story-context` | Assemble context manifest (profiles, canon, brief, hashes). | Read-only; validates genre/channel selection. |
+| `POST /api/projects/{project_id}/story/analysis` | Generate story analysis via selected provider. | Real provider request; no silent fallback; records provenance. |
+| `POST /api/projects/{project_id}/story/hooks` | Generate 3 hook alternatives with payoff linkage. | Requires prior analysis. |
+| `POST /api/projects/{project_id}/story/outline` | Generate act/beat outline. | Requires prior analysis. |
+| `POST /api/projects/{project_id}/story/outline/approve` | Human-approve outline (Windows dialog required). | Opens native Windows confirmation; fail-closed off Windows. |
+| `POST /api/projects/{project_id}/story/scene-cards` | Generate scene cards from outline+brief. | Persists revisions. |
+| `POST /api/projects/{project_id}/story/screenplay` | Draft screenplay from approved outline+cards. | Blocked until outline APPROVED; new revision per generation; never overwrites APPROVED. |
+| `POST /api/projects/{project_id}/story/retention-map` | Build scene-linked retention map. | No invented statistics. |
+| `POST /api/projects/{project_id}/story/qc/validate` | Run deterministic screenplay validation. | Returns checks/issues; never approves creative work. |
+| `POST /api/projects/{project_id}/story/qc/critique` | Run SCRIPT_CRITIC creative critique. | Scene-cited findings; never approves creative work. |
+| `GET /api/projects/{project_id}/story/artifacts/{artifact_type}` | Read latest artifact of given type. | Read-only. |
 
 ## Audience Experience status
 
@@ -66,11 +88,11 @@ The internal screenplay pipeline currently creates a premise-specific scaffold
 only. Its production-breakdown method verifies that the script is approved, then
 raises NotImplementedError; it does not insert demo scenes into project data.
 
-## CR_006 proposed story and screenplay capabilities (not implemented)
+## CR_006 proposed story and screenplay capabilities (IMPLEMENTED)
 
-The draft proposal at DOCS/CHANGE_REQUESTS/CR_006_STORY_CONTEXT_SCREENPLAY_QC.md
-covers these future capabilities. They are not callable API operations and are
-not approved runtime work:
+The proposal at DOCS/CHANGE_REQUESTS/CR_006_STORY_CONTEXT_SCREENPLAY_QC.md
+is APPROVED (ARCH_V1.3.0) and implemented with the routes registered above.
+This table records implemented evidence, not a roadmap:
 
 | Proposed capability | Current evidence | Missing implementation |
 |---|---|---|
