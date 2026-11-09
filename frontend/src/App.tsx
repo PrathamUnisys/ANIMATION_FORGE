@@ -567,8 +567,8 @@ function StoryContextPanel({ projectId }: { projectId: string }) {
   const [seriesId, setSeriesId] = useState('SER_BELL');
   const [episodeId, setEpisodeId] = useState('EP_BELL_01');
   const [premise, setPremise] = useState('');
-  const [provider, setProvider] = useState('OLLAMA_OPENAI_COMPATIBLE');
-  const [model, setModel] = useState('ornith:9b');
+  const [provider, setProvider] = useState('OPENCODE_CLI');
+  const [model, setModel] = useState('opencode/crouton-alpha-free');
   const [title, setTitle] = useState('The Thirteenth Bell of St. Jude');
   // Brief form
   const [bTitle, setBTitle] = useState('');
@@ -759,14 +759,16 @@ function StoryContextPanel({ projectId }: { projectId: string }) {
         </label>
         <label className="text-xs text-slate-400">Provider
           <select value={provider} onChange={e => setProvider(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm">
-            <option value="OLLAMA_OPENAI_COMPATIBLE">OLLAMA_OPENAI_COMPATIBLE (local opencode Ollama)</option>
+            <option value="OPENCODE_CLI">OPENCODE_CLI (local opencode)</option>
+            <option value="OLLAMA_OPENAI_COMPATIBLE">OLLAMA_OPENAI_COMPATIBLE (local Ollama)</option>
             <option value="DETERMINISTIC_MOCK">DETERMINISTIC_MOCK (test)</option>
           </select>
         </label>
         <label className="text-xs text-slate-400">Model
           <select value={model} onChange={e => setModel(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm">
-            <option value="ornith:9b">ornith:9b (primary)</option>
-            <option value="qwen3.5:4b">qwen3.5:4b (fallback)</option>
+            <option value="opencode/crouton-alpha-free">opencode/crouton-alpha-free</option>
+            <option value="ornith:9b">ornith:9b (ollama)</option>
+            <option value="qwen3.5:4b">qwen3.5:4b (ollama)</option>
             <option value="mock-42">mock-42</option>
           </select>
         </label>

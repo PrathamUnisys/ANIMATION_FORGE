@@ -256,6 +256,109 @@ class OllamaOpenAICompatibleAdapter:
         raise ProviderError("UNKNOWN", str(last_exc) if last_exc else "Failed after retries")
 
 
+class OpenCodeCLIAdapter:
+    """Live adapter via the local opencode CLI (``opencode run --format json``).
+
+    Streams NDJSON events; concatenates text parts; reads tokens/cost from
+    step_finish events. Usage is recorded ONLY from provider-returned fields.
+    No API key is managed by Animation Forge — auth lives in opencode itself.
+    """
+    def __init__(self, workdir: str = "."):
+        self.workdir = workdir
+
+    def _binary(self) -> str:
+        import shutil
+        found = shutil.which("opencode")
+        if found and found.lower().endswith(".exe"):
+            return found
+        # Windows npm install: PowerShell shim is not spawnable by CreateProcess; use the real binary.
+        candidates = [
+            r"C:\Users\sb291\AppData\Roaming\npm\node_modules\@opencode\cli\bin\opencode.exe",
+        ]
+        import os
+        for cand in candidates:
+            if os.path.exists(cand):
+                return cand
+        if found:
+            return found
+        raise ProviderError("CONNECTION_ERROR", "opencode CLI not found (checked PATH and Windows npm location)")
+
+    def generate(self, model_id: str, prompt: str, temperature: float = 0.4, timeout_sec: int = 300, max_retries: int = 1) -> Dict[str, Any]:
+        import subprocess, time
+        binary = self._binary()
+        cmd = [binary, "run", "--model", model_id, "--format", "json", "--archived", "--auto", prompt]
+        last_err = None
+        for attempt in range(max_retries + 1):
+            t0 = time.time()
+            try:
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec, cwd=self.workdir)
+            except FileNotFoundError:
+                raise ProviderError("CONNECTION_ERROR", "opencode CLI not found on PATH")
+            except subprocess.TimeoutExpired:
+                last_err = ProviderError("TIMEOUT", f"opencode run timed out after {timeout_sec}s")
+                if attempt < max_retries:
+                    continue
+                raise last_err
+            if proc.returncode != 0:
+                last_err = ProviderError("HTTP_ERROR", redact_secrets((proc.stderr or proc.stdout or "")[:500]))
+                if attempt < max_retries:
+                    continue
+                raise last_err
+            parts = []
+            prompt_tokens = completion_tokens = None
+            total_cost = None
+            session_id = None
+            text = proc.stdout or ""
+            for line in text.splitlines():
+                line = line.strip()
+                if not line.startswith("{"):
+                    continue
+                try:
+                    ev = json.loads(line)
+                except Exception:
+                    continue
+                part = ev.get("part") or {}
+                if session_id is None and ev.get("sessionID"):
+                    session_id = ev["sessionID"]
+                if ev.get("type") == "text" and part.get("type") == "text" and part.get("text"):
+                    parts.append(part["text"])
+                if part.get("type") == "step-finish":
+                    toks = part.get("tokens") or {}
+                    if toks.get("input") is not None:
+                        prompt_tokens = (prompt_tokens or 0) + int(toks["input"])
+                    if toks.get("output") is not None:
+                        completion_tokens = (completion_tokens or 0) + int(toks["output"])
+                    if part.get("cost") is not None:
+                        total_cost = (total_cost or 0) + float(part["cost"])
+            content = "".join(parts).strip()
+            if not content:
+                last_err = ProviderError("INVALID_RESPONSE", f"opencode run produced no text (stderr: {redact_secrets((proc.stderr or '')[:300])})")
+                if attempt < max_retries:
+                    continue
+                raise last_err
+            total_tokens = None
+            if prompt_tokens is not None and completion_tokens is not None:
+                total_tokens = prompt_tokens + completion_tokens
+            usage = {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+                "cost_usd": total_cost,
+                "session_id": session_id,
+            }
+            return {
+                "content": content,
+                "provider_id": "OPENCODE_CLI",
+                "model_id": model_id,
+                "request_id": f"OPENCODE_{int(time.time()*1000)}",
+                "status": "LIVE",
+                "latency_ms": int((time.time() - t0) * 1000),
+                "usage": usage,
+                "usage_source": "PROVIDER_RETURNED" if prompt_tokens is not None else "PROVIDER_RETURNED_EMPTY",
+            }
+        raise last_err
+
+
 class ProviderManager:
     def __init__(self, db: DatabaseManager, vault: Optional[SecureCredentialVault] = None):
         self.db = db
@@ -322,6 +425,15 @@ class ProviderManager:
                 "models": ["mock-42"],
                 "cost_per_1k_tokens_usd": 0.0,
                 "supports_temperature": True,
+                "profile_path": "PROVIDERS/LLM/DEFAULT_LLM_PROFILE.md",
+            },
+            "OPENCODE_CLI": {
+                "provider_id": "OPENCODE_CLI",
+                "category": "LLM",
+                "requires_api_key": False,
+                "models": ["opencode/crouton-alpha-free", "opencode/glm-5.3-flash-free", "opencode/deepseek-v4.1-flash-free", "opencode/gpt-5-mini"],
+                "cost_per_1k_tokens_usd": 0.0,
+                "supports_temperature": False,
                 "profile_path": "PROVIDERS/LLM/DEFAULT_LLM_PROFILE.md",
             }
         }
@@ -397,6 +509,10 @@ class ProviderManager:
             raise ValueError(f"Model {model_id} is not registered for provider {provider_id}")
         if provider_id == "DETERMINISTIC_MOCK":
             result = DeterministicMockProvider().generate(model_id, prompt, temperature, timeout_sec)
+        elif provider_id == "OPENCODE_CLI":
+            import os as _os
+            adapter = OpenCodeCLIAdapter(workdir=_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+            result = adapter.generate(model_id, prompt, temperature, timeout_sec)
         elif provider_id == "OLLAMA_OPENAI_COMPATIBLE":
             adapter = OllamaOpenAICompatibleAdapter(spec.get("base_url", "http://localhost:11434/v1"))
             result = adapter.generate(model_id, prompt, temperature, timeout_sec)
