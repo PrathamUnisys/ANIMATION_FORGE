@@ -1,4 +1,2230 @@
 {
   "index_version": "1.0.0",
-  "assets": []
+  "assets": [
+    {
+      "asset_id": "AST_0001",
+      "display_name": "Detactive_Env.uproject",
+      "media_type": "project_file",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Detactive_Env.uproject",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 2163,
+        "mime_type": "ext/uproject"
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0002",
+      "display_name": "MyVfxProject.uproject",
+      "media_type": "project_file",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/MyVfxProject.uproject",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 291,
+        "mime_type": "ext/uproject"
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0003",
+      "display_name": "SamuraiProject.uproject",
+      "media_type": "project_file",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/SamuraiProject.uproject",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 2299,
+        "mime_type": "ext/uproject"
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0004",
+      "display_name": "StylizedProceduralEn.uproject",
+      "media_type": "project_file",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "StylizedProceduralEn/StylizedProceduralEn.uproject",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 2191,
+        "mime_type": "ext/uproject"
+      },
+      "project_id": "PROJECT_STYLIZEDPROCEDURALEN"
+    },
+    {
+      "asset_id": "AST_0005",
+      "display_name": "Stylized_FullVid.uproject",
+      "media_type": "project_file",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Stylized_FullVid/Stylized_FullVid.uproject",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 721,
+        "mime_type": "ext/uproject"
+      },
+      "project_id": "PROJECT_STYLIZEDFULLVID"
+    },
+    {
+      "asset_id": "AST_0006",
+      "display_name": "Stylized_env.uproject",
+      "media_type": "project_file",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Stylized_env/Stylized_env.uproject",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 527,
+        "mime_type": "ext/uproject"
+      },
+      "project_id": "PROJECT_STYLIZEDENV"
+    },
+    {
+      "asset_id": "AST_0007",
+      "display_name": "MedievalCityGenerator_v1.2 vfxMed.blend",
+      "media_type": "project_file",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Blender/MedievalCityGenerator_v1.2 vfxMed.blend",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 103863034,
+        "mime_type": "ext/blend"
+      }
+    },
+    {
+      "asset_id": "AST_0008",
+      "display_name": "MedivalCityGeneratorEdit.blend",
+      "media_type": "project_file",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Blender/MedivalCityGeneratorEdit.blend",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:project_file",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 374249838,
+        "mime_type": "ext/blend"
+      }
+    },
+    {
+      "asset_id": "AST_0009",
+      "display_name": "Base.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "CC to Blender/Base.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 9053824,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0010",
+      "display_name": "Maximo_model.casc",
+      "media_type": "animation",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Cascadeur/Maximo_model.casc",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:animation",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 3633756,
+        "mime_type": "ext/casc"
+      }
+    },
+    {
+      "asset_id": "AST_0011",
+      "display_name": "maximo_model_without_animation.casc",
+      "media_type": "animation",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Cascadeur/maximo_model_without_animation.casc",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:animation",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 3611324,
+        "mime_type": "ext/casc"
+      }
+    },
+    {
+      "asset_id": "AST_0012",
+      "display_name": "BigwideTree.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Tree/BigwideTree.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 593818,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0013",
+      "display_name": "MapleTreeMesh.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Tree/MapleTreeMesh.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 899757,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0014",
+      "display_name": "MapleTreeMesh_LOD1.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Tree/MapleTreeMesh_LOD1.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 742428,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0015",
+      "display_name": "MapleTreeMesh_LOD2.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Tree/MapleTreeMesh_LOD2.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 546953,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0016",
+      "display_name": "MapleTreeMesh_LOD3.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Tree/MapleTreeMesh_LOD3.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 377152,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0017",
+      "display_name": "MapleTreeMesh_LOD5.fbx",
+      "media_type": "model",
+      "group": "SHARED_LIBRARY",
+      "storage_root_id": "SHARED_LIBRARY_ROOT",
+      "relative_path": "Tree/MapleTreeMesh_LOD5.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 4602,
+        "mime_type": "ext/fbx"
+      }
+    },
+    {
+      "asset_id": "AST_0018",
+      "display_name": "AzielArts_Material.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "StylizedProceduralEn/AzielArts_Material.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 36770
+      },
+      "project_id": "PROJECT_STYLIZEDPROCEDURALEN"
+    },
+    {
+      "asset_id": "AST_0019",
+      "display_name": "metadata.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/chardet-3.0.4.dist-info/metadata.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 1375
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0020",
+      "display_name": "test_house_with_colors.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/networkx/drawing/tests/baseline/test_house_with_colors.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 21918
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0021",
+      "display_name": "test-44100Hz-2ch-32bit-float-be.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-2ch-32bit-float-be.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 3586
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0022",
+      "display_name": "test-44100Hz-2ch-32bit-float-le.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-2ch-32bit-float-le.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 3586
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0023",
+      "display_name": "test-44100Hz-be-1ch-4bytes.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-be-1ch-4bytes.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 17720
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0024",
+      "display_name": "test-44100Hz-le-1ch-4bytes-early-eof-no-data.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes-early-eof-no-data.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 72
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0025",
+      "display_name": "test-44100Hz-le-1ch-4bytes-early-eof.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes-early-eof.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 1024
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0026",
+      "display_name": "test-44100Hz-le-1ch-4bytes-incomplete-chunk.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes-incomplete-chunk.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 13
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0027",
+      "display_name": "test-44100Hz-le-1ch-4bytes.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 17720
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0028",
+      "display_name": "test-48000Hz-2ch-64bit-float-le-wavex.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-48000Hz-2ch-64bit-float-le-wavex.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 7792
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0029",
+      "display_name": "test-8000Hz-be-3ch-5S-24bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-be-3ch-5S-24bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 90
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0030",
+      "display_name": "test-8000Hz-le-1ch-10S-20bit-extra.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-1ch-10S-20bit-extra.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 74
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0031",
+      "display_name": "test-8000Hz-le-1ch-1byte-ulaw.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-1ch-1byte-ulaw.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 70
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0032",
+      "display_name": "test-8000Hz-le-2ch-1byteu.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-2ch-1byteu.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 1644
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0033",
+      "display_name": "test-8000Hz-le-3ch-5S-24bit-inconsistent.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-3ch-5S-24bit-inconsistent.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 90
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0034",
+      "display_name": "test-8000Hz-le-3ch-5S-24bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-3ch-5S-24bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 90
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0035",
+      "display_name": "test-8000Hz-le-3ch-5S-36bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-3ch-5S-36bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 120
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0036",
+      "display_name": "test-8000Hz-le-3ch-5S-45bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-3ch-5S-45bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 134
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0037",
+      "display_name": "test-8000Hz-le-3ch-5S-53bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-3ch-5S-53bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 150
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0038",
+      "display_name": "test-8000Hz-le-3ch-5S-64bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-3ch-5S-64bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 164
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0039",
+      "display_name": "test-8000Hz-le-4ch-9S-12bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-4ch-9S-12bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 116
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0040",
+      "display_name": "test-8000Hz-le-5ch-9S-5bit.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-8000Hz-le-5ch-9S-5bit.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 89
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0041",
+      "display_name": "dots.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/ndimage/tests/dots.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 2114
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0042",
+      "display_name": "studentized_range_mpmath_ref.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/scipy/stats/tests/data/studentized_range_mpmath_ref.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 30737
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0043",
+      "display_name": "test_region_and.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/sympy/plotting/tests/test_region_and.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 6864
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0044",
+      "display_name": "test_region_not.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/sympy/plotting/tests/test_region_not.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 7939
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0045",
+      "display_name": "test_region_or.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/sympy/plotting/tests/test_region_or.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 8809
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0046",
+      "display_name": "test_region_xor.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Intermediate/PipInstall/Lib/site-packages/sympy/plotting/tests/test_region_xor.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 10002
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0047",
+      "display_name": "ButtonIcon_40x.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Resources/ButtonIcon_40x.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 4160
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0048",
+      "display_name": "Icon128.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Resources/Icon128.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 5270
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0049",
+      "display_name": "iCloneConfig.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Content/RL_Common/LiveLink/Data/iCloneConfig.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 5213
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0050",
+      "display_name": "PhysicConstaint.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Content/RL_Common/Utility/Data/PhysicConstaint.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 9160
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0051",
+      "display_name": "Unreal4_IK_Rig.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Content/RL_Common/Utility/Data/Unreal4_IK_Rig.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 4032
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0052",
+      "display_name": "Unreal56_IK_Rig.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Content/RL_Common/Utility/Data/Unreal56_IK_Rig.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 5133
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0053",
+      "display_name": "Unreal5_IK_Rig.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Content/RL_Common/Utility/Data/Unreal5_IK_Rig.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 5055
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0054",
+      "display_name": "ButtonIcon_40x.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "Detactive_Env/Plugins/RLPlugin/Resources/RLLiveLink/ButtonIcon_40x.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 1715
+      },
+      "project_id": "PROJECT_DETACTIVEENV"
+    },
+    {
+      "asset_id": "AST_0055",
+      "display_name": "T_Flare01.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/Textures/T_Flare01.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 287325
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0056",
+      "display_name": "T_Voronoi01.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/Textures/T_Voronoi01.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 686962
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0057",
+      "display_name": "SM_ChamferCube.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Meshes/SM_ChamferCube.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 47404
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0058",
+      "display_name": "SM_Cylinder.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Meshes/SM_Cylinder.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 60220
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0059",
+      "display_name": "SM_QuarterCylinder.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Meshes/SM_QuarterCylinder.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 26268
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0060",
+      "display_name": "SM_SM_ChamferCube.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Meshes/SM_SM_ChamferCube.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 53180
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0061",
+      "display_name": "SM_Door.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Interactable/Door/Assets/Meshes/SM_Door.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 12092
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0062",
+      "display_name": "SM_DoorFrame_Corner.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Interactable/Door/Assets/Meshes/SM_DoorFrame_Corner.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 25276
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0063",
+      "display_name": "SM_DoorFrame_Strt.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Interactable/Door/Assets/Meshes/SM_DoorFrame_Strt.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 12748
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0064",
+      "display_name": "SM_CircularBand.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Interactable/JumpPad/Assets/Meshes/SM_CircularBand.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 13276
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0065",
+      "display_name": "SM_CircularGlow.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Interactable/JumpPad/Assets/Meshes/SM_CircularGlow.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 13996
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0066",
+      "display_name": "SM_TargetBaseMesh.fbx",
+      "media_type": "model",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "MyVfxProject/Content/LevelPrototyping/Interactable/Target/Assets/SM_TargetBaseMesh.fbx",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:model",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 210684
+      },
+      "project_id": "PROJECT_MYVFXPROJECT"
+    },
+    {
+      "asset_id": "AST_0067",
+      "display_name": "BroadcastDeviceProviderRegistry.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Config/BroadcastDeviceProviderRegistry.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 4564
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0068",
+      "display_name": "Ease In Out.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Config/EaseCurves/Ease In Out.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 299
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0069",
+      "display_name": "Ease In.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Config/EaseCurves/Ease In.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 297
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0070",
+      "display_name": "Ease Out.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Config/EaseCurves/Ease Out.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 296
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0071",
+      "display_name": "metadata.json",
+      "media_type": "document",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/chardet-3.0.4.dist-info/metadata.json",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:document",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 1375
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0072",
+      "display_name": "test_house_with_colors.png",
+      "media_type": "image",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/networkx/drawing/tests/baseline/test_house_with_colors.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 21918
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0073",
+      "display_name": "test-44100Hz-2ch-32bit-float-be.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-2ch-32bit-float-be.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 3586
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0074",
+      "display_name": "test-44100Hz-2ch-32bit-float-le.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-2ch-32bit-float-le.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 3586
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0075",
+      "display_name": "test-44100Hz-be-1ch-4bytes.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-be-1ch-4bytes.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 17720
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0076",
+      "display_name": "test-44100Hz-le-1ch-4bytes-early-eof-no-data.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes-early-eof-no-data.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 72
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0077",
+      "display_name": "test-44100Hz-le-1ch-4bytes-early-eof.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes-early-eof.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 1024
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0078",
+      "display_name": "test-44100Hz-le-1ch-4bytes-incomplete-chunk.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes-incomplete-chunk.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 13
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0079",
+      "display_name": "test-44100Hz-le-1ch-4bytes.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-44100Hz-le-1ch-4bytes.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 17720
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0080",
+      "display_name": "test-48000Hz-2ch-64bit-float-le-wavex.wav",
+      "media_type": "audio",
+      "group": "PROJECT_ASSET",
+      "storage_root_id": "PROJECTS_ROOT",
+      "relative_path": "SamuraiProject/Intermediate/PipInstall/Lib/site-packages/scipy/io/tests/data/test-48000Hz-2ch-64bit-float-le-wavex.wav",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:audio",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Local index 2026-11-09, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "HUMAN_CREATED"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 7792
+      },
+      "project_id": "PROJECT_SAMURAIPROJECT"
+    },
+    {
+      "asset_id": "AST_0081",
+      "display_name": "flux2-klein-concept_00001_.png",
+      "media_type": "image",
+      "group": "EXPORT",
+      "storage_root_id": "RENDER_OUTPUT_ROOT",
+      "relative_path": "Blender/flux2-klein-concept_00001_.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Generated 2026-11-09 Flux2-Klein, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "AI_GENERATED",
+        "tool_id": "COMFYUI",
+        "tool_version": "0.34.2",
+        "model_id": "flux-2-klein-4b-fp8"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 805540,
+        "mime_type": "ext/png"
+      }
+    },
+    {
+      "asset_id": "AST_0082",
+      "display_name": "flux2-klein-concept-warrior123_00001_.png",
+      "media_type": "image",
+      "group": "EXPORT",
+      "storage_root_id": "RENDER_OUTPUT_ROOT",
+      "relative_path": "Blender/flux2-klein-concept-warrior123_00001_.png",
+      "revision": 1,
+      "approval_status": "DRAFT",
+      "tags": [
+        "type:image",
+        "status:draft",
+        "licence:unknown"
+      ],
+      "licence": {
+        "status": "UNKNOWN",
+        "summary": "Generated 2026-11-09 Flux2-Klein seed 123, licence not assessed"
+      },
+      "provenance": {
+        "source_type": "AI_GENERATED",
+        "tool_id": "COMFYUI",
+        "tool_version": "0.34.2",
+        "model_id": "flux-2-klein-4b-fp8"
+      },
+      "created_at": "2026-11-09T00:00:00Z",
+      "technical_metadata": {
+        "byte_size": 797384
+      }
+    }
+  ]
 }

@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "soundFile": "D:\\Work\\ANIMATION_FORGE\\PIPELINE\\audio\\test_line.wav",
+    "duration": 2.35
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.28, "value": "X" },
+    { "start": 0.28, "end": 0.42, "value": "C" },
+    { "start": 0.42, "end": 0.63, "value": "E" },
+    { "start": 0.63, "end": 0.70, "value": "F" },
+    { "start": 0.70, "end": 0.77, "value": "C" },
+    { "start": 0.77, "end": 0.84, "value": "B" },
+    { "start": 0.84, "end": 0.92, "value": "A" },
+    { "start": 0.92, "end": 0.98, "value": "B" },
+    { "start": 0.98, "end": 1.11, "value": "C" },
+    { "start": 1.11, "end": 1.39, "value": "B" },
+    { "start": 1.39, "end": 1.47, "value": "A" },
+    { "start": 1.47, "end": 1.92, "value": "B" },
+    { "start": 1.92, "end": 2.35, "value": "X" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "duration": 2.35,
+  "words": [
+    "Hello,",
+    "I",
+    "am",
+    "testing",
+    "lip",
+    "sync"
+  ],
+  "phonemes": [],
+  "visemes": [],
+  "sample_rate": 24000,
+  "backend": "local-kokoro",
+  "voice": "af_heart"
+}

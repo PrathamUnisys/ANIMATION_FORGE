@@ -1,0 +1,20 @@
+vrm_shapekey,arkit52,ue_morph,notes
+Fcl_MTH_A,jawOpen,AA,aa true
+Fcl_MTH_I,jawOpen? (stretch),IH,ih true
+Fcl_MTH_U,jawOpen? (narrow),OU,ou true
+Fcl_MTH_E,jawOpen,width,EE,ee true
+Fcl_MTH_O,jawOpen,round,OH,oh true
+Fcl_EYE_Close,eyeBlinkLeft+Right,BLINK,blink true
+Fcl_EYE_Close_L,eyeBlinkLeft,BLINK_L,
+Fcl_EYE_Close_R,eyeBlinkRight,BLINK_R,
+Fcl_ALL_Joy,smile / mouthSmileLeft+Right,JOY,compound
+Fcl_ALL_Angry,browInnerUp + mouthFrown,ANGRY,compound
+Fcl_ALL_Sorrow,browInnerUp + mouthFrown,SORROW,compound
+Fcl_ALL_Surprised,browOuterUp + jawOpen,SURPRISED,compound
+Fcl_ALL_Fun,smile,SURPRISE? verify,
+Fcl_BRW_*,browDownLeft/Right,verify,
+Fcl_EYE_Joy*,eyeSquintLeft/Right,JOY_SQUINT,
+Fcl_EYE_Surprised,browOuterUp,SURPRISED,
+Fcl_HA_*,(hair phonemes),HIDE/keep VRM-native,no ARKit equivalent
+Fcl_MTH_Close, mouthClose,native,
+Fcl_MTH_Neutral,(none),neutral,keep native

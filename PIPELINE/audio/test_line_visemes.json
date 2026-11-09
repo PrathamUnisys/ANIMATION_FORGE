@@ -1,0 +1,150 @@
+{
+  "duration_s": 2.35,
+  "fps": 24,
+  "frames": 56,
+  "mapping": "rhubarb9->vrm5 (phoneme-based, not 1:1)",
+  "keyframes": [
+    {
+      "start": 0.0,
+      "end": 0.28,
+      "frame": 0,
+      "rhubarb": "X",
+      "vrm5": {},
+      "fcl_weights": {}
+    },
+    {
+      "start": 0.28,
+      "end": 0.42,
+      "frame": 7,
+      "rhubarb": "C",
+      "vrm5": {
+        "ih": 0.7,
+        "ee": 0.3
+      },
+      "fcl_weights": {
+        "Fcl_MTH_I": 0.7,
+        "Fcl_MTH_E": 0.3
+      }
+    },
+    {
+      "start": 0.42,
+      "end": 0.63,
+      "frame": 10,
+      "rhubarb": "E",
+      "vrm5": {
+        "ee": 0.8,
+        "ih": 0.2
+      },
+      "fcl_weights": {
+        "Fcl_MTH_E": 0.8,
+        "Fcl_MTH_I": 0.2
+      }
+    },
+    {
+      "start": 0.63,
+      "end": 0.7,
+      "frame": 15,
+      "rhubarb": "F",
+      "vrm5": {
+        "ou": 0.6,
+        "oh": 0.4
+      },
+      "fcl_weights": {
+        "Fcl_MTH_U": 0.6,
+        "Fcl_MTH_O": 0.4
+      }
+    },
+    {
+      "start": 0.7,
+      "end": 0.77,
+      "frame": 17,
+      "rhubarb": "C",
+      "vrm5": {
+        "ih": 0.7,
+        "ee": 0.3
+      },
+      "fcl_weights": {
+        "Fcl_MTH_I": 0.7,
+        "Fcl_MTH_E": 0.3
+      }
+    },
+    {
+      "start": 0.77,
+      "end": 0.84,
+      "frame": 18,
+      "rhubarb": "B",
+      "vrm5": {},
+      "fcl_weights": {}
+    },
+    {
+      "start": 0.84,
+      "end": 0.92,
+      "frame": 20,
+      "rhubarb": "A",
+      "vrm5": {
+        "aa": 1.0
+      },
+      "fcl_weights": {
+        "Fcl_MTH_A": 1.0
+      }
+    },
+    {
+      "start": 0.92,
+      "end": 0.98,
+      "frame": 22,
+      "rhubarb": "B",
+      "vrm5": {},
+      "fcl_weights": {}
+    },
+    {
+      "start": 0.98,
+      "end": 1.11,
+      "frame": 24,
+      "rhubarb": "C",
+      "vrm5": {
+        "ih": 0.7,
+        "ee": 0.3
+      },
+      "fcl_weights": {
+        "Fcl_MTH_I": 0.7,
+        "Fcl_MTH_E": 0.3
+      }
+    },
+    {
+      "start": 1.11,
+      "end": 1.39,
+      "frame": 27,
+      "rhubarb": "B",
+      "vrm5": {},
+      "fcl_weights": {}
+    },
+    {
+      "start": 1.39,
+      "end": 1.47,
+      "frame": 33,
+      "rhubarb": "A",
+      "vrm5": {
+        "aa": 1.0
+      },
+      "fcl_weights": {
+        "Fcl_MTH_A": 1.0
+      }
+    },
+    {
+      "start": 1.47,
+      "end": 1.92,
+      "frame": 35,
+      "rhubarb": "B",
+      "vrm5": {},
+      "fcl_weights": {}
+    },
+    {
+      "start": 1.92,
+      "end": 2.35,
+      "frame": 46,
+      "rhubarb": "X",
+      "vrm5": {},
+      "fcl_weights": {}
+    }
+  ]
+}

@@ -1,0 +1,439 @@
+{
+  "schema_version": "1.0.0",
+  "created": "2026-11-09",
+  "project": "ANIMATION_FORGE",
+  "purpose": "Machine-readable scorecard for PIPELINE/BAKEOFF.md. One row per track per shot. Source of truth for the bake-off verdict.",
+  "machine": {
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "vram_mib": 8188,
+    "driver": "621.14",
+    "cpu": "AMD Ryzen 7 7435HS 8C/16T",
+    "ram_gb": 11.7,
+    "os": "Windows 11 Home 10.0.26200",
+    "disk_free_c_gb": 24.7,
+    "disk_free_d_gb": 104.9
+  },
+  "shots": [
+    {
+      "id": "S1",
+      "title": "Performance",
+      "description": "Character delivers one line, turns head toward camera, one deliberate hand gesture. Two angles: frontal medium, then same character 30 degrees off-axis.",
+      "fps": 24,
+      "frames": 120,
+      "duration_s": 5.0,
+      "audio": "shared_frozen_wav",
+      "tests": [
+        "character consistency",
+        "motion believability",
+        "lip-sync",
+        "rig quality"
+      ],
+      "angles": [
+        "A_frontal_medium",
+        "B_offaxis_30deg"
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Architecture",
+      "description": "Camera pushes forward through an interior corridor toward a lit doorway. No character. Straight walls, defined perspective lines.",
+      "fps": 24,
+      "frames": 120,
+      "duration_s": 5.0,
+      "audio": null,
+      "tests": [
+        "geometry rigidity under camera move",
+        "projection correctness"
+      ],
+      "angles": [
+        "single_push"
+      ]
+    }
+  ],
+  "tracks": [
+    {
+      "id": "T1A",
+      "label": "VRM + Blender",
+      "method": "vrm_rig",
+      "character_source": "C:/Users/sb291/OneDrive/Documents/3D/Anime Character/RedHairGirl.vrm",
+      "engine": "Blender 5.2.1",
+      "renderer": "EEVEE",
+      "status": "not_started"
+    },
+    {
+      "id": "T1B",
+      "label": "MetaHuman + Unreal",
+      "method": "metahuman_rig",
+      "character_source": "UE5.8 MetaHuman Creator (optimised)",
+      "engine": "Unreal 5.8.4",
+      "renderer": "MovieRenderPipeline",
+      "status": "not_started"
+    },
+    {
+      "id": "T2",
+      "label": "2D skeletal (Moho)",
+      "method": "2d_skeletal",
+      "character_source": "AI layered art -> Rigby2D -> Moho 14.4",
+      "engine": "Moho 14.4",
+      "renderer": "native",
+      "status": "not_started"
+    },
+    {
+      "id": "T3",
+      "label": "AI video baseline",
+      "method": "diffusion_video",
+      "character_source": "Wan 2.2 TI2V-5B I2V (weights not installed)",
+      "engine": "ComfyUI / WanGP",
+      "renderer": "diffusion",
+      "status": "deferred"
+    },
+    {
+      "id": "TE",
+      "label": "Engine comparison (identical shot)",
+      "method": "engine_compare",
+      "character_source": "winner of S1",
+      "engine": "Blender vs Unreal",
+      "renderer": "EEVEE / Cycles / MRQ",
+      "status": "not_started"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "consistency",
+      "label": "Character consistency across angles",
+      "weight": 30
+    },
+    {
+      "id": "motion",
+      "label": "Motion believability",
+      "weight": 20
+    },
+    {
+      "id": "look",
+      "label": "Cinematic look",
+      "weight": 15
+    },
+    {
+      "id": "lipsync",
+      "label": "Lip-sync accuracy",
+      "weight": 10
+    },
+    {
+      "id": "fidelity",
+      "label": "Prop / texture fidelity",
+      "weight": 10
+    },
+    {
+      "id": "cost",
+      "label": "Cost (time, RAM, VRAM, re-roll rate)",
+      "weight": 15
+    }
+  ],
+  "engine_criteria": [
+    {
+      "id": "quality",
+      "label": "Image quality",
+      "weight": 30
+    },
+    {
+      "id": "wallclock",
+      "label": "Wall clock per frame",
+      "weight": 25
+    },
+    {
+      "id": "peak_memory",
+      "label": "Peak RAM / VRAM",
+      "weight": 20
+    },
+    {
+      "id": "iteration",
+      "label": "Iteration time (edit -> result)",
+      "weight": 15
+    },
+    {
+      "id": "automation",
+      "label": "Automation friction",
+      "weight": 10
+    }
+  ],
+  "row_schema": {
+    "shot": "S1 | S2",
+    "track": "T1A | T1B | T2 | T3 | TE",
+    "scores": "object: criterion_id -> integer 1..5",
+    "total": "number 0..100, weighted: sum(score/5*weight)",
+    "kept_takes": "integer",
+    "total_takes": "integer",
+    "wall_clock_min": "number",
+    "peak_ram_mb": "integer",
+    "peak_vram_mb": "integer",
+    "artifacts": "array of relative paths",
+    "notes": "string",
+    "measured_at": "ISO-8601 date"
+  },
+  "rows": [
+    {
+      "shot": "S1",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": 0,
+      "total_takes": 0,
+      "wall_clock_min": 8,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "artifacts": [
+        "PIPELINE/BAKEOFF/T13_redhairgirl.json",
+        "PIPELINE/BAKEOFF/T13_redhairgirl.blend",
+        "PIPELINE/BAKEOFF/T15_frames/"
+      ],
+      "notes": "T13: RedHairGirl.vrm imported headless in Blender 5.2.1 via bl_ext.blender_org.vrm 4.10.4. 225 bones (J_Bip_* humanoid + 32 HairJ spring). Expressions Fcl_MTH_A/I/U/E/O present (=aa/ih/ou/ee/oh), blink Fcl_EYE_Close. T15: mouth driven from Kokoro test_line.wav via Rhubarb cues photeme-mapped to Fcl_MTH_* shape keys, 56 frames @24fps for 2.35s, 4 proof frames rendered EEVEE 640x640. Track NOT yet scored in rubric (needs Shot 1 turn+gesture clip).",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1B",
+      "scores": {},
+      "total": null,
+      "kept_takes": 0,
+      "total_takes": 0,
+      "wall_clock_min": 0,
+      "peak_ram_mb": 0,
+      "peak_vram_mb": 0,
+      "artifacts": [
+        "PIPELINE/BAKEOFF/T14_metahuman_measurement.md"
+      ],
+      "notes": "T14 environment verified only (UE 5.8.4 + MetaHuman suite + plugins, see measurement MD). No MH asset created yet; no render. Track NOT ready for scoring.",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 8.0,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 0.0,
+        "width": 640,
+        "height": 640,
+        "fps": "25/1",
+        "codec": "png"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T15_frames\\T15_f0007.png"
+      ],
+      "notes": "EEVEE 640x640 mouth-drive proof frame; 56-frame timeline; blink + micro-motion in timeline (not in these 4 stills)",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S2",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 5.0,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 0.0,
+        "width": 640,
+        "height": 480,
+        "fps": "25/1",
+        "codec": "png"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T18_frames\\T18_parallax_f1.png"
+      ],
+      "notes": "UV_PROJECT mechanics proof, flat plane (slide not depth parallax); MoGe GLB 3.1M verts unusable; fSpy solve is human GUI step",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S2",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 1.0,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 0.0,
+        "width": 2192,
+        "height": 1440,
+        "fps": "25/1",
+        "codec": "png"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\alley_seedvr2_upscaled.png"
+      ],
+      "notes": "SeedVR2 3B int8: 545x360 -> 2192x1440 (4x), ~20s. BiRefNet RGBA cutout not run this session (graph nodes validated, model present).",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S2",
+      "track": "T2",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 1.0,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 0.0,
+        "width": 545,
+        "height": 360,
+        "fps": "25/1",
+        "codec": "png"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\alley_birefnet_cutout.png"
+      ],
+      "notes": "BiRefNet RGBA cutout 545x360, alpha 0-255, 4.5% transp 88.9% opaque. T19 acceptance complete (upscale + cutout).",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 3.3,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 5.0,
+        "width": 640,
+        "height": 480,
+        "fps": "24/1",
+        "codec": "h264"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T20_shot1_angleA.mp4"
+      ],
+      "notes": "VRM Shot1 1a: 120f 24fps 640x480 5.0s. Head turn 40deg f40-70 + arm gesture f80-110 + mouth from Kokoro audio. Notes: character identity PERFECT across angles (rig, not regen). Cost: ~3.3min render both angles. tbd human rescoring.",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S2",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 0.5,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 5.0,
+        "width": 640,
+        "height": 480,
+        "fps": "24/1",
+        "codec": "h264"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T21_shot2_projection.mp4"
+      ],
+      "notes": "Projection push: 120f 640x480 5.0s. UV_PROJECT on upscaled alley plate, camera dolly Y -4.0 -> -1.5. Geometry rigid (projection, no bend). AI-video baseline deferred (no WAN weights). Flat plane, not true depth parallax.",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 1.6,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 5.0,
+        "width": 640,
+        "height": 480,
+        "fps": "24/1",
+        "codec": "h264"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T22_composite.mp4"
+      ],
+      "notes": "COMPOSITE: VRM character on upscaled alley plate, same scene. 120f 640x480 5.0s. Mouth+turn+gesture on plate. Dark plate edges (EEVEE, no HDRI).",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 1.8,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 5.0,
+        "width": 640,
+        "height": 480,
+        "fps": "24/1",
+        "codec": "h264"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T23_v2.mp4"
+      ],
+      "notes": "LIT composite: 3-point lighting + world, idle/gesture keyframes. Lighting FIXED (alley warm, face lit). KNOWN ISSUE: Blender 5 slot/eval mismatch - f48 evaluated idle in view_layer but renders T-pose; gesture f110 renders correctly. Idle remains open.",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1A",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 2.0,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 5.0,
+        "width": 640,
+        "height": 480,
+        "fps": "24/1",
+        "codec": "h264"
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T26_frame2.mp4"
+      ],
+      "notes": "FINAL lit composite with idle: arms hang naturally (frame-2 keys - frame-1 keys dropped headless, root cause found). Mouth+turn+gesture on lit alley plate. Lighting + idle + composite all proven.",
+      "measured_at": "2026-11-09"
+    },
+    {
+      "shot": "S1",
+      "track": "T1B",
+      "scores": {},
+      "total": null,
+      "kept_takes": null,
+      "total_takes": null,
+      "wall_clock_min": 0.0,
+      "peak_ram_mb": null,
+      "peak_vram_mb": null,
+      "metrics": {
+        "duration": 0.0,
+        "width": null,
+        "height": null,
+        "fps": null,
+        "codec": null
+      },
+      "artifacts": [
+        "PIPELINE\\BAKEOFF\\T14_metahuman_attempt.md"
+      ],
+      "notes": "T14 headless probe: 311 MH classes, PerformanceFactory exists, Creator is GUI-bound (no Python API). Audio staged. Asset creation = human 5-min step per T14_metahuman_attempt.md.",
+      "measured_at": "2026-11-09"
+    }
+  ]
+}

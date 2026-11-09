@@ -1,10 +1,13 @@
 ---
 prompt_id: TOOL_COMFYUI
-version: 1.0.0
+version: 1.1.0
 modified_date: 2026-11-09
-description: Operational guide for locating, connecting, running and debugging ComfyUI workflows in Animation Forge
+description: Operational guide for ComfyUI workflows in Animation Forge (verified 2026-11-09)
 dependencies: ["TOOLS_INDEX", "SCHEMAS/TOOL_PROFILE.schema.json"]
 change_history:
+  - version: 1.1.0
+    date: 2026-11-09
+    summary: Verified 0.34.2, 8 GB VRAM/12 GB RAM, KJNodes+GGUF runtime, Flux2-Klein Blender-ready run, tqdm/Manager workarounds
   - version: 1.0.0
     date: 2026-11-09
     summary: Add ComfyUI operational manual with explicit connection and execution verification boundaries
@@ -13,62 +16,76 @@ change_history:
 
 ## Identity and purpose
 
-ComfyUI is a node-based interface and local server for model workflows such as image generation, image transformation and supported video/audio pipelines.
+ComfyUI is a node-based interface and local server for image/video generation, 3D-from-image (Trellis2), and mesh/texture processing.
 
 - **Tool ID:** `COMFYUI`
-- **Primary task tags:** `image_generation`, `image_to_image`, `character_consistency`, `background_generation`, `storyboard_images`, `video_generation`
 - **Official repository:** https://github.com/Comfy-Org/ComfyUI
-- **Server API contract:** https://github.com/Comfy-Org/ComfyUI/blob/master/openapi.yaml
-- **Common local UI endpoint:** `http://127.0.0.1:8188` (documented convention, not proof it is running)
-- **Local status in this repository:** `NOT_VERIFIED`
+- **Local status:** `INSTALLED` — `RUNTIME_VERIFIED` 2026-11-09 (Flux2-Klein concept produced)
+- **Server API:** `http://127.0.0.1:8188` (`/system_stats`, `/object_info`, `/prompt`, `/history/<id>`)
 
-## Installation and location
+## Installation and location (verified)
 
-Use the official project installation instructions and choose the environment deliberately. Record the actual ComfyUI root, Python environment, launch script, model directories, custom-node directories and version in local configuration. Do not assume the common `ComfyUI_windows_portable` folder exists.
+- Root: `D:\Downloads\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable\ComfyUI\`
+- Version: **0.34.2** (`comfyui_version.py`), frontend 1.49.6, python_embeded 3.13.9, torch 2.9.1+cu130
+- custom_nodes (11): ComfyUI-HY-Motion1, Manager, Qwen-TTS, Trellis2, essentials×2, one-node-flux-2-klein, seedvr2, **ComfyUI-KJNodes** (new), **ComfyUI-GGUF** (new)
+- Models (~40 GB): checkpoints dreamshaper_8 1.99 GiB, sd_xl_base 6.46 GiB; diffusion flux-2-klein-4b-fp8 3.79 GB, trellis_2_int8 4.89 GB; text_encoders qwen_3_4b 7.49 GB; clip_vision g/dino ~6.1 GB; vae ~3.2 GB; SEEDVR2 3.63 GB
+- custom_nodes backup: `custom_nodes.bak-20261109` (9 dirs) before edits
 
 ## Connection and configuration
 
-ComfyUI exposes HTTP and WebSocket interfaces. The exact endpoint contract should be discovered from the OpenAPI specification shipped with the installed version, rather than copied permanently from an old adapter.
-
-The commonly used workflow is:
-1. Check a live endpoint and capture version/system information.
-2. Query live node definitions and model availability rather than relying on a hardcoded node list.
-3. Submit a workflow using the installed server's documented prompt/job endpoint.
-4. Track progress and completion using the server's WebSocket and/or job/history endpoints.
-5. Retrieve the actual output file(s), then verify file type, dimensions/duration and hashes.
-6. Record workflow JSON, model/node versions, prompt, seed and output references.
-
-A basic endpoint check after manually starting ComfyUI:
-
 ```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:8188/system_stats" -Method Get
+$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'; $env:TQDM_DISABLE='1'
+Start-Process -FilePath '.\python_embeded\python.exe' `
+  -ArgumentList '-s ComfyUI\main.py --windows-standalone-build --fast fp16_accumulation --lowvram --async-offload --port 8188 --disable-auto-launch' `
+  -WorkingDirectory 'D:\Downloads\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable'
+# NOTE: launch WITH a visible window (not -NoNewWindow) so tqdm works; -NoNewWindow crashes sampler (OSError 22) — tried 3×.
 ```
 
-The endpoint and route names can evolve. Use the installed version's OpenAPI contract as the authority; do not assume the example endpoint exists in every build.
+- **Hardware gate (verified via nvidia-smi):** RTX 4060 Laptop 8,188 MiB VRAM, 12,554 MB RAM. Default launch uses LOW_VRAM + async offload (2 streams, pinned memory 4,789 MB). Never use plain `--highvram` on this laptop.
+- System stats: `Invoke-RestMethod http://127.0.0.1:8188/system_stats` → `ram_free`, `vram_total/free` (idle 769 MiB VRAM, gen ~5.2 GB).
+- Node check: `/object_info` → 1,271 nodes after KJNodes+GGUF (was 9 custom packs).
 
-## How to use
+## How to use — Flux2-Klein Blender-ready concept (verified)
 
-1. Confirm the server is reachable and record its actual installed version.
-2. Confirm workflow nodes, checkpoints, VAEs, LoRAs, custom nodes and model licences.
-3. Start with a small low-resolution test and a fixed seed.
-4. Inspect the output and only then increase resolution, batch size or frame count.
-5. Save the workflow JSON next to the generated output and register the real file location and hash in the asset library.
+1. Ensure models in place (`flux-2-klein-4b-fp8`, `qwen_3_4b`, `flux2-vae`).
+2. Use `custom_nodes\one-node-flux-2-klein\workflows\t2i_workflow.json` (API format). Adapt filenames:
+   - `FK:155 CLIPLoader → qwen_3_4b.safetensors, type=flux2`
+   - `FK:165 UNETLoader → flux-2-klein-4b-fp8.safetensors`
+   - `FK:166 CLIPTextEncode → prompt, FK:170 EmptyFlux2LatentImage 1024×1024 batch 1, FK:171 KSampler steps 4 cfg 1 er_sde/simple seed {42}, FK:86 SaveImage prefix blender-ready/flux2-klein-concept`
+3. Submit:
+   ```powershell
+   Invoke-RestMethod -Uri 'http://127.0.0.1:8188/prompt' -Method Post -ContentType 'application/json' -Body (ConvertTo-Json @{prompt=$wf} -Depth 8)
+   ```
+4. Poll: `history/<prompt_id>` until `status_str=success`, then read `outputs.FK:86.images[0].filename`; copy from `output\blender-ready\` to `D:\Exports\Blender\`.
+5. Verified output: `flux2-klein-concept_00001_.png` 805 KB, 1024², medieval warrior, isolated white bg, Blender-ready.
+
+## Keep in mind (hard-won lessons)
+
+- **Current custom_nodes state (2026-11-09):** `ComfyUI-Manager.disabled` (renamed from `ComfyUI-Manager`) to avoid the stderr hijack tqdm crash. Flux workflow runs with Manager disabled. Re-enable only when upstream fixes tqdm/logger.
+- **8 GB VRAM ≠ 4 GB.** Earlier WMI read was wrong. Budget: Flux+Qwen = 11 GB staged → sequential offload + GGUF preferred. RAM free was 2.78 GB at idle — close Chrome/VS Code during heavy runs.
+- **1024px batch 1 is the safe ceiling** for Flux/Trellis on this laptop. Larger/batch >1 needs `--lowvram` + patience.
+- **Models stay on D:** (40 GB). Do not fill C: (30 GB free).
+- **Manager hijack bug:** `ComfyUI-Manager\prestartup_script.py` wraps stderr and crashes tqdm `\r` → `OSError [Errno 22] Invalid argument` in KSampler. Fix: rename `ComfyUI-Manager` → `ComfyUI-Manager.disabled` for Flux runs, set `TQDM_DISABLE=1`, and launch **with a window**.
+- **Unicode crash:** Qwen-TTS ❌✅/emoji under cp1252 → `UnicodeEncodeError`. Fix: `PYTHONIOENCODING=utf-8 PYTHONUTF8=1`.
+- **Missing triton/trimesh:** `PatchTritonVAE` (KJNodes) + `ComfyUI-Trellis2` (`trimesh`) fail import — non-critical for Flux (Trellis2 nodes will error until `trimesh` installed, keep separate trial).
+- **No server auto-launch** (`--disable-auto-launch`) + manual `/system_stats` check every time.
 
 ## Debugging
 
-| Symptom | Diagnostic | Likely action |
+| Symptom | Diagnostic | Fix |
 |---|---|---|
-| Connection refused | Check process, endpoint and port | Start ComfyUI or correct configured host/port. |
-| Missing node type | Query live node information and server logs | Install/update the compatible custom node, then restart. |
-| Missing checkpoint/model | Inspect model search paths and filenames | Place the model in the configured directory and refresh/restart as required. |
-| Out of VRAM | Inspect GPU memory, resolution, batch and model precision | Reduce workload or choose a compatible model/workflow. |
-| Prompt stays queued | Inspect job/history state and console logs | Check worker state, node execution error and dependencies. |
-| Output not found | Inspect completed-job output metadata | Retrieve the real output path/file and validate it before indexing. |
+| `Connection refused :8188` | Port closed (expected idle state) | Start with resource-safe command above (visible window) |
+| `OSError [Errno 22]` in KSampler | tqdm + logger/Manager | window launch, Manager.disabled, TQDM_DISABLE + PYTHONUTF8 |
+| `ModuleNotFoundError: trimesh` (Trellis2) | node import fail | install `trimesh` into python_embeded or disable node (Flux unaffected) |
+| OOM (VRAM/RAM) | `nvidia-smi` + `system_stats` ram_free <2 GB | `--lowvram --async-offload`, 1024px batch 1, close apps, GGUF |
+| Workflow missing model | `/object_info` + `models\` listing | use exact filename (e.g. `flux-2-klein-4b-fp8.safetensors`), Gen via GGUF loader if fp8 ooms |
 
-## Known limitations
+## Verification history
 
-The current Animation Forge `ComfyUIAdapter` validates against a hardcoded node/model list and records caller-supplied output bytes. It does not currently submit a workflow to a live ComfyUI server and retrieve a generated result. Do not label a saved byte payload as ComfyUI generation without actual dispatch evidence.
+| Date | Machine / OS | Version | Test | Result |
+|---|---|---|---|---|
+| 2026-11-09 | sb291 / Win11, 8 GB VRAM, 12 GB RAM | ComfyUI 0.34.2 | `/system_stats` + `/object_info` 1,271 nodes (KJNodes + GGUF loaded) | RUNTIME_VERIFIED ✓ |
+| 2026-11-09 | sb291 / Win11 | same | Flux2-Klein 1024² batch 1 seed 42, LOW_VRAM async offload → `flux2-klein-concept_00001_.png` 805 KB | LOCAL_TESTED ✓ |
 
-## Verification record
-
-No current machine endpoint, server version, model inventory or successful generation is recorded by this documentation change.
+## Removal / rollback
+Kill python (free 8188), delete `ComfyUI-KJNodes` / `ComfyUI-GGUF` or restore `custom_nodes.bak-20261109`; re-enable Manager by renaming `.disabled` → `ComfyUI-Manager`. Outputs stay in `output\blender-ready\`.

@@ -1,0 +1,24 @@
+vrm_bone,ue_manny_bone,note
+J_Bip_C_Hips,root/pelvis,retarget not rename
+J_Bip_C_Spine,spine_01,retarget
+J_Bip_C_Chest,spine_03,retarget
+J_Bip_C_UpperChest,upperarm_l? chest verify in UE,verify chain
+J_Bip_C_Neck,neck_01,retarget
+J_Bip_C_Head,head,retarget
+J_Bip_L_UpperLeg,thigh_l,verify L/R swap
+J_Bip_L_LowerLeg,calf_l,retarget
+J_Bip_L_Foot,foot_l,retarget
+J_Bip_L_ToeBase,ball_l,retarget
+J_Bip_L_UpperArm,upperarm_l,retarget
+J_Bip_L_LowerArm,lowerarm_l,retarget
+J_Bip_L_Hand,hand_l,retarget
+J_Bip_R_UpperLeg,thigh_r,verify L/R swap
+J_Bip_R_LowerLeg,calf_r,retarget
+J_Bip_R_Foot,foot_r,retarget
+J_Bip_R_ToeBase,ball_r,retarget
+J_Bip_R_UpperArm,upperarm_r,retarget
+J_Bip_R_LowerArm,lowerarm_r,retarget
+J_Bip_R_Hand,hand_r,retarget
+J_Adj_L_FaceEye,(none — facial bone),drop or keep as morph-only
+J_Adj_R_FaceEye,(none — facial bone),drop or keep as morph-only
+transferable_HairJoint + .001-.031,(spring bones),UE Physics Asset / drop

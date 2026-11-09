@@ -1,6 +1,6 @@
 ---
 prompt_id: DOCS_INSTRUCTION_REPOSITORY_AUDIT
-version: 1.1.0
+version: 1.1.1
 modified_date: 2026-11-09
 description: Evidence-based inventory, consistency findings, and validation results for the instruction repository
 dependencies: ["CORE_SYSTEM_CONSTITUTION", "DOCS_CAPABILITY_REGISTRY"]
@@ -11,6 +11,9 @@ change_history:
   - version: 1.1.0
     date: 2026-11-09
     summary: Extend the governed instruction inventory for CR_003 genre, channel-style, tool and library architecture
+  - version: 1.1.1
+    date: 2026-11-09
+    summary: Complete the tool-manual inventory so every governed manual is listed
 ---
 # Instruction Repository Audit
 
@@ -396,9 +399,26 @@ The following files extend the governed corpus. The genre and channel registries
 ### Tool manuals
 - `TOOLS/README.md`
 - `TOOLS/TEMPLATES/TOOL_MANUAL_TEMPLATE.md`
+- `TOOLS/ACCURIG/TOOL.md`
 - `TOOLS/BLENDER/TOOL.md`
-- `TOOLS/UNREAL_ENGINE/TOOL.md`
+- `TOOLS/CASCADEUR/TOOL.md`
+- `TOOLS/CHARACTER_CREATOR/TOOL.md`
 - `TOOLS/COMFYUI/TOOL.md`
+- `TOOLS/COMFYUI_GGUF/TOOL.md`
+- `TOOLS/COMFYUI_KJNODES/TOOL.md`
+- `TOOLS/DAVINCI_RESOLVE/TOOL.md`
+- `TOOLS/DAZ_STUDIO/TOOL.md`
+- `TOOLS/FACEFORM_WRAP/TOOL.md`
+- `TOOLS/FREEMOCAP/TOOL.md`
+- `TOOLS/GAEA/TOOL.md`
+- `TOOLS/KOKORO_TTS/TOOL.md`
+- `TOOLS/MARVELOUS_DESIGNER/TOOL.md`
+- `TOOLS/MOHO/TOOL.md`
+- `TOOLS/QUICKSEL_BRIDGE/TOOL.md`
+- `TOOLS/RHUBARB_LIP_SYNC/TOOL.md`
+- `TOOLS/RIGBY2D/TOOL.md`
+- `TOOLS/UNREAL_ENGINE/TOOL.md`
+- `TOOLS/ZBRUSH/TOOL.md`
 
 ### Asset library
 - `LIBRARY/README.md`

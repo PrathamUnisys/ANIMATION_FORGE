@@ -10,7 +10,9 @@ Animation Forge combines a human-led production workflow, specialised AI-agent i
 
 ## Start here: instructions for AI coding agents
 
-This README is the repository map. Do not load the entire repository into context by default. Read the small set of governing documents first, then follow the task-specific route.
+**Fast context:** read **`AGENTS.md`** first. It is the maintained AI context map (current state, reality matrix, known failures, update rule). Do not load the entire repository into context by default.
+
+This README is the repository map. Read the small set of governing documents first, then follow the task-specific route.
 
 ### Recommended reading order
 

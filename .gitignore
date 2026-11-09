@@ -16,3 +16,34 @@ src-tauri/binaries/
 # Local machine-specific media-library storage roots
 LIBRARY/STORAGE_ROOTS.json
 .venv-kokoro-test/
+
+# Pipeline V2 binary artifacts (frames, renders, .blend, GLB — ~1 GB, regenerable)
+PIPELINE/BAKEOFF/**/*.png
+PIPELINE/BAKEOFF/**/*.mp4
+PIPELINE/BAKEOFF/**/*.blend
+PIPELINE/BAKEOFF/**/*.blend1
+PIPELINE/BAKEOFF/**/*.glb
+PIPELINE/BAKEOFF/**/*.jpg
+PIPELINE/BAKEOFF/*.png
+PIPELINE/BAKEOFF/*.mp4
+PIPELINE/BAKEOFF/*.blend
+PIPELINE/BAKEOFF/*.blend1
+PIPELINE/BAKEOFF/*.glb
+PIPELINE/BAKEOFF/*.jpg
+PIPELINE/VRM_RIG_POC/outputs/
+PIPELINE/audio/*.wav
+PIPELINE/shots/
+# Keep: PIPELINE/*.md, scorecard.json, audio contract JSON, scripts/, .py
+
+# API keys / secrets
+.env
+*.env
+.env.local
+
+# Editor / OS / temp junk
+.vscode/
+.idea/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

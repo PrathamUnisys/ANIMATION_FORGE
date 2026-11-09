@@ -1,13 +1,16 @@
 ---
 prompt_id: DOCS_SCREENPLAY_CONTEXT_ASSEMBLY
-version: 1.0.0
+version: 1.0.1
 modified_date: 2026-11-09
 description: Runtime contract for assembling modular genre, channel-style, project and screenplay instructions
-dependencies: ["GENRES_INDEX", "STYLES_INDEX", "AGENT_SCREENWRITER", "CORE_RULE_HIERARCHY"]
+dependencies: ["GENRES_INDEX", "STYLES_INDEX", "CORE_RULE_HIERARCHY"]
 change_history:
   - version: 1.0.0
     date: 2026-11-09
     summary: Specify deterministic profile selection and provenance for screenplay generation
+  - version: 1.0.1
+    date: 2026-11-09
+    summary: Remove AGENT_SCREENWRITER from dependencies to break the agent/contract dependency cycle
 ---
 # Screenplay Context Assembly Contract
 

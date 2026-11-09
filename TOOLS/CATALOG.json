@@ -1,5 +1,5 @@
 {
-  "catalog_version": "1.1.0",
+  "catalog_version": "1.2.0",
   "task_groups": [
     {
       "task_id": "SCREENPLAY_DEVELOPMENT",
@@ -25,7 +25,9 @@
         "concept_art"
       ],
       "candidate_tool_ids": [
-        "COMFYUI"
+        "COMFYUI",
+        "COMFYUI_KJNODES",
+        "COMFYUI_GGUF"
       ],
       "candidate_provider_ids": [
         "COMFYUI_LOCAL_GRAPH"
@@ -51,7 +53,8 @@
         "ZBRUSH",
         "MARVELOUS_DESIGNER",
         "FACEFORM_WRAP",
-        "DAZ_STUDIO"
+        "DAZ_STUDIO",
+        "COMFYUI_KJNODES"
       ],
       "candidate_provider_ids": [
         "COMFYUI_LOCAL_GRAPH"
@@ -96,7 +99,7 @@
       ]
     },
     {
-      "task_id": "3D_MODELING_RIGGING",
+      "task_id": "MODELING_RIGGING",
       "display_name": "3D modeling and rigging",
       "tags": [
         "3d_modeling",
@@ -129,7 +132,8 @@
         "RIGBY2D",
         "MOHO",
         "FREEMOCAP",
-        "DAZ_STUDIO"
+        "DAZ_STUDIO",
+        "RHUBARB_LIP_SYNC"
       ],
       "candidate_provider_ids": []
     },
@@ -171,7 +175,10 @@
         "voice_generation",
         "audio_synthesis"
       ],
-      "candidate_tool_ids": [],
+      "candidate_tool_ids": [
+        "RHUBARB_LIP_SYNC",
+        "KOKORO_TTS"
+      ],
       "candidate_provider_ids": [
         "ELEVENLABS_TTS",
         "LOCAL_KOKORO_TTS"
@@ -223,14 +230,20 @@
       "integration_status": "SIMULATION_ONLY",
       "connection_type": "LOCAL_HTTP_WEBSOCKET",
       "default_endpoint_reference": "http://127.0.0.1:8188",
-      "verified_version": null,
+      "verified_version": "0.34.2",
       "last_verified_at": "2026-11-09",
       "evidence": [
         {
           "checked_at": "2026-11-09",
           "machine_id": null,
-          "method": "PowerShell Test-Path/FileVersion",
-          "result": "Portable at D:/Downloads/ComfyUI_windows_portable_nvidia/ComfyUI_windows_portable/run_nvidia_gpu.bat (offline)"
+          "method": "Invoke-RestMethod /system_stats + /object_info",
+          "result": "ComfyUI 0.34.2, frontend 1.49.6, RAM free 2.78GB, 1271 nodes, KJNodes+GGUF loaded"
+        },
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "Flux2-Klein 1024x1024 batch 1 lowvram async offload via /prompt",
+          "result": "flux2-klein-concept_00001_.png 805KB, VRAM 5179MiB used"
         }
       ],
       "limitations": [
@@ -250,7 +263,7 @@
         "CHARACTER_ASSETS",
         "ENVIRONMENT_ASSETS",
         "STORYBOARD_PREVIS",
-        "3D_MODELING_RIGGING",
+        "MODELING_RIGGING",
         "ANIMATION",
         "RENDERING",
         "EDITING_DELIVERY"
@@ -268,14 +281,14 @@
       "integration_status": "SIMULATION_ONLY",
       "connection_type": "LOCAL_PROCESS",
       "default_endpoint_reference": null,
-      "verified_version": "5.2",
+      "verified_version": "5.2.1",
       "last_verified_at": "2026-11-09",
       "evidence": [
         {
           "checked_at": "2026-11-09",
           "machine_id": null,
-          "method": "PowerShell Test-Path/FileVersion",
-          "result": "FileVersion D:/Program Files/BlenderFoudation/blender.exe = 5.2; datafolders 5.0,5.2"
+          "method": "blender --background --python-expr boolean + extensions install",
+          "result": "Blender 5.2.1 LTS (2026-08-25), BOOLEAN OK Bool Cube, + bool_tool 2.1.0, mio3_uv 2.2.0, texel_density_checker 2026.1.1 INSTALLED"
         }
       ],
       "limitations": [
@@ -295,7 +308,7 @@
         "CHARACTER_ASSETS",
         "ENVIRONMENT_ASSETS",
         "STORYBOARD_PREVIS",
-        "3D_MODELING_RIGGING",
+        "MODELING_RIGGING",
         "ANIMATION",
         "RENDERING"
       ],
@@ -403,7 +416,7 @@
       ],
       "tasks": [
         "CHARACTER_ASSETS",
-        "3D_MODELING_RIGGING"
+        "MODELING_RIGGING"
       ],
       "capability_tags": [
         "auto_rig",
@@ -504,7 +517,7 @@
       ],
       "tasks": [
         "CHARACTER_ASSETS",
-        "3D_MODELING_RIGGING"
+        "MODELING_RIGGING"
       ],
       "capability_tags": [
         "sculpting",
@@ -670,7 +683,7 @@
       ],
       "tasks": [
         "CHARACTER_ASSETS",
-        "3D_MODELING_RIGGING"
+        "MODELING_RIGGING"
       ],
       "capability_tags": [
         "topology_transfer",
@@ -759,6 +772,145 @@
       ],
       "limitations": [
         "Documentation only - no live adapter verified yet."
+      ]
+    },
+    {
+      "tool_id": "RHUBARB_LIP_SYNC",
+      "display_name": "Rhubarb Lip Sync",
+      "category": "LIP_SYNC",
+      "manual_path": "TOOLS/RHUBARB_LIP_SYNC/TOOL.md",
+      "official_docs": [
+        "https://github.com/DanielSWolf/rhubarb-lip-sync"
+      ],
+      "tasks": [
+        "AUDIO_TTS",
+        "ANIMATION"
+      ],
+      "capability_tags": [
+        "lip_sync",
+        "moho_dat",
+        "mouth_animation"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "END_TO_END_VERIFIED",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "1.14.0",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "rhubarb -f json + -f dat on fight-audio.wav + test_voice.wav",
+          "result": "13 cues (3s) + 29 cues (4.57s), Moho .dat Preston Blair verified"
+        }
+      ],
+      "limitations": [
+        "CPU CLI, records mouth cues only."
+      ]
+    },
+    {
+      "tool_id": "KOKORO_TTS",
+      "display_name": "Kokoro TTS",
+      "category": "TTS",
+      "manual_path": "TOOLS/KOKORO_TTS/TOOL.md",
+      "official_docs": [
+        "https://github.com/hexgrad/kokoro",
+        "https://huggingface.co/hexgrad/Kokoro-82M"
+      ],
+      "tasks": [
+        "AUDIO_TTS"
+      ],
+      "capability_tags": [
+        "tts",
+        "voice_generation",
+        "local_tts"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "END_TO_END_VERIFIED",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": "0.9.4",
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "KPipeline(lang_code=a) in .venv-kokoro-test",
+          "result": "test_voice.wav 219KB 24kHz 4.575s, 65s cold / 8.27s warm"
+        }
+      ],
+      "limitations": [
+        "English only (lang_code=a), CPU torch, no GPU required."
+      ]
+    },
+    {
+      "tool_id": "COMFYUI_KJNODES",
+      "display_name": "ComfyUI-KJNodes",
+      "category": "NODE_BASED_GENERATION",
+      "manual_path": "TOOLS/COMFYUI_KJNODES/TOOL.md",
+      "official_docs": [
+        "https://github.com/kijai/ComfyUI-KJNodes"
+      ],
+      "tasks": [
+        "IMAGE_GENERATION",
+        "CHARACTER_ASSETS"
+      ],
+      "capability_tags": [
+        "batch_crop",
+        "image_resize",
+        "mesh_processing"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "ADAPTER_IMPLEMENTED",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "git clone + pip deps + /object_info",
+          "result": "ImageResizeKJv2 at image_nodes.py:2913, 1271 nodes loaded"
+        }
+      ],
+      "limitations": [
+        "PatchTritonVAE unavailable without triton."
+      ]
+    },
+    {
+      "tool_id": "COMFYUI_GGUF",
+      "display_name": "ComfyUI-GGUF",
+      "category": "NODE_BASED_GENERATION",
+      "manual_path": "TOOLS/COMFYUI_GGUF/TOOL.md",
+      "official_docs": [
+        "https://github.com/city96/ComfyUI-GGUF"
+      ],
+      "tasks": [
+        "IMAGE_GENERATION"
+      ],
+      "capability_tags": [
+        "gguf_loader",
+        "low_vram",
+        "quantized"
+      ],
+      "availability_status": "INSTALLED",
+      "integration_status": "ADAPTER_IMPLEMENTED",
+      "connection_type": "LOCAL_PROCESS",
+      "default_endpoint_reference": null,
+      "verified_version": null,
+      "last_verified_at": "2026-11-09",
+      "evidence": [
+        {
+          "checked_at": "2026-11-09",
+          "machine_id": null,
+          "method": "git clone + pip gguf + /object_info",
+          "result": "6 GGUF loaders (UnetLoaderGGUF etc) present"
+        }
+      ],
+      "limitations": [
+        "Needs GGUF weights files for each model."
       ]
     }
   ],
