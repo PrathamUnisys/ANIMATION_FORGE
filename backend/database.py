@@ -512,6 +512,93 @@ SCHEMA_MIGRATIONS = [
         details_json TEXT NOT NULL,
         occurred_at TEXT NOT NULL
     );
+    """),
+    (2, "cr006_story_context_screenplay", """
+    -- CR_006 M1: Versioned Series Bible (one row per revision; head pointer on series)
+    CREATE TABLE IF NOT EXISTS story_bibles (
+        bible_revision_id TEXT PRIMARY KEY,
+        series_id TEXT NOT NULL,
+        project_id TEXT,
+        revision INTEGER NOT NULL,
+        previous_revision INTEGER,
+        status TEXT NOT NULL,
+        content_json TEXT NOT NULL,
+        content_hash_sha256 TEXT NOT NULL,
+        provenance_json TEXT NOT NULL,
+        rights_review_status TEXT NOT NULL,
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(series_id, revision)
+    );
+    CREATE TABLE IF NOT EXISTS story_bible_heads (
+        series_id TEXT PRIMARY KEY,
+        project_id TEXT,
+        head_revision INTEGER NOT NULL,
+        head_status TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    -- CR_006 M1: Episode Brief (one row per revision)
+    CREATE TABLE IF NOT EXISTS episode_briefs (
+        brief_revision_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        episode_id TEXT,
+        series_id TEXT,
+        revision INTEGER NOT NULL,
+        previous_revision INTEGER,
+        status TEXT NOT NULL,
+        content_json TEXT NOT NULL,
+        content_hash_sha256 TEXT NOT NULL,
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(project_id, episode_id, revision)
+    );
+    -- CR_006 M3: Staged generation artifacts (one row per stage/revision)
+    CREATE TABLE IF NOT EXISTS story_artifacts (
+        artifact_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        episode_id TEXT,
+        artifact_type TEXT NOT NULL,
+        revision INTEGER NOT NULL,
+        previous_revision INTEGER,
+        status TEXT NOT NULL,
+        content_json TEXT NOT NULL,
+        content_hash_sha256 TEXT NOT NULL,
+        context_hash_sha256 TEXT,
+        provider_id TEXT,
+        model_id TEXT,
+        request_id TEXT,
+        usage_json TEXT,
+        created_at TEXT NOT NULL,
+        UNIQUE(project_id, episode_id, artifact_type, revision)
+    );
+    -- CR_006 M4: Deterministic QC + creative critique findings
+    CREATE TABLE IF NOT EXISTS screenplay_qc_reports (
+        report_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        script_id TEXT NOT NULL,
+        script_version INTEGER NOT NULL,
+        validator_name TEXT NOT NULL,
+        outcome TEXT NOT NULL,
+        checks_json TEXT NOT NULL,
+        issues_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    );
+    -- CR_006 M2: Provider request provenance (actual usage only when returned)
+    CREATE TABLE IF NOT EXISTS provider_requests (
+        request_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        provider_id TEXT NOT NULL,
+        model_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        latency_ms INTEGER,
+        prompt_tokens INTEGER,
+        completion_tokens INTEGER,
+        total_tokens INTEGER,
+        usage_source TEXT NOT NULL,
+        error_category TEXT,
+        error_detail TEXT,
+        created_at TEXT NOT NULL
+    );
     """)
 ]
 

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeSeriesBible",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["series_id", "title", "premise", "genre", "format", "world", "characters"],
+  "properties": {
+    "series_id": {"type": "string"},
+    "title": {"type": "string", "minLength": 1},
+    "premise": {"type": "string", "minLength": 1},
+    "genre": {"type": "string"},
+    "format": {"type": "string"},
+    "audience_promise": {"type": "string"},
+    "world": {
+      "type": "object",
+      "properties": {
+        "overview": {"type": "string"},
+        "geography": {"type": "array", "items": {"$ref": "#/$defs/location"}},
+        "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+        "timeline": {"type": "array", "items": {"$ref": "#/$defs/timelineEvent"}},
+        "factions": {"type": "array", "items": {"$ref": "#/$defs/faction"}},
+        "objects": {"type": "array", "items": {"type": "string"}},
+        "symbols": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "characters": {"type": "array", "items": {"$ref": "#/$defs/character"}},
+    "themes": {"type": "array", "items": {"type": "string"}},
+    "mysteries": {"type": "array", "items": {"type": "string"}},
+    "canon_decisions": {"type": "array", "items": {"type": "string"}},
+    "continuity_restrictions": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "source": {"type": "string"},
+        "rights_review_status": {"enum": ["NOT_REQUIRED", "PENDING", "CLEARED", "UNCLEAR"]},
+        "notes": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "location": {"type": "object", "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "description": {"type": "string"}}},
+    "rule": {"type": "object", "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "description": {"type": "string"}, "limits": {"type": "array", "items": {"type": "string"}}}},
+    "timelineEvent": {"type": "object", "properties": {"date": {"type": "string"}, "event": {"type": "string"}}},
+    "faction": {"type": "object", "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "goals": {"type": "array", "items": {"type": "string"}}}},
+    "character": {"type": "object", "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "role": {"type": "string"}, "motivation": {"type": "string"}, "goal": {"type": "string"}, "flaw": {"type": "string"}, "fear": {"type": "string"}, "voice_profile": {"type": "string"}, "relationships": {"type": "array", "items": {"type": "string"}}}}
+  }
+}
