@@ -555,79 +555,197 @@ function TaskViewer({ tasks, jobs }: { tasks: any[]; jobs: any[] }) {
 }
 
 function StoryContextPanel({ projectId }: { projectId: string }) {
+  type Tab = 'bible' | 'brief' | 'development' | 'cards' | 'screenplay' | 'qc' | 'approval';
+  const [tab, setTab] = useState<Tab>('bible');
   const [bible, setBible] = useState<any>(null);
+  const [canon, setCanon] = useState<any>(null);
   const [brief, setBrief] = useState<any>(null);
+  const [briefHistory, setBriefHistory] = useState<any[]>([]);
   const [revs, setRevs] = useState<any>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [seriesId, setSeriesId] = useState('SER_BELL');
   const [episodeId, setEpisodeId] = useState('EP_BELL_01');
   const [premise, setPremise] = useState('');
   const [provider, setProvider] = useState('OLLAMA_OPENAI_COMPATIBLE');
   const [model, setModel] = useState('ornith:9b');
-  const [stage, setStage] = useState<string>('');
-  const [stageResult, setStageResult] = useState<any>(null);
+  const [title, setTitle] = useState('The Thirteenth Bell of St. Jude');
+  // Brief form
+  const [bTitle, setBTitle] = useState('');
+  const [bPremise, setBPremise] = useState('');
+  const [bSynopsis, setBSynopsis] = useState('');
+  const [bGenre, setBGenre] = useState('GENRE_FANTASY');
+  const [bSecondary, setBSecondary] = useState('GENRE_COMEDY');
+  const [bChannel, setBChannel] = useState('');
+  const [bProtagonist, setBProtagonist] = useState('');
+  const [bObjective, setBObjective] = useState('');
+  const [bOpposition, setBOpposition] = useState('');
+  const [bConflict, setBConflict] = useState('');
+  const [bStakes, setBStakes] = useState('');
+  const [bEnding, setBEnding] = useState('');
+  const [bRuntime, setBRuntime] = useState('300');
+  // Development + cards + screenplay + qc
+  const [analysis, setAnalysis] = useState<any>(null);
+  const [hooks, setHooks] = useState<any>(null);
+  const [outline, setOutline] = useState<any>(null);
+  const [cards, setCards] = useState<any>(null);
+  const [screenplay, setScreenplay] = useState<any>(null);
+  const [qc, setQc] = useState<any>(null);
+  const [critique, setCritique] = useState<any>(null);
+  const [comments, setComments] = useState('');
 
   const load = useCallback(async () => {
     setErr(null);
     try {
       const b = await apiJson(`/api/story-bibles/${seriesId}`).catch(() => null);
       setBible(b);
+      const c = await apiJson(`/api/story-bibles/${seriesId}/canon`).catch(() => null);
+      setCanon(c?.canon || null);
       const r = await apiJson(`/api/story-bibles/${seriesId}/revisions`).catch(() => null);
       setRevs(r);
       try {
         const br = await apiJson(`/api/projects/${projectId}/episode-briefs/${episodeId}`);
         setBrief(br);
+        const bc = br?.content || {};
+        setBTitle(bc.title || ''); setBPremise(bc.premise || ''); setBSynopsis(bc.synopsis || '');
+        setBGenre(bc.primary_genre_id || 'GENRE_FANTASY');
+        setBSecondary((bc.secondary_genre_ids || []).join(','));
+        setBChannel(bc.channel_style_id || '');
+        setBProtagonist(bc.protagonist || ''); setBObjective(bc.objective || '');
+        setBOpposition(bc.opposition || ''); setBConflict(bc.conflict || '');
+        setBStakes(bc.stakes || ''); setBEnding(bc.ending_direction || '');
+        if (bc.target_runtime_sec) setBRuntime(String(bc.target_runtime_sec));
       } catch { setBrief(null); }
+      try {
+        const a = await apiJson(`/api/projects/${projectId}/story/artifacts/STORY_ANALYSIS?episode_id=${encodeURIComponent(episodeId)}`).catch(() => null);
+        setAnalysis(a);
+        const h = await apiJson(`/api/projects/${projectId}/story/artifacts/HOOKS?episode_id=${encodeURIComponent(episodeId)}`).catch(() => null);
+        setHooks(h);
+        const o = await apiJson(`/api/projects/${projectId}/story/artifacts/OUTLINE?episode_id=${encodeURIComponent(episodeId)}`).catch(() => null);
+        setOutline(o);
+        const sc = await apiJson(`/api/projects/${projectId}/story/artifacts/SCENE_CARDS?episode_id=${encodeURIComponent(episodeId)}`).catch(() => null);
+        setCards(sc);
+        const sp = await apiJson(`/api/projects/${projectId}/story/artifacts/SCREENPLAY?episode_id=${encodeURIComponent(episodeId)}`).catch(() => null);
+        setScreenplay(sp);
+      } catch { /* artifacts may not exist yet */ }
     } catch (e: any) { setErr(String(e.message || e)); }
   }, [projectId, seriesId, episodeId]);
 
   useEffect(() => { load(); }, [load]);
 
   const postJson = async (path: string, body: any) => {
-    const r = await apiFetch(path);
-    if (!r.ok) throw new Error(`${path} -> ${r.status}: ${await r.text()}`);
+    const r = await apiFetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`${path} -> ${r.status}: ${await r.text().catch(() => '')}`);
     return r.json();
   };
 
   const createBible = async () => {
-    if (!premise.trim()) return;
+    if (!premise.trim()) { setErr('Premise is required.'); return; }
     try {
+      setLoading(true);
       const payload = {
         series_id: seriesId, project_id: projectId, status: 'DRAFT',
         content: { series_id: seriesId, title: 'Series Bible', premise, genre: 'Fantasy', format: 'Short', world: { overview: '' }, characters: [] },
       };
-      const r = await apiFetch('/api/story-bibles', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!r.ok) throw new Error(await r.text());
+      await postJson('/api/story-bibles', payload);
+      setPremise(''); load();
+    } catch (e: any) { setErr(String(e.message || e)); } finally { setLoading(false); }
+  };
+
+  const transitionBible = async (revId: string) => {
+    const next = 'IN_REVIEW';
+    if (bible?.status === 'IN_REVIEW') { setErr('Head is already IN_REVIEW. Use Approve (Windows dialog) for APPROVED.'); return; }
+    try { await postJson(`/api/story-bibles/${revId}/transition`, { new_status: next, human_confirmed: false }); load(); }
+    catch (e: any) { setErr(String(e.message || e)); }
+  };
+  const approveBible = async (revId: string) => {
+    if (!window.confirm('Approve this Bible revision as canon? A Windows confirmation will appear.')) return;
+    try { await postJson(`/api/story-bibles/${revId}/transition`, { new_status: 'APPROVED', human_confirmed: false }); load(); }
+    catch (e: any) { setErr(String(e.message || e)); }
+  };
+
+  const saveBrief = async () => {
+    if (!bTitle.trim() || !bPremise.trim() || !bProtagonist.trim() || !bObjective.trim() || !bConflict.trim() || !bStakes.trim() || !bEnding.trim()) {
+      setErr('Required fields: title, premise, protagonist, objective, conflict, stakes, ending.'); return;
+    }
+    const runtime = parseInt(bRuntime, 10);
+    if (!runtime || runtime < 5) { setErr('Target runtime must be at least 5 seconds.'); return; }
+    try {
+      setLoading(true);
+      const content = {
+        project_id: projectId, episode_id: episodeId, series_id: seriesId,
+        title: bTitle, premise: bPremise, synopsis: bSynopsis,
+        primary_genre_id: bGenre,
+        secondary_genre_ids: bSecondary.split(',').map(s => s.trim()).filter(Boolean),
+        channel_style_id: bChannel.trim() ? bChannel.trim() : null,
+        audience: 'General', language: 'en-US', target_runtime_sec: runtime,
+        protagonist: bProtagonist, objective: bObjective, opposition: bOpposition,
+        conflict: bConflict, stakes: bStakes, ending_direction: bEnding,
+        characters: bProtagonist ? [bProtagonist] : [], locations: [],
+        clues_and_reveals: [], required_beats: [], constraints: [],
+        relationship_to_canon: '',
+      };
+      await postJson(`/api/projects/${projectId}/episode-briefs/${episodeId}`, { content, status: 'DRAFT' });
       load();
-    } catch (e: any) { setErr(String(e.message || e)); }
+    } catch (e: any) { setErr(String(e.message || e)); } finally { setLoading(false); }
   };
 
-  const runStage = async (name: string) => {
-    setStage(name); setStageResult(null);
-    const pathMap: Record<string, string> = {
-      analysis: `analysis`, hooks: `hooks`, outline: `outline`, cards: `scenes`,
-      screenplay: `screenplay`, retention: `retention-map`,
-    };
+  const runStage = async (name: 'analysis' | 'hooks' | 'outline' | 'cards' | 'screenplay') => {
     const apiMap: Record<string, string> = {
-      analysis: `story/analysis`, hooks: `story/hooks`, outline: `story/outline`, cards: `story/scene-cards`, screenplay: `story/screenplay`, retention: `story/retention-map`,
+      analysis: 'story/analysis', hooks: 'story/hooks', outline: 'story/outline', cards: 'story/scene-cards', screenplay: 'story/screenplay',
     };
     try {
-      const payload = { episode_id: episodeId, series_id: seriesId, provider_id: provider, model_id: model, title: 'The Thirteenth Bell of St. Jude', target_audience: 'General', intended_duration_sec: 300 };
-      const r = await apiFetch(`/api/projects/${projectId}/${apiMap[name]}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
-      const data = await r.json();
-      if (!r.ok) throw new Error(JSON.stringify(data));
-      setStageResult(data);
+      setLoading(true); setErr(null);
+      const payload = { episode_id: episodeId, series_id: seriesId, provider_id: provider, model_id: model, title, target_audience: 'General', intended_duration_sec: parseInt(bRuntime, 10) || 300 };
+      const data = await postJson(`/api/projects/${projectId}/${apiMap[name]}`, payload);
+      if (name === 'analysis') setAnalysis(data);
+      if (name === 'hooks') setHooks(data);
+      if (name === 'outline') setOutline(data);
+      if (name === 'cards') setCards(data);
+      if (name === 'screenplay') setScreenplay(data);
+      load();
+    } catch (e: any) { setErr(String(e.message || e)); } finally { setLoading(false); }
+  };
+
+  const approveOutline = async () => {
+    if (!window.confirm('Approve the latest outline? A Windows confirmation will appear.')) return;
+    try { await postJson(`/api/projects/${projectId}/story/outline/approve`, { episode_id: episodeId }); load(); }
+    catch (e: any) { setErr(String(e.message || e)); }
+  };
+
+  const runQc = async () => {
+    const scriptId = screenplay?.content?.script_id || screenplay?.script_id;
+    if (!scriptId) { setErr('No screenplay yet — generate one first.'); return; }
+    try {
+      const data = await postJson(`/api/projects/${projectId}/story/qc/validate`, { script_id: scriptId, episode_id: episodeId, series_id: seriesId });
+      setQc(data);
     } catch (e: any) { setErr(String(e.message || e)); }
   };
 
-  const post = async (path: string, body: any) => {
+  const runCritique = async () => {
+    const scriptId = screenplay?.content?.script_id || screenplay?.script_id;
+    if (!scriptId) { setErr('No screenplay yet — generate one first.'); return; }
     try {
-      const r = await apiFetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-      if (!r.ok) throw new Error(`${path} -> ${r.status}`);
-      const data = await r.json();
-      setStageResult(data);
+      const data = await postJson(`/api/projects/${projectId}/story/qc/critique`, { script_id: scriptId, episode_id: episodeId, provider_id: provider, model_id: model });
+      setCritique(data);
     } catch (e: any) { setErr(String(e.message || e)); }
   };
+
+  const approveScreenplay = async () => {
+    const approvalId = screenplay?.content?.script_id ? `APP_${screenplay.content.script_id}` : null;
+    if (!approvalId) { setErr('No screenplay approval gate found.'); return; }
+    if (!window.confirm(`Approve ${approvalId}? Requires exact-revision QC PASS with no BLOCKER and a creative critique. A Windows confirmation will appear.`)) return;
+    try {
+      const data = await postJson('/api/approvals/decide', { approval_id: approvalId, decision: 'APPROVED', comments: comments || 'Human screenplay approval (CR_006 hardening)' });
+      setQc(data); load();
+    } catch (e: any) { setErr(String(e.message || e)); }
+  };
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'bible', label: 'A. Series Bible' }, { id: 'brief', label: 'B. Episode Brief' },
+    { id: 'development', label: 'C. Story Development' }, { id: 'cards', label: 'D. Scene Cards' },
+    { id: 'screenplay', label: 'E. Screenplay' }, { id: 'qc', label: 'F. Quality Control' }, { id: 'approval', label: 'G. Human Approval' },
+  ];
 
   return (
     <div className="space-y-4">
@@ -653,35 +771,140 @@ function StoryContextPanel({ projectId }: { projectId: string }) {
           </select>
         </label>
       </div>
+      <div className="flex gap-1 flex-wrap border-b border-slate-700 pb-2">
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} className={`text-xs px-2 py-1 rounded ${tab === t.id ? 'bg-amber-600 text-black' : 'bg-slate-800 text-slate-300'}`}>{t.label}</button>
+        ))}
+      </div>
       {err && <div className="text-red-300 text-sm">{err}</div>}
-      <DebugToggle title="Series Bible (head revision)" debug={bible}>
-        {bible ? (<div className="space-y-1 text-sm"><div>Revision {bible.revision} · {bible.status} · hash {bible.content_hash_sha256?.slice(0,12)}</div><div className="text-slate-300">{bible.content?.premise || '(no premise)'}</div></div>) : <div className="text-sm text-slate-400">No Bible for this series yet.</div>}
-      </DebugToggle>
-      <DebugToggle title="Episode Brief" debug={brief}>
-        {brief ? (<div className="text-sm"><div>{brief.brief_revision_id} · v{brief.revision} · hash {String(brief.content_hash_sha256).slice(0,12)}</div><div className="text-slate-400">{brief.content?.synopsis || brief.content?.premise}</div></div>) : <div className="text-sm text-slate-400">No Episode Brief yet for this episode.</div>}
-      </DebugToggle>
-      <div className="border border-slate-700 rounded p-3">
-        <div className="text-sm font-semibold mb-2">Create Bible revision</div>
-        <textarea value={premise} onChange={e => setPremise(e.target.value)} placeholder="Series premise…" className="w-full bg-slate-800 rounded px-2 py-1 text-sm" rows={2} />
-        <button onClick={createBible} className="mt-2 text-xs px-3 py-1 rounded bg-amber-600 text-black">Create DRAFT revision</button>
-      </div>
-      <div className="border border-slate-700 rounded p-3">
-        <div className="text-sm font-semibold mb-2">Staged generation</div>
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => runStage('analysis')} className="text-xs px-2 py-1 rounded bg-slate-700">1 Analysis</button>
-          <button onClick={() => runStage('hooks')} className="text-xs px-2 py-1 rounded bg-slate-700">2 Hooks</button>
-          <button onClick={() => runStage('outline')} className="text-xs px-2 py-1 rounded bg-slate-700">3 Outline</button>
-          <button onClick={() => post(`/api/projects/${projectId}/story/outline/approve`, { episode_id: episodeId })} className="text-xs px-2 py-1 rounded bg-amber-600 text-black">Approve outline (Windows)</button>
-          <button onClick={() => runStage('cards')} className="text-xs px-2 py-1 rounded bg-slate-700">4 Scene cards</button>
-          <button onClick={() => runStage('screenplay')} className="text-xs px-2 py-1 rounded bg-slate-700">5 Screenplay</button>
-          <button onClick={() => runStage('retention')} className="text-xs px-2 py-1 rounded bg-slate-700">6 Retention</button>
-          <button onClick={() => post(`/api/projects/${projectId}/story/qc/validate`, { script_id: stageResult?.script_id || '', episode_id: episodeId })} className="text-xs px-2 py-1 rounded bg-slate-700">Validate</button>
+      {loading && <div className="text-xs text-slate-400">Working…</div>}
+
+      {tab === 'bible' && (
+        <div className="space-y-3">
+          <DebugToggle title="Series Bible (head revision)" debug={bible}>
+            {bible ? (<div className="space-y-1 text-sm"><div>Revision {bible.revision} · {bible.status} · hash {String(bible.content_hash_sha256 || '').slice(0,12)}</div><div className="text-slate-300">{bible.content?.premise || '(no premise)'}</div><div className="text-xs text-slate-400">Provenance: {JSON.stringify(bible.provenance || {})}</div></div>) : <div className="text-sm text-slate-400">No Bible for this series yet.</div>}
+          </DebugToggle>
+          <DebugToggle title="Approved canon" debug={canon}>
+            {canon ? (<div className="text-sm">Rev {canon.revision} · {canon.bible_revision_id} · hash {String(canon.content_hash_sha256 || '').slice(0,12)}</div>) : <div className="text-sm text-slate-400">No approved canon yet. Drafts are never canon.</div>}
+          </DebugToggle>
+          <div className="border border-slate-700 rounded p-3 space-y-2">
+            <div className="text-sm font-semibold">Create / edit Bible (new revision)</div>
+            <textarea value={premise} onChange={e => setPremise(e.target.value)} placeholder="Series premise…" className="w-full bg-slate-800 rounded px-2 py-1 text-sm" rows={3} />
+            <div className="flex gap-2">
+              <button onClick={createBible} disabled={loading} className="text-xs px-3 py-1 rounded bg-amber-600 text-black">Create DRAFT revision</button>
+              {bible && <button onClick={() => transitionBible(bible.bible_revision_id)} className="text-xs px-3 py-1 rounded bg-slate-700">Submit head for review</button>}
+              {bible && bible.status === 'IN_REVIEW' && <button onClick={() => approveBible(bible.bible_revision_id)} className="text-xs px-3 py-1 rounded bg-amber-600 text-black">Approve as canon (Windows)</button>}
+            </div>
+            <div className="text-xs text-slate-500">Direct APPROVED creation is blocked in the API; approval requires the Windows reviewer.</div>
+          </div>
+          <DebugToggle title="Bible revision history" debug={revs}>
+            <div className="text-xs text-slate-300">{revs ? `${revs.count} revision(s)` : 'none'}</div>
+          </DebugToggle>
         </div>
-        {stageResult && <div className="mt-3 text-xs"><pre className="whitespace-pre-wrap max-h-64 overflow-auto text-slate-300">{JSON.stringify(stageResult, null, 2)}</pre></div>}
-      </div>
-      <DebugToggle title="Bible revision history" debug={revs}>
-        <div className="text-xs text-slate-300">{revs ? `${revs.count} revision(s)` : 'none'}</div>
-      </DebugToggle>
+      )}
+
+      {tab === 'brief' && (
+        <div className="border border-slate-700 rounded p-3 space-y-2">
+          <div className="text-sm font-semibold">Episode Brief (new revision on save)</div>
+          <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+            <label>Title *<input value={bTitle} onChange={e => setBTitle(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Runtime (sec) *<input value={bRuntime} onChange={e => setBRuntime(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Primary genre *<select value={bGenre} onChange={e => setBGenre(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100"><option value="GENRE_FANTASY">GENRE_FANTASY</option><option value="GENRE_COMEDY">GENRE_COMEDY</option></select></label>
+            <label>Secondary (comma IDs)<input value={bSecondary} onChange={e => setBSecondary(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Channel style (optional)<input value={bChannel} onChange={e => setBChannel(e.target.value)} placeholder="empty = channel-neutral" className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+          </div>
+          <label className="block text-xs text-slate-400">Premise *<textarea value={bPremise} onChange={e => setBPremise(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" rows={2} /></label>
+          <label className="block text-xs text-slate-400">Synopsis<textarea value={bSynopsis} onChange={e => setBSynopsis(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" rows={2} /></label>
+          <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+            <label>Protagonist *<input value={bProtagonist} onChange={e => setBProtagonist(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Objective *<input value={bObjective} onChange={e => setBObjective(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Opposition<input value={bOpposition} onChange={e => setBOpposition(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Conflict *<input value={bConflict} onChange={e => setBConflict(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Stakes *<input value={bStakes} onChange={e => setBStakes(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+            <label>Ending direction *<input value={bEnding} onChange={e => setBEnding(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" /></label>
+          </div>
+          <button onClick={saveBrief} disabled={loading} className="text-xs px-3 py-1 rounded bg-amber-600 text-black">Save as new revision</button>
+          <DebugToggle title="Current brief" debug={brief}>
+            <div className="text-sm">{brief ? `${brief.brief_revision_id} · v${brief.revision} · hash ${String(brief.content_hash_sha256).slice(0,12)}` : 'No brief yet.'}</div>
+          </DebugToggle>
+        </div>
+      )}
+
+      {tab === 'development' && (
+        <div className="space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={() => runStage('analysis')} disabled={loading} className="text-xs px-2 py-1 rounded bg-slate-700">1 Analysis</button>
+            <button onClick={() => runStage('hooks')} disabled={loading} className="text-xs px-2 py-1 rounded bg-slate-700">2 Hooks</button>
+            <button onClick={() => runStage('outline')} disabled={loading} className="text-xs px-2 py-1 rounded bg-slate-700">3 Outline</button>
+            <button onClick={approveOutline} className="text-xs px-2 py-1 rounded bg-amber-600 text-black">Approve outline (Windows)</button>
+          </div>
+          <DebugToggle title={`Story analysis (${analysis?.status || 'none'})`} debug={analysis}><pre className="text-xs whitespace-pre-wrap max-h-64 overflow-auto">{JSON.stringify(analysis?.content || analysis?.analysis || null, null, 2)}</pre></DebugToggle>
+          <DebugToggle title="Hook alternatives" debug={hooks}><pre className="text-xs whitespace-pre-wrap max-h-64 overflow-auto">{JSON.stringify(hooks?.content?.hooks || hooks?.hooks || null, null, 2)}</pre></DebugToggle>
+          <DebugToggle title={`Outline — ${outline?.status || 'none'} (rev ${outline?.revision || '–'})`} debug={outline}><pre className="text-xs whitespace-pre-wrap max-h-64 overflow-auto">{JSON.stringify(outline?.content || outline?.outline || null, null, 2)}</pre></DebugToggle>
+        </div>
+      )}
+
+      {tab === 'cards' && (
+        <div className="space-y-3">
+          <button onClick={() => runStage('cards')} disabled={loading} className="text-xs px-2 py-1 rounded bg-slate-700">Generate scene cards</button>
+          {(cards?.content || cards?.scene_cards || []).map((c: any) => (
+            <DebugToggle key={c.scene_id} title={`${c.scene_id} — ${c.location} · ${c.time}`} debug={c}>
+              <div className="space-y-1 text-sm">
+                <KV k="Characters" v={(c.characters || []).join(', ')} />
+                <KV k="Objective" v={c.objective} />
+                <KV k="Conflict" v={c.conflict} />
+                <KV k="Action" v={c.action} />
+                <KV k="Dramatic turn" v={c.dramatic_turn} />
+                <KV k="Clue / reveal" v={c.clue_or_reveal} />
+                <KV k="Emotional purpose" v={c.emotional_purpose} />
+                <KV k="Visual storytelling" v={c.visual_storytelling} />
+                <KV k="Estimated runtime" v={c.estimated_runtime_sec ? `${c.estimated_runtime_sec}s` : null} />
+              </div>
+            </DebugToggle>
+          ))}
+          {!cards && <div className="text-sm text-slate-400">No scene cards yet. Outline must be APPROVED first.</div>}
+          {cards && <div className="text-xs text-slate-500">Outline revision: {JSON.stringify(cards.source_refs_json || cards.source_refs || 'recorded in artifact')}</div>}
+        </div>
+      )}
+
+      {tab === 'screenplay' && (
+        <div className="space-y-3">
+          <button onClick={() => runStage('screenplay')} disabled={loading} className="text-xs px-2 py-1 rounded bg-slate-700">Generate screenplay</button>
+          <DebugToggle title={`Screenplay — ${screenplay?.content?.script_id || screenplay?.script_id || 'none'}`} debug={screenplay}>
+            {screenplay ? (
+              <div className="space-y-2">
+                <div className="text-xs text-slate-400">Version {screenplay.content?.version || screenplay.version} · context {screenplay.context_hash_sha256?.slice(0,12) || '–'} · source refs {JSON.stringify(screenplay.source_refs_json || {})}</div>
+                {screenplay.markdown ? renderMarkdown(screenplay.markdown) : (screenplay.content?.markdown || screenplay.markdown || <div className="text-sm text-slate-400">Fetch the script detail via the scripts API for the full text.</div>)}
+              </div>
+            ) : <div className="text-sm text-slate-400">No screenplay yet. Requires APPROVED outline + scene cards.</div>}
+          </DebugToggle>
+        </div>
+      )}
+
+      {tab === 'qc' && (
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <button onClick={runQc} className="text-xs px-2 py-1 rounded bg-slate-700">Run deterministic validation</button>
+            <button onClick={runCritique} className="text-xs px-2 py-1 rounded bg-slate-700">Run creative critique</button>
+          </div>
+          <DebugToggle title={`Deterministic validation — ${qc?.outcome || 'none'}`} debug={qc}>
+            {qc ? (<div className="space-y-1 text-sm"><div>Outcome: {qc.outcome} · runtime est {qc.runtime_estimate?.total_sec ?? '–'}s ({qc.runtime_estimate?.method || ''})</div>{(qc.issues || []).map((i: any, idx: number) => (<div key={idx} className="text-xs"><b>{i.severity}</b> {i.scene_id && `[${i.scene_id}]`} {i.detail}</div>))}</div>) : <div className="text-sm text-slate-400">Not run yet.</div>}
+          </DebugToggle>
+          <DebugToggle title="Creative critique (separate from QC)" debug={critique}>
+            {critique ? (<div className="space-y-2">{(critique.findings || []).map((f: any, idx: number) => (<div key={idx} className="text-xs border-b border-slate-700 pb-1"><b>{f.severity}</b> {f.scene_id} — {f.category}: {f.evidence} <span className="text-slate-400">→ {f.recommendation}</span></div>))}</div>) : <div className="text-sm text-slate-400">Not run yet.</div>}
+          </DebugToggle>
+        </div>
+      )}
+
+      {tab === 'approval' && (
+        <div className="space-y-3">
+          <div className="text-sm">Exact revision: <b>{screenplay?.content?.script_id || screenplay?.script_id || 'none'} v{screenplay?.content?.version || screenplay?.version || '–'}</b></div>
+          <div className="text-xs text-slate-400">QC: {qc?.outcome || 'not run'} · Critique findings: {(critique?.findings || []).length} · Outstanding BLOCKER: {(qc?.issues || []).filter((i: any) => i.severity === 'BLOCKER').length}</div>
+          <label className="block text-xs text-slate-400">Approval comments<textarea value={comments} onChange={e => setComments(e.target.value)} placeholder="Decision rationale (include acknowledge for MAJOR findings if needed)" className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm text-slate-100" rows={2} /></label>
+          <button onClick={approveScreenplay} className="text-xs px-3 py-1 rounded bg-amber-600 text-black">Approve screenplay (Windows)</button>
+          <div className="text-xs text-slate-500">APPROVED is shown only after the backend confirms the decision. Approval requires exact-revision QC PASS with no BLOCKER + a creative critique.</div>
+        </div>
+      )}
     </div>
   );
 }
