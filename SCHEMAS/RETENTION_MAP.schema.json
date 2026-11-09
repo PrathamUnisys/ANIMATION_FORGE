@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeRetentionMap",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["entries"],
+  "properties": {
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "beat"],
+        "properties": {
+          "scene_id": {"type": "string"},
+          "beat": {"type": "string"},
+          "viewer_question": {"type": "string"},
+          "suspense": {"type": "string"},
+          "information_revealed": {"type": "string"},
+          "emotional_change": {"type": "string"},
+          "clue": {"type": "string"},
+          "payoff": {"type": "string"},
+          "promise": {"type": "string"}
+        }
+      }
+    }
+  }
+}

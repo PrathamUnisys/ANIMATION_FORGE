@@ -40,10 +40,11 @@ const STAGE_ENDPOINTS: Record<string, string[]> = {
   COMPLETED_PRODUCTION_PACKAGE: ['files', 'steps'],
 };
 
-async function apiFetch(path: string): Promise<Response> {
-  if (!isTauri()) return fetch(path);
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  if (!isTauri()) return fetch(path, init);
   const [baseUrl, token] = await invoke<[string, string]>('get_sidecar_connection');
-  return fetch(`${baseUrl}${path}`, { headers: { 'x-forge-token': token } });
+  const headers = { ...(init?.headers as Record<string, string> || {}), 'x-forge-token': token };
+  return fetch(`${baseUrl}${path}`, { ...init, headers });
 }
 async function apiJson(path: string): Promise<any> {
   const r = await apiFetch(path);
@@ -553,6 +554,138 @@ function TaskViewer({ tasks, jobs }: { tasks: any[]; jobs: any[] }) {
   );
 }
 
+function StoryContextPanel({ projectId }: { projectId: string }) {
+  const [bible, setBible] = useState<any>(null);
+  const [brief, setBrief] = useState<any>(null);
+  const [revs, setRevs] = useState<any>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [seriesId, setSeriesId] = useState('SER_BELL');
+  const [episodeId, setEpisodeId] = useState('EP_BELL_01');
+  const [premise, setPremise] = useState('');
+  const [provider, setProvider] = useState('OLLAMA_OPENAI_COMPATIBLE');
+  const [model, setModel] = useState('ornith:9b');
+  const [stage, setStage] = useState<string>('');
+  const [stageResult, setStageResult] = useState<any>(null);
+
+  const load = useCallback(async () => {
+    setErr(null);
+    try {
+      const b = await apiJson(`/api/story-bibles/${seriesId}`).catch(() => null);
+      setBible(b);
+      const r = await apiJson(`/api/story-bibles/${seriesId}/revisions`).catch(() => null);
+      setRevs(r);
+      try {
+        const br = await apiJson(`/api/projects/${projectId}/episode-briefs/${episodeId}`);
+        setBrief(br);
+      } catch { setBrief(null); }
+    } catch (e: any) { setErr(String(e.message || e)); }
+  }, [projectId, seriesId, episodeId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const postJson = async (path: string, body: any) => {
+    const r = await apiFetch(path);
+    if (!r.ok) throw new Error(`${path} -> ${r.status}: ${await r.text()}`);
+    return r.json();
+  };
+
+  const createBible = async () => {
+    if (!premise.trim()) return;
+    try {
+      const payload = {
+        series_id: seriesId, project_id: projectId, status: 'DRAFT',
+        content: { series_id: seriesId, title: 'Series Bible', premise, genre: 'Fantasy', format: 'Short', world: { overview: '' }, characters: [] },
+      };
+      const r = await apiFetch('/api/story-bibles', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error(await r.text());
+      load();
+    } catch (e: any) { setErr(String(e.message || e)); }
+  };
+
+  const runStage = async (name: string) => {
+    setStage(name); setStageResult(null);
+    const pathMap: Record<string, string> = {
+      analysis: `analysis`, hooks: `hooks`, outline: `outline`, cards: `scenes`,
+      screenplay: `screenplay`, retention: `retention-map`,
+    };
+    const apiMap: Record<string, string> = {
+      analysis: `story/analysis`, hooks: `story/hooks`, outline: `story/outline`, cards: `story/scene-cards`, screenplay: `story/screenplay`, retention: `story/retention-map`,
+    };
+    try {
+      const payload = { episode_id: episodeId, series_id: seriesId, provider_id: provider, model_id: model, title: 'The Thirteenth Bell of St. Jude', target_audience: 'General', intended_duration_sec: 300 };
+      const r = await apiFetch(`/api/projects/${projectId}/${apiMap[name]}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(JSON.stringify(data));
+      setStageResult(data);
+    } catch (e: any) { setErr(String(e.message || e)); }
+  };
+
+  const post = async (path: string, body: any) => {
+    try {
+      const r = await apiFetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(`${path} -> ${r.status}`);
+      const data = await r.json();
+      setStageResult(data);
+    } catch (e: any) { setErr(String(e.message || e)); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-400">Versioned Series Bible → Episode Brief → staged screenplay. AI proposals never become approved canon; approvals require the Windows reviewer.</p>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="text-xs text-slate-400">Series ID
+          <input value={seriesId} onChange={e => setSeriesId(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm" />
+        </label>
+        <label className="text-xs text-slate-400">Episode ID
+          <input value={episodeId} onChange={e => setEpisodeId(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm" />
+        </label>
+        <label className="text-xs text-slate-400">Provider
+          <select value={provider} onChange={e => setProvider(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm">
+            <option value="OLLAMA_OPENAI_COMPATIBLE">OLLAMA_OPENAI_COMPATIBLE (local opencode Ollama)</option>
+            <option value="DETERMINISTIC_MOCK">DETERMINISTIC_MOCK (test)</option>
+          </select>
+        </label>
+        <label className="text-xs text-slate-400">Model
+          <select value={model} onChange={e => setModel(e.target.value)} className="w-full mt-1 bg-slate-800 rounded px-2 py-1 text-sm">
+            <option value="ornith:9b">ornith:9b (primary)</option>
+            <option value="qwen3.5:4b">qwen3.5:4b (fallback)</option>
+            <option value="mock-42">mock-42</option>
+          </select>
+        </label>
+      </div>
+      {err && <div className="text-red-300 text-sm">{err}</div>}
+      <DebugToggle title="Series Bible (head revision)" debug={bible}>
+        {bible ? (<div className="space-y-1 text-sm"><div>Revision {bible.revision} · {bible.status} · hash {bible.content_hash_sha256?.slice(0,12)}</div><div className="text-slate-300">{bible.content?.premise || '(no premise)'}</div></div>) : <div className="text-sm text-slate-400">No Bible for this series yet.</div>}
+      </DebugToggle>
+      <DebugToggle title="Episode Brief" debug={brief}>
+        {brief ? (<div className="text-sm"><div>{brief.brief_revision_id} · v{brief.revision} · hash {String(brief.content_hash_sha256).slice(0,12)}</div><div className="text-slate-400">{brief.content?.synopsis || brief.content?.premise}</div></div>) : <div className="text-sm text-slate-400">No Episode Brief yet for this episode.</div>}
+      </DebugToggle>
+      <div className="border border-slate-700 rounded p-3">
+        <div className="text-sm font-semibold mb-2">Create Bible revision</div>
+        <textarea value={premise} onChange={e => setPremise(e.target.value)} placeholder="Series premise…" className="w-full bg-slate-800 rounded px-2 py-1 text-sm" rows={2} />
+        <button onClick={createBible} className="mt-2 text-xs px-3 py-1 rounded bg-amber-600 text-black">Create DRAFT revision</button>
+      </div>
+      <div className="border border-slate-700 rounded p-3">
+        <div className="text-sm font-semibold mb-2">Staged generation</div>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={() => runStage('analysis')} className="text-xs px-2 py-1 rounded bg-slate-700">1 Analysis</button>
+          <button onClick={() => runStage('hooks')} className="text-xs px-2 py-1 rounded bg-slate-700">2 Hooks</button>
+          <button onClick={() => runStage('outline')} className="text-xs px-2 py-1 rounded bg-slate-700">3 Outline</button>
+          <button onClick={() => post(`/api/projects/${projectId}/story/outline/approve`, { episode_id: episodeId })} className="text-xs px-2 py-1 rounded bg-amber-600 text-black">Approve outline (Windows)</button>
+          <button onClick={() => runStage('cards')} className="text-xs px-2 py-1 rounded bg-slate-700">4 Scene cards</button>
+          <button onClick={() => runStage('screenplay')} className="text-xs px-2 py-1 rounded bg-slate-700">5 Screenplay</button>
+          <button onClick={() => runStage('retention')} className="text-xs px-2 py-1 rounded bg-slate-700">6 Retention</button>
+          <button onClick={() => post(`/api/projects/${projectId}/story/qc/validate`, { script_id: stageResult?.script_id || '', episode_id: episodeId })} className="text-xs px-2 py-1 rounded bg-slate-700">Validate</button>
+        </div>
+        {stageResult && <div className="mt-3 text-xs"><pre className="whitespace-pre-wrap max-h-64 overflow-auto text-slate-300">{JSON.stringify(stageResult, null, 2)}</pre></div>}
+      </div>
+      <DebugToggle title="Bible revision history" debug={revs}>
+        <div className="text-xs text-slate-300">{revs ? `${revs.count} revision(s)` : 'none'}</div>
+      </DebugToggle>
+    </div>
+  );
+}
+
 export default function App() {
   const { activeProjectId, setActiveProjectId, operatingMode } = useForgeStore();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -566,6 +699,7 @@ export default function App() {
   const [loadingStage, setLoadingStage] = useState(false);
   const [showFiles, setShowFiles] = useState(false);
   const [showProvenance, setShowProvenance] = useState(false);
+  const [showStory, setShowStory] = useState(false);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -675,9 +809,10 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="mt-3 flex gap-2">
-          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
-          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
+          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
+          <button onClick={() => { setShowStory(!showStory); setShowFiles(false); setShowProvenance(false); }} className={`text-xs px-2 py-1 rounded ${showStory ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Story Context (CR_006)</button>
           <button onClick={() => { loadProjects(); loadProject(); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700">Refresh</button>
         </div>
         <div className="mt-auto pt-4 text-xs text-slate-500">
@@ -690,6 +825,12 @@ export default function App() {
           <div>
             <h2 className="text-xl font-semibold text-amber-400 uppercase mb-3">Project files</h2>
             <FilesExplorer projectId={activeProjectId} filesData={filesData} />
+          </div>
+        )}
+        {showStory && (
+          <div>
+            <h2 className="text-xl font-semibold text-amber-400 uppercase mb-3">Story Context & Screenplay (CR_006)</h2>
+            <StoryContextPanel projectId={activeProjectId} />
           </div>
         )}
         {showProvenance && (

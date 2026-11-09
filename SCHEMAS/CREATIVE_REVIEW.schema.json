@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeCreativeReview",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["findings"],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "severity", "category", "evidence", "interpretation", "recommendation"],
+        "properties": {
+          "scene_id": {"type": "string"},
+          "passage_ref": {"type": "string"},
+          "severity": {"enum": ["BLOCKER", "MAJOR", "MINOR", "NOTE"]},
+          "category": {"type": "string"},
+          "evidence": {"type": "string"},
+          "interpretation": {"type": "string"},
+          "recommendation": {"type": "string"}
+        }
+      }
+    }
+  }
+}

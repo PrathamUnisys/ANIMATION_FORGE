@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeSceneCard",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["scene_id", "location", "time", "characters", "objective", "conflict", "action", "dramatic_turn", "emotional_purpose", "estimated_runtime_sec"],
+  "properties": {
+    "scene_id": {"type": "string", "pattern": "^SC[0-9]+$"},
+    "location": {"type": "string", "minLength": 1},
+    "time": {"type": "string"},
+    "characters": {"type": "array", "items": {"type": "string"}},
+    "objective": {"type": "string"},
+    "conflict": {"type": "string"},
+    "action": {"type": "string"},
+    "dramatic_turn": {"type": "string"},
+    "clue_or_reveal": {"type": "string"},
+    "emotional_purpose": {"type": "string"},
+    "visual_storytelling": {"type": "string"},
+    "estimated_runtime_sec": {"type": "number", "minimum": 0}
+  }
+}

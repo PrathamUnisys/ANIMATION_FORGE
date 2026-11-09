@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeScreenplayGenerationManifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["project_id", "episode_id", "script_id", "provider_id", "model_id", "context_hash_sha256", "created_at"],
+  "properties": {
+    "project_id": {"type": "string"},
+    "episode_id": {"type": "string"},
+    "script_id": {"type": "string"},
+    "provider_id": {"type": "string"},
+    "model_id": {"type": "string"},
+    "request_id": {"type": ["string", "null"]},
+    "context_hash_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "provider_request_metadata": {"type": ["object", "null"]},
+    "created_at": {"type": "string"}
+  }
+}

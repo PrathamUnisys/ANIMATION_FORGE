@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnimationForgeStoryAnalysis",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["dramatic_engine", "theme", "protagonist", "objective", "opposition", "conflict", "stakes", "audience_promise", "constraints", "ending_requirements"],
+  "properties": {
+    "dramatic_engine": {"type": "string", "minLength": 1},
+    "theme": {"type": "string"},
+    "protagonist": {"type": "string", "minLength": 1},
+    "objective": {"type": "string", "minLength": 1},
+    "opposition": {"type": "string", "minLength": 1},
+    "conflict": {"type": "string", "minLength": 1},
+    "stakes": {"type": "string", "minLength": 1},
+    "audience_promise": {"type": "string"},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "ending_requirements": {"type": "string"}
+  }
+}

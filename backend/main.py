@@ -21,6 +21,10 @@ from backend.rnd.research_engine import ProductionRndEngine
 from backend.integrations.mcp_gateway import AnimationForgeMcpGateway
 from backend.integrations.comfyui_adapter import ComfyUIAdapter
 from backend.qc.quality_controller import QualityControlEngine
+from backend.qc.screenplay_qc import DeterministicValidator, CreativeCritique
+from backend.providers.manager import ProviderManager, ProviderError
+from backend.departments.story_pipeline import StoryAndScreenplayPipeline
+from backend.departments.story_context import StoryContextService
 from backend.filesystem_security import is_safe_path_component
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +48,9 @@ rnd_engine = ProductionRndEngine(ROOT_DIR, db, approvals)
 mcp_gateway = AnimationForgeMcpGateway(db)
 comfyui = ComfyUIAdapter(ROOT_DIR, db)
 qc_engine = QualityControlEngine(db)
+provider_manager = ProviderManager(db)
+story_pipeline = StoryAndScreenplayPipeline(ROOT_DIR, db, approvals)
+story_ctx = StoryContextService(ROOT_DIR, db)
 
 
 class HumanDecisionPayload(BaseModel):
@@ -618,6 +625,285 @@ def get_project_file(project_id: str, path: str = Query(..., min_length=1), _: s
     resolved = _resolve_project_file(project_id, path)
     media_type, _ = mimetypes.guess_type(resolved.name)
     return FileResponse(resolved, media_type=media_type or "application/octet-stream", filename=resolved.name)
+
+
+# ---------------------------------------------------------------------------
+# CR_006: Story Bible, Episode Brief, staged screenplay, QC, provider
+# ---------------------------------------------------------------------------
+
+class StoryBiblePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    series_id: str
+    project_id: Optional[str] = None
+    content: Dict[str, Any]
+    status: str = "DRAFT"
+    created_by: str = "HUMAN_OWNER"
+
+class BibleTransitionPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    new_status: str
+    actor: str = "HUMAN_OWNER"
+    # Human confirmation is verified server-side via Windows dialog for
+    # APPROVED transitions; the flag below is accepted only for
+    # non-canon transitions or when the caller already passed the dialog.
+    human_confirmed: bool = False
+
+class EpisodeBriefPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    content: Dict[str, Any]
+    status: str = "DRAFT"
+    created_by: str = "HUMAN_OWNER"
+
+class GenerationPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    episode_id: str
+    series_id: Optional[str] = None
+    provider_id: str = "OLLAMA_OPENAI_COMPATIBLE"
+    model_id: str = "ornith:9b"
+    title: str = "Untitled"
+    target_audience: str = "General"
+    intended_duration_sec: int = 300
+
+class QCValidatePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    script_id: str
+    episode_id: str = ""
+
+class OutlineApprovePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    episode_id: str
+
+class ChangeRequestPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    change_request_id: str
+    requested_modification: str
+    reason: str
+    affected_departments: List[str]
+    affected_workflows: List[str]
+    compatibility_impact: str
+    advantages: str
+    disadvantages: str
+    testing_requirements: str
+    rollback_plan: str
+    proposed_version: str
+
+@app.post("/api/change-requests")
+def create_change_request_api(payload: ChangeRequestPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        with db.get_connection() as conn:
+            existing = conn.execute("SELECT change_request_id FROM change_requests WHERE change_request_id = ?", (payload.change_request_id,)).fetchone()
+            if existing:
+                raise HTTPException(status_code=409, detail=f"Change Request {payload.change_request_id} already exists")
+        return governance.create_change_request(
+            operating_mode="ARCHITECTURE_MODE",
+            change_request_id=payload.change_request_id,
+            requested_modification=payload.requested_modification,
+            reason=payload.reason,
+            affected_departments=payload.affected_departments,
+            affected_workflows=payload.affected_workflows,
+            compatibility_impact=payload.compatibility_impact,
+            advantages=payload.advantages,
+            disadvantages=payload.disadvantages,
+            testing_requirements=payload.testing_requirements,
+            rollback_plan=payload.rollback_plan,
+            proposed_version=payload.proposed_version,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.get("/api/story-bibles/{series_id}")
+def get_story_bible(series_id: str, revision: int = Query(default=None), _: str = Depends(verify_local_ipc_token)):
+    try:
+        return story_ctx.get_bible(series_id, revision)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+@app.get("/api/story-bibles/{series_id}/revisions")
+def list_story_bible_revisions(series_id: str, _: str = Depends(verify_local_ipc_token)):
+    return {"series_id": series_id, "revisions": story_ctx.list_bible_revisions(series_id), "count": len(story_ctx.list_bible_revisions(series_id))}
+
+@app.post("/api/story-bibles")
+def create_story_bible_api(payload: StoryBiblePayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        return story_ctx.create_bible(payload.series_id, payload.content, payload.project_id, payload.status, payload.created_by)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/story-bibles/{bible_revision_id}/transition")
+def transition_bible_api(bible_revision_id: str, payload: BibleTransitionPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        # APPROVED canon requires live Windows confirmation (trusted reviewer identity).
+        confirmed = payload.human_confirmed
+        if payload.new_status == "APPROVED":
+            try:
+                reviewer = confirm_windows_human_decision(
+                    {"project_id": "ARCHITECTURE", "target_type": "bible", "target_id": bible_revision_id, "revision": 0},
+                    "APPROVED", "Approve Series Bible revision as canon",
+                )
+                confirmed = True
+                actor = reviewer
+            except Exception as exc:
+                raise HTTPException(status_code=503, detail=f"Windows reviewer required for APPROVED: {exc}") from exc
+        else:
+            actor = payload.actor
+        return story_ctx.transition_bible(bible_revision_id, payload.new_status, actor, confirmed)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.get("/api/story-bibles/{series_id}/canon")
+def get_approved_canon_api(series_id: str, _: str = Depends(verify_local_ipc_token)):
+    canon = story_ctx.get_approved_canon(series_id)
+    return {"series_id": series_id, "canon": canon}
+
+@app.post("/api/projects/{project_id}/episode-briefs/{episode_id}")
+def create_episode_brief_api(project_id: str, episode_id: str, payload: EpisodeBriefPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        with db.get_connection() as conn:
+            _require_project(conn, project_id)
+        return story_ctx.create_brief(project_id, payload.content, episode_id, payload.content.get("series_id"), payload.status, payload.created_by)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.get("/api/projects/{project_id}/episode-briefs/{episode_id}")
+def get_episode_brief_api(project_id: str, episode_id: str, _: str = Depends(verify_local_ipc_token)):
+    try:
+        with db.get_connection() as conn:
+            _require_project(conn, project_id)
+        return story_ctx.get_brief(project_id, episode_id)
+    except HTTPException:
+        raise
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+@app.get("/api/projects/{project_id}/story-context")
+def get_story_context_api(project_id: str, episode_id: str = Query(..., min_length=1), series_id: str = Query(default=None),
+                          primary_genre_id: str = Query(default="GENRE_FANTASY"), channel_style_id: str = Query(default=None),
+                          _: str = Depends(verify_local_ipc_token)):
+    try:
+        return story_ctx.assemble_context(project_id, episode_id, series_id, primary_genre_id, channel_style_id=channel_style_id)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/analysis")
+def post_story_analysis_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        brief = story_ctx.get_brief(project_id, payload.episode_id)
+        canon = story_ctx.get_approved_canon(payload.series_id) if payload.series_id else None
+        return story_pipeline.generate_story_analysis(project_id, payload.episode_id, brief["content"], canon["content"] if canon else None, provider_manager, payload.provider_id, payload.model_id)
+    except HTTPException:
+        raise
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/hooks")
+def post_hooks_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        analysis = story_pipeline.get_artifact(project_id, payload.episode_id, "STORY_ANALYSIS")["content"]
+        brief = story_ctx.get_brief(project_id, payload.episode_id)["content"]
+        return story_pipeline.generate_hooks(project_id, payload.episode_id, analysis, brief, provider_manager, payload.provider_id, payload.model_id)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/outline")
+def post_outline_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        analysis = story_pipeline.get_artifact(project_id, payload.episode_id, "STORY_ANALYSIS")["content"]
+        brief = story_ctx.get_brief(project_id, payload.episode_id)["content"]
+        return story_pipeline.generate_outline(project_id, payload.episode_id, analysis, brief, provider_manager, payload.provider_id, payload.model_id)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/outline/approve")
+def post_outline_approve_api(project_id: str, payload: OutlineApprovePayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        # Trusted human path: native Windows confirmation produces the reviewer identity.
+        reviewer = confirm_windows_human_action(f"Approve OUTLINE for {project_id}/{payload.episode_id} before screenplay drafting?")
+        return story_pipeline.approve_outline(project_id, payload.episode_id, human_confirmed=True)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Windows reviewer required: {exc}") from exc
+
+@app.post("/api/projects/{project_id}/story/scene-cards")
+def post_scene_cards_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        outline = story_pipeline.get_artifact(project_id, payload.episode_id, "OUTLINE")["content"]
+        brief = story_ctx.get_brief(project_id, payload.episode_id)["content"]
+        return story_pipeline.generate_scene_cards(project_id, payload.episode_id, outline, brief, provider_manager, payload.provider_id, payload.model_id)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/screenplay")
+def post_screenplay_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        brief_row = story_ctx.get_brief(project_id, payload.episode_id)
+        cards = story_pipeline.get_artifact(project_id, payload.episode_id, "SCENE_CARDS")["content"]
+        canon = story_ctx.get_approved_canon(payload.series_id) if payload.series_id else None
+        ctx = story_ctx.assemble_context(project_id, payload.episode_id, payload.series_id)
+        return story_pipeline.generate_screenplay(
+            project_id, payload.episode_id, cards, brief_row["content"], canon["content"] if canon else None,
+            payload.title, payload.target_audience, payload.intended_duration_sec, provider_manager,
+            payload.provider_id, payload.model_id, ctx["manifest"]["context_hash_sha256"],
+        )
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/retention-map")
+def post_retention_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        cards = story_pipeline.get_artifact(project_id, payload.episode_id, "SCENE_CARDS")["content"]
+        return story_pipeline.generate_retention_map(project_id, payload.episode_id, cards)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/qc/validate")
+def post_qc_validate_api(project_id: str, payload: QCValidatePayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        brief = None
+        canon = None
+        try:
+            brief = story_ctx.get_brief(project_id, payload.episode_id)["content"] if payload.episode_id else None
+        except Exception:
+            pass
+        validator = DeterministicValidator(db)
+        return validator.validate(project_id, payload.script_id, brief, canon)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/api/projects/{project_id}/story/qc/critique")
+def post_qc_critique_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+    try:
+        critique = CreativeCritique(db, provider_manager)
+        # payload.episode_id reused as script_id for this route's contract; prefer body below
+        script_id = payload.episode_id
+        return critique.critique(project_id, script_id, payload.provider_id, payload.model_id)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.get("/api/projects/{project_id}/story/artifacts/{artifact_type}")
+def get_artifact_api(project_id: str, artifact_type: str, episode_id: str = Query(..., min_length=1), _: str = Depends(verify_local_ipc_token)):
+    try:
+        return story_pipeline.get_artifact(project_id, episode_id, artifact_type)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 if __name__ == "__main__":
