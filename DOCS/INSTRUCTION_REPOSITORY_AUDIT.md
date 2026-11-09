@@ -475,3 +475,11 @@ frontend build, Rust compilation or the desktop application. Existing
 historical test counts and build reports are not fresh verification for the
 current main commit. Run the commands in DOCS/DEVELOPER_GUIDE.md locally
 and update the evidence with the exact results.
+
+
+### Production-breakdown status correction
+
+The previous fixed throne-room scene generator has been disabled. The internal
+`generate_production_breakdown()` method now checks that the referenced script
+is approved and then raises `NotImplementedError`. It does not create scene
+rows until a genuine approved-script-to-scene breakdown is implemented.

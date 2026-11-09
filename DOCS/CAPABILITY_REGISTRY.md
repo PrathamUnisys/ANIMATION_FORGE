@@ -59,6 +59,10 @@ database persistence, frontend panels or agent dispatch have been implemented.
 The presence of a JSON contract does not imply that the backend validates or
 stores records against it.
 
+The internal screenplay pipeline currently creates a premise-specific scaffold
+only. Its production-breakdown method verifies that the script is approved, then
+raises NotImplementedError; it does not insert demo scenes into project data.
+
 ## MCP built-in catalog
 
 These identifiers are registered in the gateway's in-memory `exposed_server_tools`

@@ -228,6 +228,7 @@ The following distinctions are important when planning work or reporting progres
 | Channel styles | Registry exists but is empty; no channel profile has been supplied yet. |
 | Screenplay context assembly | A detailed contract exists; the runtime assembler is not implemented. |
 | Screenplay workflow | `StoryAndScreenplayPipeline` currently creates a premise-specific human-editable scaffold only. It does not call a live LLM, draft scene prose, complete the 13 passes or assign creative scores. |
+| Production breakdown | Unavailable. The former fixed throne-room demo has been disabled; no scenes are created until a real approved-script-to-scene breakdown is implemented. |
 | LLM providers | Provider metadata exists, but `ProviderManager` does not make a live LLM request. Simulated estimates are not persisted as actual token usage or cost. The credential vault is an in-memory test stub. |
 | TTS | Provider metadata exists. The inspected production path creates a simple tone WAV rather than live provider speech. |
 | ComfyUI | Workflow/profile validation and provenance-related code exist. Do not assume that the adapter submits a real job to a running ComfyUI server and retrieves its output. |

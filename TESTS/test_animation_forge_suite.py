@@ -358,6 +358,13 @@ class AnimationForgeComprehensiveTestSuite(unittest.TestCase):
         self.approvals.submit_human_decision(
             scr["approval_id"], "APPROVED", "HUMAN_DIRECTOR", "Approved scaffold for further development"
         )
+        with self.assertRaises(NotImplementedError):
+            isolated_story_pipe.generate_production_breakdown("PROJECT_TEST_SCAFFOLD", scr["script_id"])
+        with self.db.get_connection() as conn:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM scenes WHERE project_id = 'PROJECT_TEST_SCAFFOLD'").fetchone()[0],
+                0,
+            )
         with self.assertRaises(ImmutableScriptError):
             isolated_story_pipe.attempt_modify_script_in_place(scr["script_id"], "Overwritten text")
 

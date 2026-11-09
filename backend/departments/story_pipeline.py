@@ -253,62 +253,24 @@ No scene prose has been generated. Draft each scene only after the protagonist, 
                 )
 
     def generate_production_breakdown(self, project_id: str, approved_script_id: str) -> Dict[str, Any]:
-        with self.db.get_connection() as conn:
-            scr = conn.execute("SELECT * FROM scripts WHERE script_id = ? AND project_id = ?", (approved_script_id, project_id)).fetchone()
-            if not scr or scr["approval_status"] != "APPROVED":
-                raise PermissionError(f"Cannot break down unapproved script '{approved_script_id}'.")
+        """Fail closed until a real approved-script-to-scene breakdown exists.
 
-        scenes_data = [
-            {
-                "scene_id": "SCN_001",
-                "project_id": project_id,
-                "title": "The Crumbling Throne Room & Crown Discovery",
-                "location_id": "LOC_THRONE_ROOM",
-                "characters": ["CHAR_SIR_PIP", "CHAR_GLOOP"],
-                "required_assets": ["PROP_RUSTED_CROWN", "PROP_TURNIP_CLOTH", "BG_THRONE_ROOM_2_5D"],
-                "duration_sec": 15.0,
-                "animation_method": "2.5D",
-                "required_shots": ["SHT_001", "SHT_002"],
-                "camera_requirements": "Slow 2.5D parallax push-in (35mm -> 50mm equivalent)",
-                "audio_dependencies": ["AUD_LINE_001", "AUD_LINE_002"],
-                "lighting": "Warm morning god-rays slicing through emerald dust motes",
-                "vfx": ["VFX_DUST_MOTES"],
-                "production_dependencies": ["CHAR_SIR_PIP", "CHAR_GLOOP", "LOC_THRONE_ROOM"],
-                "expected_outputs": ["SCN_001_PASS.mp4"]
-            },
-            {
-                "scene_id": "SCN_002",
-                "project_id": project_id,
-                "title": "The Awakening & Coronation of King Gloop",
-                "location_id": "LOC_THRONE_ROOM",
-                "characters": ["CHAR_SIR_PIP", "CHAR_GLOOP", "CHAR_STONE_GOLEM"],
-                "required_assets": ["PROP_GLEAMING_CROWN", "PROP_STONE_CLIPBOARD", "BG_THRONE_ROOM_2_5D"],
-                "duration_sec": 30.0,
-                "animation_method": "HYBRID",
-                "required_shots": ["SHT_003", "SHT_004"],
-                "camera_requirements": "Low-angle Dutch tilt on Golem reveal; whip-pan to Crown coronation",
-                "audio_dependencies": ["AUD_LINE_003", "AUD_LINE_004", "AUD_LINE_005", "AUD_LINE_006"],
-                "lighting": "Golden rune glow + amber basalt rim lighting",
-                "vfx": ["VFX_RUNE_FLARE", "VFX_CAMERA_SHAKE"],
-                "production_dependencies": ["SCN_001", "CHAR_STONE_GOLEM"],
-                "expected_outputs": ["SCN_002_PASS.mp4"]
-            }
-        ]
-
+        The previous implementation inserted fixed throne-room demonstration
+        scenes regardless of the approved screenplay. Returning those as a
+        production breakdown could contaminate project data, so no scene rows
+        are created by this placeholder.
+        """
         with self.db.get_connection() as conn:
-            for s in scenes_data:
-                conn.execute(
-                    """INSERT OR REPLACE INTO scenes
-                       (scene_id, project_id, title, location_id, characters_json, required_assets_json, duration_sec, animation_method, required_shots_json, camera_requirements, audio_dependencies_json, lighting, vfx_json, production_dependencies_json, expected_outputs_json)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        s["scene_id"], project_id, s["title"], s["location_id"],
-                        json.dumps(s["characters"]), json.dumps(s["required_assets"]),
-                        s["duration_sec"], s["animation_method"], json.dumps(s["required_shots"]),
-                        s["camera_requirements"], json.dumps(s["audio_dependencies"]),
-                        s["lighting"], json.dumps(s["vfx"]),
-                        json.dumps(s["production_dependencies"]), json.dumps(s["expected_outputs"])
-                    )
+            script = conn.execute(
+                "SELECT script_id, approval_status FROM scripts WHERE script_id = ? AND project_id = ?",
+                (approved_script_id, project_id),
+            ).fetchone()
+            if not script or script["approval_status"] != "APPROVED":
+                raise PermissionError(
+                    f"Cannot break down unapproved or missing script '{approved_script_id}'."
                 )
-            conn.commit()
-        return {"project_id": project_id, "scenes": scenes_data}
+
+        raise NotImplementedError(
+            "Production breakdown is unavailable: no script-derived scene parser or generation path is implemented. "
+            "No scenes were created."
+        )
