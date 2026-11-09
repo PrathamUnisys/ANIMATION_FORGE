@@ -668,6 +668,14 @@ class QCValidatePayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
     script_id: str
     episode_id: str = ""
+    series_id: Optional[str] = None
+
+class CritiquePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    script_id: str
+    episode_id: Optional[str] = None
+    provider_id: str = "OLLAMA_OPENAI_COMPATIBLE"
+    model_id: str = "ornith:9b"
 
 class OutlineApprovePayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -781,10 +789,12 @@ def get_episode_brief_api(project_id: str, episode_id: str, _: str = Depends(ver
 
 @app.get("/api/projects/{project_id}/story-context")
 def get_story_context_api(project_id: str, episode_id: str = Query(..., min_length=1), series_id: str = Query(default=None),
-                          primary_genre_id: str = Query(default="GENRE_FANTASY"), channel_style_id: str = Query(default=None),
+                          primary_genre_id: str = Query(default=None), channel_style_id: str = Query(default=None),
+                          secondary_genre_ids: str = Query(default=None),
                           _: str = Depends(verify_local_ipc_token)):
     try:
-        return story_ctx.assemble_context(project_id, episode_id, series_id, primary_genre_id, channel_style_id=channel_style_id)
+        secondaries = [s.strip() for s in secondary_genre_ids.split(",") if s.strip()] if secondary_genre_ids else None
+        return story_ctx.assemble_context(project_id, episode_id, series_id, primary_genre_id, secondary_genre_ids=secondaries, channel_style_id=channel_style_id)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -793,7 +803,8 @@ def post_story_analysis_api(project_id: str, payload: GenerationPayload, _: str 
     try:
         brief = story_ctx.get_brief(project_id, payload.episode_id)
         canon = story_ctx.get_approved_canon(payload.series_id) if payload.series_id else None
-        return story_pipeline.generate_story_analysis(project_id, payload.episode_id, brief["content"], canon["content"] if canon else None, provider_manager, payload.provider_id, payload.model_id)
+        assembled = story_ctx.assemble_context(project_id, payload.episode_id, payload.series_id)
+        return story_pipeline.generate_story_analysis(project_id, payload.episode_id, brief["content"], canon["content"] if canon else None, provider_manager, payload.provider_id, payload.model_id, context_package=assembled, context_hash=assembled["manifest"]["context_hash_sha256"])
     except HTTPException:
         raise
     except ProviderError as exc:
@@ -806,7 +817,8 @@ def post_hooks_api(project_id: str, payload: GenerationPayload, _: str = Depends
     try:
         analysis = story_pipeline.get_artifact(project_id, payload.episode_id, "STORY_ANALYSIS")["content"]
         brief = story_ctx.get_brief(project_id, payload.episode_id)["content"]
-        return story_pipeline.generate_hooks(project_id, payload.episode_id, analysis, brief, provider_manager, payload.provider_id, payload.model_id)
+        assembled = story_ctx.assemble_context(project_id, payload.episode_id, payload.series_id)
+        return story_pipeline.generate_hooks(project_id, payload.episode_id, analysis, brief, provider_manager, payload.provider_id, payload.model_id, context_package=assembled, context_hash=assembled["manifest"]["context_hash_sha256"])
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
     except Exception as exc:
@@ -817,7 +829,8 @@ def post_outline_api(project_id: str, payload: GenerationPayload, _: str = Depen
     try:
         analysis = story_pipeline.get_artifact(project_id, payload.episode_id, "STORY_ANALYSIS")["content"]
         brief = story_ctx.get_brief(project_id, payload.episode_id)["content"]
-        return story_pipeline.generate_outline(project_id, payload.episode_id, analysis, brief, provider_manager, payload.provider_id, payload.model_id)
+        assembled = story_ctx.assemble_context(project_id, payload.episode_id, payload.series_id)
+        return story_pipeline.generate_outline(project_id, payload.episode_id, analysis, brief, provider_manager, payload.provider_id, payload.model_id, context_package=assembled, context_hash=assembled["manifest"]["context_hash_sha256"])
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
     except Exception as exc:
@@ -837,7 +850,8 @@ def post_scene_cards_api(project_id: str, payload: GenerationPayload, _: str = D
     try:
         outline = story_pipeline.get_artifact(project_id, payload.episode_id, "OUTLINE")["content"]
         brief = story_ctx.get_brief(project_id, payload.episode_id)["content"]
-        return story_pipeline.generate_scene_cards(project_id, payload.episode_id, outline, brief, provider_manager, payload.provider_id, payload.model_id)
+        assembled = story_ctx.assemble_context(project_id, payload.episode_id, payload.series_id)
+        return story_pipeline.generate_scene_cards(project_id, payload.episode_id, outline, brief, provider_manager, payload.provider_id, payload.model_id, context_package=assembled, context_hash=assembled["manifest"]["context_hash_sha256"])
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
     except Exception as exc:
@@ -854,6 +868,9 @@ def post_screenplay_api(project_id: str, payload: GenerationPayload, _: str = De
             project_id, payload.episode_id, cards, brief_row["content"], canon["content"] if canon else None,
             payload.title, payload.target_audience, payload.intended_duration_sec, provider_manager,
             payload.provider_id, payload.model_id, ctx["manifest"]["context_hash_sha256"],
+            context_package=ctx,
+            source_refs={"brief_revision_id": brief_row.get("brief_revision_id"), "brief_revision": brief_row.get("revision"),
+                        "canon_revision_id": ctx.get("canon_revision_id"), "canon_hash": ctx.get("canon_hash")},
         )
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
@@ -873,26 +890,37 @@ def post_retention_api(project_id: str, payload: GenerationPayload, _: str = Dep
 @app.post("/api/projects/{project_id}/story/qc/validate")
 def post_qc_validate_api(project_id: str, payload: QCValidatePayload, _: str = Depends(verify_local_ipc_token)):
     try:
+        with db.get_connection() as conn:
+            _require_project(conn, project_id)
         brief = None
         canon = None
-        try:
-            brief = story_ctx.get_brief(project_id, payload.episode_id)["content"] if payload.episode_id else None
-        except Exception:
-            pass
+        series_id = payload.series_id
+        if payload.episode_id:
+            try:
+                brief_row = story_ctx.get_brief(project_id, payload.episode_id)
+                brief = brief_row["content"]
+                if series_id is None:
+                    series_id = brief.get("series_id")
+            except Exception:
+                pass
+        if series_id:
+            canon_row = story_ctx.get_approved_canon(series_id)
+            if canon_row:
+                canon = canon_row["content"]
         validator = DeterministicValidator(db)
-        return validator.validate(project_id, payload.script_id, brief, canon)
+        return validator.validate(project_id, payload.script_id, brief, canon, episode_id=payload.episode_id or None, series_id=series_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @app.post("/api/projects/{project_id}/story/qc/critique")
-def post_qc_critique_api(project_id: str, payload: GenerationPayload, _: str = Depends(verify_local_ipc_token)):
+def post_qc_critique_api(project_id: str, payload: CritiquePayload, _: str = Depends(verify_local_ipc_token)):
     try:
+        with db.get_connection() as conn:
+            _require_project(conn, project_id)
         critique = CreativeCritique(db, provider_manager)
-        # payload.episode_id reused as script_id for this route's contract; prefer body below
-        script_id = payload.episode_id
-        return critique.critique(project_id, script_id, payload.provider_id, payload.model_id)
+        return critique.critique(project_id, payload.script_id, payload.provider_id, payload.model_id, episode_id=payload.episode_id)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=f"{exc.category}: {exc.detail}") from exc
     except Exception as exc:

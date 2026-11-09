@@ -237,32 +237,43 @@ class StoryContextService:
 
     # ---- Context assembly (DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md) ----
 
+    CONTEXT_ASSEMBLY_VERSION = "1.1.0"
+
     def assemble_context(self, project_id: str, episode_id: str, series_id: Optional[str] = None,
-                         primary_genre_id: str = "GENRE_FANTASY", secondary_genre_ids: Optional[List[str]] = None,
+                         primary_genre_id: Optional[str] = None, secondary_genre_ids: Optional[List[str]] = None,
                          channel_style_id: Optional[str] = None) -> Dict[str, Any]:
-        secondary_genre_ids = secondary_genre_ids or []
         with self.db.get_connection() as conn:
             proj = conn.execute("SELECT * FROM projects WHERE project_id = ?", (project_id,)).fetchone()
             if not proj:
                 raise KeyError(f"Project {project_id} not found")
             proj = dict(proj)
-            brief = None
-            brief_row = None
-            try:
-                brief_row = conn.execute(
-                    "SELECT * FROM episode_briefs WHERE project_id = ? AND episode_id = ? ORDER BY revision DESC LIMIT 1",
-                    (project_id, episode_id),
-                ).fetchone()
-            except Exception:
-                pass
+            brief_row = conn.execute(
+                "SELECT * FROM episode_briefs WHERE project_id = ? AND episode_id = ? ORDER BY revision DESC LIMIT 1",
+                (project_id, episode_id),
+            ).fetchone()
+            if brief_row is None:
+                raise KeyError(f"No Episode Brief for {project_id}/{episode_id}; create one before assembling context.")
+            brief_row = dict(brief_row)
+            brief_status = brief_row.get("status")
+            brief_content = json.loads(brief_row.pop("content_json"))
+            brief_row["content"] = brief_content
+        # Genre/channel selection comes from the brief unless explicitly overridden.
+        # No silent Fantasy fallback; no fabricated channel profile.
+        primary_genre_id = primary_genre_id or brief_content.get("primary_genre_id")
+        if not primary_genre_id:
+            raise ValueError("No primary_genre_id in brief or request; genre cannot be inferred.")
+        if secondary_genre_ids is None:
+            secondary_genre_ids = brief_content.get("secondary_genre_ids") or []
+        if channel_style_id is None:
+            channel_style_id = brief_content.get("channel_style_id")  # may be None (channel-neutral)
         # Validate genre/channel
         self._validate_genre_selection({
             "primary_genre_id": primary_genre_id,
             "secondary_genre_ids": secondary_genre_ids,
             "channel_style_id": channel_style_id,
         })
-        # Load profiles with hashes
-        def profile_ref(kind: str, genre_id: str) -> Dict[str, Any]:
+        # Load profiles with hashes (never fabricate a channel profile)
+        def genre_profile(genre_id: str) -> Dict[str, Any]:
             reg_path = os.path.join(self.root_dir, "GENRES", "REGISTRY.json")
             with open(reg_path, encoding="utf-8") as f:
                 reg = json.load(f)
@@ -278,43 +289,95 @@ class StoryContextService:
                 "instruction_text": raw.decode("utf-8", errors="ignore")[:4000],
             }
 
-        primary = profile_ref("GENRE", primary_genre_id)
-        secondaries = [profile_ref("GENRE", s) for s in secondary_genre_ids]
-        channel = None
-        if channel_style_id:
-            channel = {"profile_id": channel_style_id, "version": "1.0.0", "content_hash_sha256": hashlib.sha256(channel_style_id.encode()).hexdigest(), "source_path": "STYLES/CHANNELS.json", "instruction_text": ""}
-        canon = self.get_approved_canon(series_id) if series_id else None
-        brief_content = None
-        brief_hash = None
-        if brief_row:
-            brief_content = json.loads(brief_row["content_json"])
-            brief_hash = brief_row["content_hash_sha256"]
-        # Screenwriter instruction
+        def channel_profile(style_id: str) -> Dict[str, Any]:
+            ch_path = os.path.join(self.root_dir, "STYLES", "CHANNELS.json")
+            with open(ch_path, encoding="utf-8") as f:
+                ch = json.load(f)
+            entry = next((c for c in ch.get("channels", []) if (c.get("style_id") or c.get("channel_style_id") or c.get("channel_id")) == style_id), None)
+            if entry is None:
+                raise ValueError(f"Channel style {style_id!r} is not registered (registry has {len(ch.get('channels',[]))} entries); report NOT_REGISTERED instead of fabricating.")
+            guide = entry.get("guide_path", "")
+            raw = open(os.path.join(self.root_dir, guide), "rb").read() if guide and os.path.exists(os.path.join(self.root_dir, guide)) else b""
+            return {
+                "profile_id": style_id, "version": entry.get("version", "1.0.0"),
+                "content_hash_sha256": hashlib.sha256(raw).hexdigest(),
+                "source_path": guide or "STYLES/CHANNELS.json",
+                "instruction_text": raw.decode("utf-8", errors="ignore")[:4000],
+            }
+
+        primary = genre_profile(primary_genre_id)
+        secondaries = [genre_profile(s) for s in secondary_genre_ids]
+        channel = channel_profile(channel_style_id) if channel_style_id else None
+        canon_row = self.get_approved_canon(series_id) if series_id else None
         sw_path = os.path.join(self.root_dir, "AGENTS", "SCREENWRITER", "INSTRUCTION.md")
         sw_raw = open(sw_path, "rb").read() if os.path.exists(sw_path) else b""
         sw_ref = {"profile_id": "AGENT_SCREENWRITER", "version": "1.0.0",
-                  "content_hash_sha256": hashlib.sha256(sw_raw).hexdigest(), "source_path": "AGENTS/SCREENWRITER/INSTRUCTION.md"}
+                  "content_hash_sha256": hashlib.sha256(sw_raw).hexdigest(), "source_path": "AGENTS/SCREENWRITER/INSTRUCTION.md",
+                  "instruction_text": sw_raw.decode("utf-8", errors="ignore")[:4000]}
+        # Immutable, hashable context package (timestamps excluded from hash)
+        project_ctx = {
+            "project_id": project_id, "title": proj.get("title"), "synopsis": proj.get("synopsis"),
+            "creative_brief": proj.get("creative_brief"), "target_audience": proj.get("target_audience"),
+            "intended_runtime_sec": proj.get("intended_runtime_sec"), "language": proj.get("language"),
+            "visual_direction": proj.get("visual_direction"), "restrictions_json": proj.get("restrictions_json"),
+        }
+        episode_ctx = {
+            "episode_id": episode_id, "brief_revision_id": brief_row["brief_revision_id"],
+            "brief_revision": brief_row["revision"], "brief_status": brief_status,
+            "brief_content": brief_content,
+        }
+        series_ctx = {
+            "series_id": series_id,
+            "bible_revision_id": canon_row["bible_revision_id"] if canon_row else None,
+            "bible_revision": canon_row["revision"] if canon_row else None,
+            "canon_content": canon_row["content"] if canon_row else None,
+            "canon_content_hash_sha256": canon_row["content_hash_sha256"] if canon_row else None,
+        }
+        profile_ctx = {
+            "primary_genre": {"profile_id": primary["profile_id"], "version": primary["version"], "content_hash_sha256": primary["content_hash_sha256"], "source_path": primary["source_path"]},
+            "secondary_genres": [{"profile_id": s["profile_id"], "version": s["version"], "content_hash_sha256": s["content_hash_sha256"], "source_path": s["source_path"]} for s in secondaries],
+            "channel_style": ({"profile_id": channel["profile_id"], "version": channel["version"], "content_hash_sha256": channel["content_hash_sha256"], "source_path": channel["source_path"]} if channel else None),
+            "screenwriter_instruction": {"profile_id": sw_ref["profile_id"], "version": sw_ref["version"], "content_hash_sha256": sw_ref["content_hash_sha256"], "source_path": sw_ref["source_path"]},
+        }
+        prompt_context_text = "\n\n".join([
+            f"PROJECT:\n{json.dumps(project_ctx)[:2500]}",
+            f"SERIES_CANON_APPROVED:\n{json.dumps(series_ctx['canon_content'] or {})[:3500]}",
+            f"EPISODE_BRIEF:\n{json.dumps(episode_ctx['brief_content'])[:4000]}",
+            f"PRIMARY_GENRE:\n{primary['instruction_text'][:2000]}",
+            f"SECONDARY_GENRES:\n" + "\n\n".join(s["instruction_text"][:1000] for s in secondaries),
+            f"CHANNEL_STYLE:\n{(channel['instruction_text'][:1000] if channel else 'NONE (channel-neutral)')}",
+            f"SCREENWRITER:\n{sw_ref['instruction_text'][:2000]}",
+        ])
         manifest = {
             "project_id": project_id,
-            "context_version": "1.0.0",
-            "primary_genre": {k: primary[k] for k in ("profile_id", "version", "content_hash_sha256", "source_path")},
-            "secondary_genres": [{k: s[k] for k in ("profile_id", "version", "content_hash_sha256", "source_path")} for s in secondaries],
-            "channel_style": ({k: channel[k] for k in ("profile_id", "version", "content_hash_sha256", "source_path")} if channel else None),
-            "screenwriter_instruction": sw_ref,
-            "project_sources": [{"source_type": "PROJECT_BRIEF", "source_id": project_id, "revision_or_hash": proj.get("synopsis", "")[:64]}] + (
-                [{"source_type": "STORY_BIBLE", "source_id": f"{series_id}/r{canon['revision']}", "revision_or_hash": canon["content_hash_sha256"]}] if canon else []
+            "context_version": self.CONTEXT_ASSEMBLY_VERSION,
+            "primary_genre": profile_ctx["primary_genre"],
+            "secondary_genres": profile_ctx["secondary_genres"],
+            "channel_style": profile_ctx["channel_style"],
+            "screenwriter_instruction": profile_ctx["screenwriter_instruction"],
+            "project_sources": [{"source_type": "PROJECT_BRIEF", "source_id": project_id, "revision_or_hash": project_ctx["synopsis"][:64]}] + (
+                [{"source_type": "STORY_BIBLE", "source_id": f"{series_id}/r{canon_row['revision']}", "revision_or_hash": canon_row["content_hash_sha256"]}] if canon_row else []
             ),
             "assembled_at": now_iso(),
         }
-        manifest["context_hash_sha256"] = canonical_hash(
-            {k: manifest[k] for k in ("project_id", "primary_genre", "secondary_genres", "channel_style", "screenwriter_instruction")}
-        )
+        package_for_hash = {
+            "project": project_ctx,
+            "episode": episode_ctx,
+            "series": series_ctx,
+            "profiles": profile_ctx,
+            "context_version": self.CONTEXT_ASSEMBLY_VERSION,
+        }
+        manifest["context_hash_sha256"] = canonical_hash(package_for_hash)
         return {
             "manifest": manifest,
+            "package": package_for_hash,
+            "prompt_context_text": prompt_context_text,
             "project": proj,
             "brief": brief_content,
-            "brief_hash": brief_hash,
-            "canon": canon["content"] if canon else None,
-            "canon_hash": canon["content_hash_sha256"] if canon else None,
+            "brief_hash": brief_row["content_hash_sha256"],
+            "brief_revision_id": brief_row["brief_revision_id"],
+            "canon": series_ctx["canon_content"],
+            "canon_hash": series_ctx["canon_content_hash_sha256"],
+            "canon_revision_id": series_ctx["bible_revision_id"],
             "profiles": {"primary": primary, "secondaries": secondaries, "channel": channel, "screenwriter": sw_ref},
         }
