@@ -23,21 +23,43 @@ change_history:
 
 ## 1. Governance status
 
-**Status: DRAFT_PROPOSAL_NOT_SUBMITTED.**
+**Status: APPROVED and IMPLEMENTED (ARCH_V1.3.0, hardened 2026-11-09).**
 
-This document records the proposed architecture and implementation sequence. It has
-not been submitted through the local GovernanceEngine, has no verified
-change_requests database record, and is not approved. The current architecture
-version and proposed next version must be read from the active local database
-when the request is formally submitted; they are intentionally not guessed here.
+This request was submitted through the local GovernanceEngine
+(`change_requests.change_request_id = 'CR_006'`, `approval_status = 'APPROVED'`)
+and approved via the native Windows reviewer confirmation path
+(`backend/governance/rule_loader.py::approve_change_request_with_human`,
+which requires `windows_reviewer.confirm_windows_human_action`).
+The active architecture version is `ARCH_V1.3.0` (verified in the local
+database, not inferred from this document).
 
-The direct-main update associated with this draft is documentation-only:
-- It adds this proposal.
-- It reconciles the screenplay context contract and capability map with the
-  current source implementation.
-- It does not edit CORE/, MODES/, SCHEMAS/, AGENTS/ definitions, database
-  migrations, backend runtime code, frontend runtime code, or global workflow
-  policy.
+Implemented evidence (verify, don't trust this prose):
+- `SCHEMAS/STORY_BIBLE.schema.json`, `EPISODE_BRIEF`, `STORY_ANALYSIS`,
+  `SCREENPLAY_OUTLINE`, `SCENE_CARD`, `RETENTION_MAP`, `CREATIVE_REVIEW`,
+  `SCREENPLAY_GENERATION_MANIFEST` exist and are validated by tests.
+- `backend/departments/story_context.py` implements versioned Bible/Brief
+  and `assemble_context()` with hash covering project/brief/canon/profiles.
+- `backend/departments/story_pipeline.py` implements staged generation with
+  outline-approval gates and exact source-revision tracking.
+- `backend/qc/screenplay_qc.py` implements deterministic validation +
+  SCRIPT_CRITIC critique, both separate from approval.
+- `backend/governance/approval_engine.py` gates staged screenplay approval
+  on exact-revision QC (no BLOCKER) + critique presence.
+- Frontend Story Workspace panels (A–G) in `frontend/src/App.tsx` — typecheck
+  and vite build pass.
+- `TESTS/test_cr006_story_screenplay.py` (8 tests) +
+  `TESTS/test_cr006_hardening.py` (6 tests) pass; full suite 45 passed;
+  validator 130 files/0 findings (run locally 2026-11-09).
+
+Blocked / not claimed:
+- Live Ollama generation: adapter exists; live smoke test BLOCKED
+  (Ollama not running on localhost:11434). Mock output is labelled mock.
+- `generate_production_breakdown()` remains NotImplementedError by design.
+- Channel styles: registry empty; unregistered IDs are reported, never fabricated.
+
+This document no longer describes a draft. Historical proposal text below is
+preserved for provenance; where it says "proposed"/"not implemented", the
+implemented evidence above supersedes it.
 
 Per CORE/CHANGE_CONTROL.md, no protected architecture/schema/agent changes may
 be applied while the request is pending or rejected. Approval must be recorded
