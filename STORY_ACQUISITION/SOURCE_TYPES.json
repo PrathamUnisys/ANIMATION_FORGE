@@ -1,0 +1,80 @@
+{
+  "taxonomy_version": "0.1.0",
+  "status": "PROVISIONAL",
+  "notice": "Provenance categories only. A category does not establish ownership, public-domain status, permission or commercial-use rights.",
+  "source_types": [
+    {
+      "source_type": "ORIGINAL_USER_IDEA",
+      "display_name": "Original user idea",
+      "description": "A premise, character, setting, scenario or story direction supplied by the user.",
+      "rights_review_default": "REVIEW_SCOPE_AND_CONTRIBUTIONS"
+    },
+    {
+      "source_type": "ORIGINAL_AI_ASSISTED",
+      "display_name": "Original AI-assisted concept",
+      "description": "A concept developed for the project with AI assistance and human creative selection, revision or authorship contributions.",
+      "rights_review_default": "REVIEW_MODEL_TERMS_AND_HUMAN_CONTRIBUTIONS"
+    },
+    {
+      "source_type": "PUBLIC_DOMAIN_WORK",
+      "display_name": "Public-domain work",
+      "description": "An identified work believed to be out of copyright in one or more specified territories, subject to edition, translation and related-rights checks.",
+      "rights_review_default": "VERIFY_BY_TERRITORY_AND_EDITION"
+    },
+    {
+      "source_type": "TRADITIONAL_FOLKLORE",
+      "display_name": "Traditional folklore or oral tradition",
+      "description": "A traditional tale, motif, myth, legend or oral narrative documented through identified sources and versions.",
+      "rights_review_default": "VERIFY_VERSION_AND_SOURCE_EXPRESSION"
+    },
+    {
+      "source_type": "HISTORICAL_EVENT",
+      "display_name": "Historical event or mystery",
+      "description": "A real event, historical record, public fact or unresolved incident used as research material for a fictional work.",
+      "rights_review_default": "VERIFY_FACTS_AND_SOURCE_MATERIALS"
+    },
+    {
+      "source_type": "OPENLY_LICENSED_WORK",
+      "display_name": "Openly licensed work",
+      "description": "A work made available under an identified open licence whose terms must be checked for adaptation, commercial use, attribution and share-alike obligations.",
+      "rights_review_default": "VERIFY_EXACT_LICENCE_AND_COMPLIANCE"
+    },
+    {
+      "source_type": "LICENSED_WORK",
+      "display_name": "Licensed work",
+      "description": "A work used under documented permission or licence from the relevant rights holder.",
+      "rights_review_default": "VERIFY_WRITTEN_GRANT_AND_SCOPE"
+    },
+    {
+      "source_type": "COMMISSIONED_WORK",
+      "display_name": "Commissioned work",
+      "description": "A work created under a written commission or services agreement defining relevant rights, ownership and permitted exploitation.",
+      "rights_review_default": "VERIFY_CONTRACT_AND_CHAIN_OF_TITLE"
+    },
+    {
+      "source_type": "INSPIRATION_ONLY",
+      "display_name": "Inspiration-only reference",
+      "description": "A reference consulted for broad themes, genre conventions, subject matter or research context, not as a source to adapt or reproduce.",
+      "rights_review_default": "REVIEW_SIMILARITY_AND_EXPRESSION"
+    }
+  ],
+  "review_statuses": [
+    "NOT_ASSESSED",
+    "RESEARCH_IN_PROGRESS",
+    "REVIEW_REQUIRED",
+    "CLEARED_FOR_DEFINED_USE",
+    "RESTRICTED_USE",
+    "PERMISSION_REQUIRED",
+    "REJECTED",
+    "UNKNOWN"
+  ],
+  "adaptation_relationships": [
+    "ORIGINAL_CREATION",
+    "ADAPTATION",
+    "RETELLING",
+    "DRAMATIZATION",
+    "INSPIRED_BY",
+    "RESEARCH_REFERENCE_ONLY"
+  ],
+  "territory_scope": "A future assessment must specify the territories where intended publication or distribution will occur. Avoid a single unqualified GLOBAL_CLEAR label."
+}

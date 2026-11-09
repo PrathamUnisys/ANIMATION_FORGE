@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0.0",
+  "episode_id": "EXAMPLE_THIRTEENTH_BELL_01",
+  "script_revision_id": "EXAMPLE_ONLY_NOT_A_REAL_REVISION",
+  "status": "DRAFT",
+  "method_note": "Illustrative sequence from the source report. Times are rough estimates, not measured retention.",
+  "beats": [
+    {
+      "beat_id": "B001",
+      "scene_id": "S001",
+      "timecode_start_seconds": 0,
+      "target_duration_seconds": 20,
+      "timing_basis": "ROUGH_ESTIMATE",
+      "narrative_function": "HOOK",
+      "viewer_state": "An abandoned tower's bell rings thirteen times and the belfry appears empty.",
+      "viewer_question": "Who or what is ringing it?",
+      "new_info_revealed": "The tower appears empty.",
+      "emotional_tone": "Shock and curiosity",
+      "pacing_note": "Make the impossible event legible before explaining it.",
+      "visual_focus": "Bell moving in an empty belfry.",
+      "audio_focus": "Thirteen clear metallic strikes.",
+      "payoff_references": [
+        "B005"
+      ],
+      "retention_risk_hypothesis": "The opening may confuse viewers if the tower's emptiness is unclear.",
+      "review_status": "DRAFT"
+    },
+    {
+      "beat_id": "B002",
+      "scene_id": "S002",
+      "timecode_start_seconds": 20,
+      "target_duration_seconds": 60,
+      "timing_basis": "ROUGH_ESTIMATE",
+      "narrative_function": "SETUP",
+      "viewer_state": "Investigators arrive and begin examining the impossible event.",
+      "viewer_question": "Why is the bell ringing now?",
+      "new_info_revealed": "The expected bell mechanism is absent or disabled.",
+      "emotional_tone": "Suspense",
+      "pacing_note": "Establish the case objective without a long exposition block.",
+      "visual_focus": "Investigator examines the empty bell frame.",
+      "audio_focus": "Wind and faint radio static.",
+      "payoff_references": [
+        "B003"
+      ],
+      "review_status": "DRAFT"
+    },
+    {
+      "beat_id": "B003",
+      "scene_id": "S003",
+      "timecode_start_seconds": 80,
+      "target_duration_seconds": 90,
+      "timing_basis": "ROUGH_ESTIMATE",
+      "narrative_function": "CLUE",
+      "viewer_state": "There are traces of recent activity despite the tower being sealed.",
+      "viewer_question": "Who entered and what did they touch?",
+      "new_info_revealed": "Marks lead toward a concealed part of the structure.",
+      "emotional_tone": "Curiosity",
+      "pacing_note": "Allow enough time to read the visual clue.",
+      "visual_focus": "Footprints ending at a blank wall.",
+      "audio_focus": "Footsteps stop; room tone remains.",
+      "payoff_references": [
+        "B005"
+      ],
+      "review_status": "DRAFT"
+    },
+    {
+      "beat_id": "B004",
+      "scene_id": "S004",
+      "timecode_start_seconds": 170,
+      "target_duration_seconds": 70,
+      "timing_basis": "ROUGH_ESTIMATE",
+      "narrative_function": "REVERSAL",
+      "viewer_state": "A recording contains a voice beneath the bell sound.",
+      "viewer_question": "Who said 'Return it' and what was taken?",
+      "new_info_revealed": "The bell event carries a deliberate message.",
+      "emotional_tone": "Unease and surprise",
+      "pacing_note": "The reveal changes the investigation's direction.",
+      "visual_focus": "Recorder playback and investigator reaction.",
+      "audio_focus": "Faint intelligible voice beneath the final strike.",
+      "payoff_references": [
+        "B005"
+      ],
+      "review_status": "DRAFT"
+    },
+    {
+      "beat_id": "B005",
+      "scene_id": "S005",
+      "timecode_start_seconds": 270,
+      "target_duration_seconds": 100,
+      "timing_basis": "ROUGH_ESTIMATE",
+      "narrative_function": "REVEAL",
+      "viewer_state": "The hidden chamber explains the bell's role.",
+      "viewer_question": "Can the phenomenon be contained?",
+      "new_info_revealed": "The bell's shadow or echo connects the clues.",
+      "emotional_tone": "Dread and discovery",
+      "pacing_note": "Connect clues visibly; do not explain only through dialogue.",
+      "visual_focus": "Chamber, bell shadow and inscription.",
+      "audio_focus": "Low resonance resolves into silence.",
+      "payoff_references": [
+        "B001",
+        "B003",
+        "B004"
+      ],
+      "review_status": "DRAFT"
+    },
+    {
+      "beat_id": "B006",
+      "scene_id": "S006",
+      "timecode_start_seconds": 370,
+      "target_duration_seconds": 70,
+      "timing_basis": "ROUGH_ESTIMATE",
+      "narrative_function": "RESOLUTION",
+      "viewer_state": "The case appears contained, but one detail remains unsettling.",
+      "viewer_question": "Was the danger truly ended?",
+      "new_info_revealed": "The bell is sealed; a final detail hints at wider mythology.",
+      "emotional_tone": "Uneasy relief",
+      "pacing_note": "Deliver the case payoff before a series teaser.",
+      "visual_focus": "Detective's case ledger and a final anomaly.",
+      "audio_focus": "Muted bell overtone or silence.",
+      "payoff_references": [
+        "B001",
+        "B005"
+      ],
+      "review_status": "DRAFT"
+    }
+  ]
+}

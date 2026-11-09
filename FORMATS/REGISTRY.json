@@ -1,0 +1,21 @@
+{
+  "registry_version": "0.1.0",
+  "status": "PROVISIONAL",
+  "profiles": [
+    {
+      "format_id": "FORMAT_SHARED_UNIVERSE_ANTHOLOGY",
+      "display_name": "Shared-Universe Thematic Anthology",
+      "instruction_path": "FORMATS/SHARED_UNIVERSE_ANTHOLOGY/INSTRUCTION.md",
+      "version": "0.1.0",
+      "status": "DRAFT",
+      "tags": [
+        "anthology",
+        "shared_universe",
+        "episodic_mystery",
+        "recurring_canon",
+        "optional_series_arc"
+      ],
+      "notes": "Initial proposed format for Animation Forge. Not yet integrated with project schema, runtime context assembly or UI."
+    }
+  ]
+}
