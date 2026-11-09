@@ -1,14 +1,22 @@
 ---
 change_request_id: CR_006
-version: 0.1.0
+prompt_id: DOCS_CHANGE_REQUEST_CR_006
+version: 1.0.0
 modified_date: 2026-11-09
-status: DRAFT_PROPOSAL_NOT_SUBMITTED
+status: APPROVED_IMPLEMENTED_ARCH_V1_3_0
 description: Proposed Story Bible, episode context, real screenplay generation, and evidence-based script quality workflow
 dependencies:
   - CORE/CHANGE_CONTROL.md
   - CORE/RULE_HIERARCHY.md
   - CORE/HUMAN_APPROVAL_POLICY.md
   - DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md
+change_history:
+  - version: 0.1.0
+    date: 2026-11-09
+    summary: Initial CR_006 draft proposal
+  - version: 0.2.0
+    date: 2026-11-09
+    summary: Implementation executed under approved CR_006 scope (M1-M5)
 ---
 
 # CR_006 — Story Context, Screenplay Generation and Script Quality

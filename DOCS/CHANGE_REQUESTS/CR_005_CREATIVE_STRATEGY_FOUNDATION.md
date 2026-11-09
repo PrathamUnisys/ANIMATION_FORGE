@@ -1,5 +1,6 @@
 ---
 change_request_id: CR_005
+prompt_id: DOCS_CHANGE_REQUEST_CR_005
 version: 0.1.0
 modified_date: 2026-11-09
 status: DRAFT_PROPOSAL_NOT_SUBMITTED
@@ -7,6 +8,10 @@ description: Preparatory architecture for story acquisition, series formats and 
 dependencies:
   - CORE/CHANGE_CONTROL.md
   - DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md
+change_history:
+  - version: 0.1.0
+    date: 2026-11-09
+    summary: Initial CR_005 draft proposal
 ---
 
 # CR_005 — Creative Strategy Foundation

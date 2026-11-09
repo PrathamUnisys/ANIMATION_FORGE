@@ -1,3 +1,14 @@
+---
+prompt_id: GENRES_PROPOSED_PROFILE_ROADMAP
+version: 1.0.0
+modified_date: 2026-11-09
+description: Proposed genre profile roadmap (not active profiles)
+dependencies: ["GENRES_INDEX"]
+change_history:
+  - version: 1.0.0
+    date: 2026-11-09
+    summary: Initial proposed profile roadmap
+---
 # Proposed Genre Profile Roadmap
 
 **Status:** Research-informed proposal. These profiles are not active and are not registered in `GENRES/REGISTRY.json`.

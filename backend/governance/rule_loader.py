@@ -291,6 +291,11 @@ class GovernanceEngine:
         return {"change_request_id": change_request_id, "approval_status": "AWAITING_HUMAN_REVIEW", "proposed_version": proposed_version}
 
     def approve_and_apply_change_request(self, change_request_id: str, human_reviewer_id: str, file_updates: Dict[str, str]) -> Dict[str, Any]:
+        # SECURITY GAP (CR_006): The HUMAN_ prefix alone is not authentication.
+        # The trusted path is approve_change_request_with_human() which requires
+        # native Windows confirmation. This legacy method is retained for
+        # backward-compatible unit tests only and must NOT be used for live
+        # architecture approvals; live callers use the secure method below.
         if not human_reviewer_id.startswith("HUMAN_"):
             raise ArchitectureLockError("Only a human reviewer can approve an architectural Change Request.")
         with self.db.get_connection() as conn:
@@ -314,6 +319,35 @@ class GovernanceEngine:
             )
             conn.commit()
             return {"active_version": cr["proposed_version"], "status": "APPROVED"}
+
+    def approve_change_request_with_human(self, change_request_id: str, action_summary: Optional[str] = None, file_updates: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+        """Secure architecture approval: requires native Windows confirmation.
+
+        Never invents a HUMAN_ ID. The reviewer identity returned by
+        windows_reviewer (HUMAN_WINDOWS_<account>) is the only accepted
+        identity for live approvals.
+        """
+        from backend.governance.windows_reviewer import confirm_windows_human_action
+        summary = action_summary or f"Approve architecture change request {change_request_id}?"
+        reviewer_id = confirm_windows_human_action(summary)
+        # confirm_windows_human_action already proved a live Windows human;
+        # delegate to apply logic with that trusted identity.
+        return self.approve_and_apply_change_request(change_request_id, reviewer_id, file_updates or {})
+
+    def reject_change_request(self, change_request_id: str, reason: str = "") -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00","Z")
+        with self.db.get_connection() as conn:
+            cur = conn.execute("SELECT approval_status FROM change_requests WHERE change_request_id = ?", (change_request_id,)).fetchone()
+            if not cur:
+                raise ValueError(f"Change Request {change_request_id} not found")
+            if cur["approval_status"] not in ("AWAITING_HUMAN_REVIEW",):
+                raise ArchitectureLockError(f"Change Request {change_request_id} is {cur['approval_status']}, not AWAITING_HUMAN_REVIEW")
+            conn.execute(
+                "UPDATE change_requests SET approval_status = 'REJECTED', decided_at = ? WHERE change_request_id = ?",
+                (now, change_request_id)
+            )
+            conn.commit()
+        return {"change_request_id": change_request_id, "approval_status": "REJECTED"}
 
     def rollback_architecture(self, target_version_id: str, human_reviewer_id: str) -> Dict[str, Any]:
         if not human_reviewer_id.startswith("HUMAN_"):
