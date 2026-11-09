@@ -1,0 +1,525 @@
+{
+  "schema_version": "1.0.0",
+  "status": "DRAFT_LIBRARY_NOT_APPROVED",
+  "description": "Thirty original hook patterns across five categories. Adapt each pattern to the actual premise; each opening promise must be fulfilled or meaningfully reframed later.",
+  "source_basis": "Animation Forge Audience Experience Deep Research report, section 2 (Opening Hooks), which groups hooks as Mystery, Visual Anomaly, Emotional, Supernatural and Suspense. The report's executive summary asks for 30+ concepts.",
+  "selection_rules": [
+    "Match the hook to the selected genre, audience and specific case premise.",
+    "Record the question the hook raises and the scene/beat that fulfils it.",
+    "Prefer a legible visual when animation can communicate the premise without exposition.",
+    "Do not imply a threat, reveal or outcome that the episode does not deliver.",
+    "Treat expected viewer response as a creative hypothesis, not a guaranteed behaviour."
+  ],
+  "hooks": [
+    {
+      "id": "HOOK-MYSTERY-01",
+      "category": "MYSTERY",
+      "name": "Unexplained object",
+      "pattern": "Open on an object behaving impossibly.",
+      "example": "A sealed archive drawer rattles although its key is in the detective's hand.",
+      "intended_viewer_question": "What is inside?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-MYSTERY-02",
+      "category": "MYSTERY",
+      "name": "Impossible evidence",
+      "pattern": "Show evidence that cannot all be true at once.",
+      "example": "A fresh footprint ends in the middle of a dusty locked room.",
+      "intended_viewer_question": "Who entered and how did they leave?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-MYSTERY-03",
+      "category": "MYSTERY",
+      "name": "Missing minute",
+      "pattern": "Reveal a record gap at the moment of an incident.",
+      "example": "A station clock skips one minute and every witness remembers a chime.",
+      "intended_viewer_question": "What happened in the missing minute?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-MYSTERY-04",
+      "category": "MYSTERY",
+      "name": "Contradictory witness",
+      "pattern": "Let two credible witnesses describe incompatible details.",
+      "example": "One guard says the visitor cast no reflection.",
+      "intended_viewer_question": "Which account is incomplete?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-MYSTERY-05",
+      "category": "MYSTERY",
+      "name": "Message before event",
+      "pattern": "Present a message describing an event before it occurs.",
+      "example": "A telegram predicts a fire in an empty building tomorrow.",
+      "intended_viewer_question": "Who sent it?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-MYSTERY-06",
+      "category": "MYSTERY",
+      "name": "Wrong explanation",
+      "pattern": "Begin with a confident answer, then disprove it visually.",
+      "example": "The inspector blames a broken mechanism; its detached clapper moves.",
+      "intended_viewer_question": "Which assumption is wrong?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-VISUAL-ANOMALY-07",
+      "category": "VISUAL_ANOMALY",
+      "name": "Independent shadow",
+      "pattern": "Let a shadow act without its owner.",
+      "example": "A suspect leaves, but their shadow remains seated.",
+      "intended_viewer_question": "What is the shadow connected to?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-VISUAL-ANOMALY-08",
+      "category": "VISUAL_ANOMALY",
+      "name": "Changing portrait",
+      "pattern": "Change one detail in a familiar static image.",
+      "example": "A painted hand points to a cabinet after the detective looks away.",
+      "intended_viewer_question": "Did the portrait change?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-VISUAL-ANOMALY-09",
+      "category": "VISUAL_ANOMALY",
+      "name": "Impossible geometry",
+      "pattern": "Reveal space whose dimensions contradict the building.",
+      "example": "A narrow hall opens into a room wider than the building.",
+      "intended_viewer_question": "Where does the extra space lead?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-VISUAL-ANOMALY-10",
+      "category": "VISUAL_ANOMALY",
+      "name": "Wrong reflection",
+      "pattern": "Reveal an absent detail in a reflection.",
+      "example": "The mirror shows a figure behind the detective; the room is empty.",
+      "intended_viewer_question": "What can the mirror perceive?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-VISUAL-ANOMALY-11",
+      "category": "VISUAL_ANOMALY",
+      "name": "Object out of time",
+      "pattern": "Show an object in a state that suggests impossible timing.",
+      "example": "Rain drips from an umbrella sealed in a dry archive.",
+      "intended_viewer_question": "Who used it?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-VISUAL-ANOMALY-12",
+      "category": "VISUAL_ANOMALY",
+      "name": "Motion in stillness",
+      "pattern": "Keep the scene still except for one meaningful moving detail.",
+      "example": "Only the flame beside an unopened letter moves.",
+      "intended_viewer_question": "Why that flame?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-EMOTIONAL-13",
+      "category": "EMOTIONAL",
+      "name": "Recognised voice",
+      "pattern": "Show a reaction to a voice that should be impossible.",
+      "example": "A dead archivist whispers the detective's childhood nickname.",
+      "intended_viewer_question": "How can the voice know that?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-EMOTIONAL-14",
+      "category": "EMOTIONAL",
+      "name": "Protective lie",
+      "pattern": "Reveal someone hiding evidence to protect another person.",
+      "example": "A witness burns a photograph before the face is seen.",
+      "intended_viewer_question": "Whom are they protecting?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-EMOTIONAL-15",
+      "category": "EMOTIONAL",
+      "name": "Object of grief",
+      "pattern": "Use a personal object to imply a loss.",
+      "example": "A character sets two cups, then removes one.",
+      "intended_viewer_question": "Who is missing?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-EMOTIONAL-16",
+      "category": "EMOTIONAL",
+      "name": "Recognition in fear",
+      "pattern": "Let a frightened character recognise a threat.",
+      "example": "The caretaker says the figure's name with relief, then terror.",
+      "intended_viewer_question": "Why is it familiar?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-EMOTIONAL-17",
+      "category": "EMOTIONAL",
+      "name": "Urgent choice",
+      "pattern": "Open with a costly decision under pressure.",
+      "example": "The detective must choose between evidence and a trapped colleague.",
+      "intended_viewer_question": "What matters most to them?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-EMOTIONAL-18",
+      "category": "EMOTIONAL",
+      "name": "Unfinished farewell",
+      "pattern": "Interrupt a farewell with an impossible event.",
+      "example": "A goodbye recording continues after the tape is removed.",
+      "intended_viewer_question": "Who is still speaking?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUPERNATURAL-19",
+      "category": "SUPERNATURAL",
+      "name": "Rule violation",
+      "pattern": "Show a clear violation of an ordinary rule.",
+      "example": "A bell rings thirteen times without a clapper.",
+      "intended_viewer_question": "What rule has been broken?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUPERNATURAL-20",
+      "category": "SUPERNATURAL",
+      "name": "Price of a wish",
+      "pattern": "Show a supernatural benefit with a cost.",
+      "example": "Each answered question erases a name from a ledger.",
+      "intended_viewer_question": "What is the price?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUPERNATURAL-21",
+      "category": "SUPERNATURAL",
+      "name": "Entity boundary",
+      "pattern": "Show a presence unable to cross a defined boundary.",
+      "example": "A wet hand stops at the edge of a salt circle.",
+      "intended_viewer_question": "What keeps it out?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUPERNATURAL-22",
+      "category": "SUPERNATURAL",
+      "name": "Ritual already active",
+      "pattern": "Begin after a ritual has started.",
+      "example": "All symbols are complete except a name written in fresh ink.",
+      "intended_viewer_question": "Who completed it?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUPERNATURAL-23",
+      "category": "SUPERNATURAL",
+      "name": "Impossible return",
+      "pattern": "Show something returning against established rules.",
+      "example": "A sealed case file appears dated tomorrow.",
+      "intended_viewer_question": "Who returned it?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUPERNATURAL-24",
+      "category": "SUPERNATURAL",
+      "name": "Borrowed memory",
+      "pattern": "Let someone remember an event they never experienced.",
+      "example": "A child describes a demolished theatre's hidden room.",
+      "intended_viewer_question": "Whose memory is this?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUSPENSE-25",
+      "category": "SUSPENSE",
+      "name": "Countdown without clock",
+      "pattern": "Build a countdown through repeated physical signals.",
+      "example": "Each pipe knock turns off another light.",
+      "intended_viewer_question": "What happens in darkness?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUSPENSE-26",
+      "category": "SUSPENSE",
+      "name": "Threat behind barrier",
+      "pattern": "Place danger on the other side of a fragile barrier.",
+      "example": "A handprint presses into frosted glass from outside.",
+      "intended_viewer_question": "Will the barrier hold?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUSPENSE-27",
+      "category": "SUSPENSE",
+      "name": "Interrupted explanation",
+      "pattern": "Interrupt an explanation with evidence arriving live.",
+      "example": "A witness says 'It only rings when...' and the bell sounds nearby.",
+      "intended_viewer_question": "What triggers it?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUSPENSE-28",
+      "category": "SUSPENSE",
+      "name": "Safe place turns unsafe",
+      "pattern": "Change one detail in a familiar safe location.",
+      "example": "The archive key now hangs on the locked door's inside.",
+      "intended_viewer_question": "Who is already there?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUSPENSE-29",
+      "category": "SUSPENSE",
+      "name": "Sound before source",
+      "pattern": "Let characters hear an unexplained sound before seeing its source.",
+      "example": "Wet footsteps circle a detective in a dry corridor.",
+      "intended_viewer_question": "What makes the sound?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    },
+    {
+      "id": "HOOK-SUSPENSE-30",
+      "category": "SUSPENSE",
+      "name": "Choice with missing facts",
+      "pattern": "Force a decision before the character knows everything.",
+      "example": "Two phones ring: one from a missing witness, one from the sealed office.",
+      "intended_viewer_question": "Which call is answered?",
+      "genre_fit": [
+        "OCCULT_DETECTIVE",
+        "DARK_FOLKLORE",
+        "PSYCHOLOGICAL_HORROR",
+        "COSMIC_HORROR"
+      ],
+      "fulfilment_requirement": "The final story must explain, resolve or deliberately reframe the question raised by this opening.",
+      "expected_viewer_response": "HYPOTHESIS_TO_REVIEW",
+      "status": "DRAFT"
+    }
+  ]
+}

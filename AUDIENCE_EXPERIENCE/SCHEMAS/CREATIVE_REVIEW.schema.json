@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/schemas/creative-review.schema.json",
+  "title": "Animation Forge Creative Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "episode_id",
+    "script_revision_id",
+    "reviewer_role",
+    "dimensions",
+    "critical_checks",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "script_revision_id": {
+      "type": "string"
+    },
+    "reviewer_role": {
+      "type": "string",
+      "enum": [
+        "SCRIPT_CRITIC",
+        "HUMAN_REVIEWER",
+        "OTHER"
+      ]
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "score",
+          "evidence",
+          "recommendation"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "HOOK_STRENGTH",
+              "PREMISE_CLARITY",
+              "PLOT_STRUCTURE",
+              "CLUE_LOGIC",
+              "CHARACTER_DEPTH",
+              "VISUAL_STORYTELLING",
+              "AUDIO_DESIGN",
+              "ENGAGEMENT_POTENTIAL",
+              "PRODUCTION_FEASIBILITY"
+            ]
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "critical_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "result",
+          "evidence"
+        ],
+        "properties": {
+          "check_id": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "NOT_TESTED",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "candidate_average_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "scoring_policy_note": {
+      "type": "string",
+      "description": "Scores are advisory until a separately approved calibration policy exists."
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "REVISION_RECOMMENDED",
+        "READY_FOR_HUMAN_REVIEW",
+        "DEFERRED",
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    },
+    "creative_approval": {
+      "type": "string",
+      "const": "NOT_GRANTED_BY_AGENT"
+    }
+  }
+}

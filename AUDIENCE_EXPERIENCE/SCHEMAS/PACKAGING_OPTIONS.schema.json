@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/schemas/packaging-options.schema.json",
+  "title": "Animation Forge Packaging Options",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "episode_id",
+    "title_options",
+    "thumbnail_options",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title_options": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "text",
+          "promise_alignment",
+          "status"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "angle": {
+            "type": "string",
+            "enum": [
+              "MYSTERY",
+              "CHARACTER",
+              "SUPERNATURAL",
+              "EMOTIONAL",
+              "SEARCH_ORIENTED",
+              "OTHER"
+            ]
+          },
+          "promise_alignment": {
+            "type": "string"
+          },
+          "keyword_notes": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CANDIDATE",
+              "SELECTED",
+              "REJECTED"
+            ]
+          }
+        }
+      }
+    },
+    "thumbnail_options": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "concept",
+          "main_subject",
+          "story_alignment",
+          "status"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string"
+          },
+          "concept": {
+            "type": "string"
+          },
+          "main_subject": {
+            "type": "string"
+          },
+          "composition": {
+            "type": "string"
+          },
+          "lighting_and_colour": {
+            "type": "string"
+          },
+          "text_overlay": {
+            "type": "string"
+          },
+          "story_alignment": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CANDIDATE",
+              "SELECTED",
+              "REJECTED"
+            ]
+          }
+        }
+      }
+    },
+    "selected_title_id": {
+      "type": "string"
+    },
+    "selected_thumbnail_id": {
+      "type": "string"
+    },
+    "human_review_notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "NEEDS_REVIEW",
+        "ACCEPTED",
+        "REJECTED",
+        "DEFERRED"
+      ]
+    }
+  }
+}

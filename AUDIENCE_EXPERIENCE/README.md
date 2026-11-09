@@ -1,80 +1,40 @@
 ---
 prompt_id: AUDIENCE_EXPERIENCE_INDEX
-version: 0.1.0
+version: 0.2.0
 modified_date: 2026-11-09
-description: Research-ready workspace for audience-focused storytelling, packaging, production and analytics learning
+description: Research-derived draft workspace for audience-focused storytelling, packaging, production and analytics
 ---
 
 # Audience Experience
 
 ## Purpose
+Help Animation Forge plan and review the experience promised to viewers across story development, screenplay, animation, audio, packaging and post-publication learning. This is a cross-cutting creative layer; it does not replace genre, series format, channel style, story-source governance or human approval.
 
-This domain stores research and reviewed guidance for making Animation Forge stories understandable, appealing, emotionally meaningful and worth returning to. It connects screenplay craft with animation, audio, packaging, publishing and post-publication learning.
+## Status
+**DESIGN PACK DRAFT — NOT YET AN ACTIVE RUNTIME FEATURE.**
 
-It is not a collection of unverified growth hacks. Recommendations must be traceable to evidence, context and limitations.
+This branch contains a design pack, playbooks, 30 hook patterns, screenplay templates, JSON contracts and an illustrative pilot example. No database, API, frontend, production agent, global output contract or active workflow has been changed. Do not claim these features are executable until implementation is verified.
 
-## Current status
+## Research basis
+Based on the Library report **Executive Summary(1)** covering screenplay structures, hooks, retention mapping, mystery/horror checklists, visual/audio storytelling, packaging, analytics and QA. See `RESEARCH_FINDINGS/RESEARCH_REPORT_SYNTHESIS.md` for interpretation and limitations.
 
-**RESEARCH IN PROGRESS — no audience-retention rules are active system defaults.**
+## Core artifacts
+- `DESIGN_PACK.md`: consolidated module specification.
+- `HOOK_LIBRARY/HOOK_LIBRARY.json`: 30 original patterns across five categories.
+- `SCRIPT_FORMATS/ANIMATED_EPISODE.md`: 6–10 minute episode template.
+- `SCRIPT_FORMATS/YOUTUBE_SHORT.md`: 30–60 second Short template.
+- `SCHEMAS/`: Audience Plan, Retention Map, Packaging Options and Creative Review contracts.
+- `PLAYBOOKS/`: draft operating guidance.
+- `EXAMPLES/`: illustrative pilot records, not approved canon.
 
-The directories and templates in this area are preparatory. Do not infer that a hook interval, scene duration, cut frequency, dialogue ratio, retention percentage, title formula or upload cadence has been validated.
+## Evidence and rule discipline
+Preserve source, claim, context, limitations and evidence grade. Distinguish platform documentation, empirical research, practitioner convention and project hypothesis. Do not infer private retention from public views. Do not turn timing ranges, numerical QA scores, cut frequencies or title formulas into universal rules. Activate findings only through a reviewed change.
 
-## Research domains
-
-See `RESEARCH_BACKLOG.md` for the detailed scope:
-
-1. YouTube storytelling and script formats.
-2. Hooks and opening sequences.
-3. Retention, pacing and narrative comprehension.
-4. Mystery, suspense and horror craft.
-5. Visual storytelling for animation.
-6. Voice, music and sound design.
-7. Audience engagement and community.
-8. Titles, thumbnails and packaging.
-9. YouTube Analytics and performance interpretation.
-10. Shorts and long-form storytelling.
-11. Competitor and creator benchmarks.
-12. Academic and scientific foundations.
-
-## Evidence rules
-
-Every finding should record:
-- The exact claim or recommendation.
-- Source URL, author/publisher and publication date.
-- Date accessed.
-- Whether the source is official platform documentation, peer-reviewed research, practitioner guidance, case study or community observation.
-- Research method and sample/context where available.
-- Limitations and contradictory evidence.
-- Whether it applies to animation, Shorts, long-form or a particular genre.
-- Confidence/evidence grade.
-- Proposed implication for Animation Forge.
-- Review decision and reviewer.
-
-See `TEMPLATES/RESEARCH_FINDING_TEMPLATE.md`.
-
-## From research to system behaviour
-
-A finding does not automatically become an instruction. The intended path is:
-
-Research finding → synthesis → proposed playbook rule → human review → versioned profile/checklist → implementation and tests → validation against published work.
-
-Separate mandatory platform requirements from craft recommendations and experimental hypotheses.
-
-## Performance feedback
-
-After publishing, store available creator-side analytics, video context, experiment details and review notes using the templates in `EXPERIMENTS/` and `TEMPLATES/`.
-
-Compare like-for-like formats and the channel's own historical baseline. Do not infer watch time or retention from public view counts. Do not assume that a correlation explains why a viewer behaved a certain way.
+## Intended flow
+Audience promise → hook options → story outline → screenplay + Retention Map → creative review → production breakdown → storyboard/camera/audio → packaging selection → publication → analytics snapshot → experiment → reviewed playbook update.
 
 ## Architecture boundaries
+Genre governs narrative conventions. Series format governs episode relationships. Channel style governs brand/presentation. Audience Experience supplies cross-cutting guidance. Rights remain separate. Creative review is distinct from technical QC and human approval. Existing screenplay schemas and output contracts remain authoritative until approved changes are applied.
 
-- Genre remains responsible for narrative conventions.
-- Series format remains responsible for episode relationships.
-- Channel style remains responsible for channel identity and presentation.
-- Audience experience provides cross-cutting creative and measurement guidance.
-- Story-source rights remain independently governed.
-- Technical QC and creative/audience review remain separate.
-
-## Future integration
-
-Potential later capabilities include script retention annotations, hook libraries, packaging variants, audience-experience reviews, analytics imports and experiment tracking. They remain planned until schemas, runtime handlers, UI and tests are implemented and verified.
+## Next boundary
+A governed change request must cover schema, agent, context-assembly, persistence, API, frontend, migration, test and rollback changes. This draft pack alone does not implement them.
