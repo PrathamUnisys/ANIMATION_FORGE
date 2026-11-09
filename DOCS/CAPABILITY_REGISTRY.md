@@ -1,6 +1,6 @@
 ---
 prompt_id: DOCS_CAPABILITY_REGISTRY
-version: 1.1.0
+version: 1.2.0
 modified_date: 2026-11-09
 description: Evidence-based index of exposed API routes and registered MCP catalog operations
 dependencies: ["CORE/OUTPUT_CONTRACTS.md", "CORE/SECURITY_POLICY.md"]
@@ -11,6 +11,9 @@ change_history:
   - version: 1.1.0
     date: 2026-11-09
     summary: Register CR_004 project workspace read routes (steps, detail views, sandboxed file reader) with implementation caveats
+  - version: 1.2.0
+    date: 2026-11-09
+    summary: Record CR_006 proposed story-context and screenplay capabilities separately from implemented routes
 ---
 # Application Capability Registry (Observed)
 
@@ -62,6 +65,26 @@ stores records against it.
 The internal screenplay pipeline currently creates a premise-specific scaffold
 only. Its production-breakdown method verifies that the script is approved, then
 raises NotImplementedError; it does not insert demo scenes into project data.
+
+## CR_006 proposed story and screenplay capabilities (not implemented)
+
+The draft proposal at DOCS/CHANGE_REQUESTS/CR_006_STORY_CONTEXT_SCREENPLAY_QC.md
+covers these future capabilities. They are not callable API operations and are
+not approved runtime work:
+
+| Proposed capability | Current evidence | Missing implementation |
+|---|---|---|
+| Versioned Series Bible | The series table has a bible_json field. | Version history, structured validation, canon decisions and API/UI editing. |
+| Episode Brief | The episodes table exists; the project schema describes genre/style identifiers. | Episode-level brief persistence and end-to-end genre/style selection through database, API and UI. |
+| Screenplay context assembly | A written contract exists in DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md. | Runtime profile/canon loading, validation, hashing and scoped prompt assembly. |
+| Staged screenplay generation | story_pipeline.py creates an honest, premise-specific scaffold. | Real provider response handling, outline/scene-card generation, screenplay prose and revision orchestration. |
+| Creative script critique | SCRIPT_CRITIC instruction exists. | Independent review execution with scene/line evidence and prioritized findings. |
+| Script technical validation | Existing QC method is simulated. | Deterministic validation of the actual screenplay structure, references, continuity facts and runtime estimate. |
+| Human screenplay approval | Approval engine and Windows review flow exist with platform limitations. | End-to-end integration with real generated revisions and verified human review. |
+
+The proposal does not add routes or change runtime behavior. Do not infer
+implementation from this roadmap or from the presence of existing tables,
+instructions or schemas.
 
 ## MCP built-in catalog
 

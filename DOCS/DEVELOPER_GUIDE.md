@@ -9,7 +9,8 @@
 - `TOOLS/`: Per-tool manuals plus a task/tag-based tool catalogue; availability is verified separately from adapter maturity.
 - `LIBRARY/`: Asset metadata index, controlled tag taxonomy and configurable storage-root references; binary assets are stored outside Git.
 - `AGENTS/`: 16 specialized agent Markdown contracts.
-- `SCHEMAS/`: JSON Schemas (Draft 2020-12) validating machine-to-machine data contracts, including genre/style registries, tool catalogue, asset index and screenplay context manifest.
+- `SCHEMAS/`: JSON Schemas (Draft 2020-12) validating machine-to-machine data contracts, including genre/style registries, tool catalogue, asset index and screenplay context manifest. Proposed Story Bible and Episode Brief contracts are scoped in CR_006 but are not yet added or active.
+- `DOCS/CHANGE_REQUESTS/`: architecture proposals and their approval/application status.
 - `backend/`: Modular Python packages (`governance`, `orchestration`, `providers`, `rnd`, `integrations`, `departments`, `qc`). FastAPI binds to loopback (port 8765 in standalone development) and requires a strong `x-forge-token`.
 - `src-tauri/`: Rust Tauri 2 desktop shell selects a loopback port, launches and monitors the bundled `externalBin` backend, creates a per-launch IPC token, waits for authenticated readiness, and stops the sidecar on exit.
 - `frontend/`: React + TypeScript + Tailwind (Vite). Tauri uses the sidecar connection returned over Tauri IPC; the Vite proxy injects a token only when configured in the local environment.
@@ -20,7 +21,14 @@
 - Node: **local** `frontend/node_modules` (`npm install --no-audit --no-fund`); no global npm installs. Tauri CLI is a local devDependency (`@tauri-apps/cli`, `frontend\node_modules\.bin\tauri.cmd`).
 - Generated/ignored: `.venv/`, `frontend/node_modules/`, `frontend/dist/`, `src-tauri/target/`, `src-tauri/binaries/`, `.pyi-build/`, `.pyi-spec/` (see `.gitignore`).
 - Screenplay context contract: `DOCS/SCREENPLAY_CONTEXT_ASSEMBLY.md`; current `StoryAndScreenplayPipeline` still does not implement it.
+- Story Bible / Episode Brief: the database has a `series.bible_json` field and an `episodes` table, but there is no versioned Bible/brief service, API or UI. Treat CR_006 as a draft proposal, not an implementation.
+- Screenplay and QC status: the screenplay pipeline creates a premise-specific scaffold only; provider invocation remains simulated; the technical QC engine's demo checks do not inspect the submitted screenplay.
 - Project selectors: `primary_genre_id`, `secondary_genre_ids`, and optional `channel_style_id` are defined in `SCHEMAS/PROJECT.schema.json`; database migration and UI support remain future work.
+
+## Current story/screenplay roadmap
+- Draft proposal: `DOCS/CHANGE_REQUESTS/CR_006_STORY_CONTEXT_SCREENPLAY_QC.md`.
+- Proposed dependency order: versioned Story Bible and Episode Brief + genre/style context; real provider adapter and secure credential storage; staged outline/scene-card/screenplay generation; deterministic validation and independent creative critique; authenticated human approval; one end-to-end pilot.
+- CR_006 has not been submitted to the local GovernanceEngine or approved. Do not modify `CORE/`, `MODES/`, `SCHEMAS/`, agent definitions or global workflow structures until the request is formally submitted and approved under `CORE/CHANGE_CONTROL.md`.
 
 ## Backend notes
 - Datetimes are timezone-aware UTC (`datetime.now(timezone.utc)`; ISO stamps normalized to `Z`). Keep new code consistent (no `utcnow`).
