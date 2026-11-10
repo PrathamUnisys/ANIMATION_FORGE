@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "episode_id": "EP10",
-  "script_revision_id": "EP10_framework_upgrade_working_2026-11-10 (SCRIPTS/EP10_screenplay.md; baseline SCR_SCRIPT_LAB_10_V14 preserved at SCRIPTS/BASELINE/EP10_screenplay.md)",
+  "script_revision_id": "EP10_revision2_2026-11-10 (REVISIONS/EP10_screenplay_rev2.md; baseline V14 and revision 1 preserved)",
   "status": "DRAFT",
-  "method_note": "Derived from improved screenplay revision (exact SC01–SC05). All timecodes/durations are SCRIPT_ESTIMATE (not measured). Animatic is timing authority.",
+  "method_note": "Derived from revision 2 screenplay (exact SC01–SC05). All timecodes/durations are SCRIPT_ESTIMATE (not measured). Animatic is timing authority.",
   "beats": [
     {
       "beat_id": "B001",
@@ -19,8 +19,12 @@
       "pacing_note": "Establish rhythm, premise, and motive seed quickly; let shelf register visually.",
       "visual_focus": "Stamp rhythm, banner/motto, unread complaints shelf (REAL tag), Mr. B’s ritual composure, form 7B.",
       "audio_focus": "Stamp-thud, printer whine, clock tick, queue murmur.",
-      "payoff_references": ["B008", "B010"],
-      "retention_risk_hypothesis": "If office satire reads as generic, early hook weakens; shelf contrast and specific grievance should create the central question."
+      "payoff_references": [
+        "B008",
+        "B010"
+      ],
+      "retention_risk_hypothesis": "If office satire reads as generic, early hook weakens; shelf contrast and specific grievance should create the central question.",
+      "review_status": "DRAFT"
     },
     {
       "beat_id": "B002",
@@ -31,13 +35,17 @@
       "narrative_function": "ESCALATION",
       "viewer_state": "Viewer understands the claim has no countable harm but is being forced through a form.",
       "viewer_question": "How can a system process a wrong that never happened without erasing real ones?",
-      "new_info_revealed": "Form 7B cannot encode ‘no harm’; Noor voices the cost to those on the unread complaints shelf; Mr. B masks need with persistence; file flagged for audit review.",
+      "new_info_revealed": "Form 7B cannot encode ‘no harm’; Noor reads the footer clause 7B-PRECEDENT — UNSCORABLE CONDUCT NOTATION — LOGGED WITHOUT REMORSE VALUE; the Senior Clerk confirms the practice; Noor voices the cost to those on the unread complaints shelf; Mr. B masks need with persistence; file flagged for audit review.",
       "emotional_tone": "Comic frustration tightening into unease",
-      "pacing_note": "Repeat stamp/form business with variation; keep contrast active.",
-      "visual_focus": "Printer jam, circular annotations on 7B, shelf looming behind Noor.",
+      "pacing_note": "Repeat stamp/form business with variation; keep contrast active; ensure the clause line lands.",
+      "visual_focus": "Printer jam, circular annotations on 7B, footer clause in close-up, shelf looming behind Noor.",
       "audio_focus": "Printer coughs, clock louder, review chime.",
-      "payoff_references": ["B006", "B010"],
-      "retention_risk_hypothesis": "Procedural circling could stall; escalation flag and shelf stakes must advance pressure."
+      "payoff_references": [
+        "B006",
+        "B010"
+      ],
+      "retention_risk_hypothesis": "Procedural circling could stall; escalation flag, shelf stakes, and the new clause must advance pressure.",
+      "review_status": "DRAFT"
     },
     {
       "beat_id": "B003",
@@ -48,53 +56,64 @@
       "narrative_function": "ESCALATION",
       "viewer_state": "Viewer meets the metric that governs sincerity and sees it fail on this case.",
       "viewer_question": "What happens when sincerity cannot be scored?",
-      "new_info_revealed": "The sincerity audit requires injury/remedy/remorse 1–10; the audit's sincerity score cannot register; Procedure 4 escalation threatens a ministry-wide apology for systemic non-apology.",
+      "new_info_revealed": "The sincerity audit requires injury/remedy/remorse — the audit’s sincerity score — between 1 and 10; the score cannot register; Procedure 4 escalation threatens a ministry-wide apology for systemic non-apology.",
       "emotional_tone": "Cold bureaucratic pressure, comic dread",
       "pacing_note": "Let the dial’s failure read clearly; state stakes plainly.",
       "visual_focus": "Audit sign, sincerity dial/needle hovering near zero.",
       "audio_focus": "Thin uncertain whine from dial, sterile room tone.",
-      "payoff_references": ["B008", "B009"],
-      "retention_risk_hypothesis": "Abstract metric risk; visualised dial and explicit escalation consequence keep it concrete."
+      "payoff_references": [
+        "B008",
+        "B009"
+      ],
+      "retention_risk_hypothesis": "Abstract metric risk; visualised dial and explicit escalation consequence keep it concrete.",
+      "review_status": "DRAFT"
     },
     {
       "beat_id": "B004",
       "scene_id": "SC04",
       "timecode_start_seconds": 360,
-      "target_duration_seconds": 140,
+      "target_duration_seconds": 160,
       "timing_basis": "SCRIPT_ESTIMATE",
-      "narrative_function": "REVELATION",
+      "narrative_function": "REVEAL",
       "viewer_state": "Viewer expects Noor to solve the form problem; instead the human truth surfaces.",
       "viewer_question": "What does Mr. B truly want, and what apology can be honest?",
       "new_info_revealed": "Mr. B wants to be seen; ‘quiet, being fine’ is his invisibility. Noor refuses to fake injury and writes a true margin apology for building a place where one must be injured to be noticed.",
       "emotional_tone": "Vulnerable, quiet, humane",
-      "pacing_note": "Slow down; allow silence after Noor’s question and after Mr. B’s admission.",
+      "pacing_note": "Slow down; allow silence after Noor’s question and after Mr. B’s admission. SC04 carries 51s of pauses — validate in animatic.",
       "visual_focus": "Noor sets stamp down, pen writing in margin, Mr. B reading over shoulder.",
       "audio_focus": "Stamp rhythm drops out; room tone; softer delivery.",
-      "payoff_references": ["B009"],
-      "retention_risk_hypothesis": "Tone shift from satire to sincerity must feel earned by prior pressure; underplaying could lose emotional payoff."
+      "payoff_references": [
+        "B009"
+      ],
+      "retention_risk_hypothesis": "Tone shift from satire to sincerity must feel earned by prior pressure; underplaying could lose emotional payoff.",
+      "review_status": "DRAFT"
     },
     {
       "beat_id": "B005",
       "scene_id": "SC05",
-      "timecode_start_seconds": 500,
-      "target_duration_seconds": 50,
+      "timecode_start_seconds": 520,
+      "target_duration_seconds": 52,
       "timing_basis": "SCRIPT_ESTIMATE",
       "narrative_function": "CLIMAX",
       "viewer_state": "Viewer wonders whether truth without a score can exist inside the system.",
       "viewer_question": "Will Vell accept an unscorable but truthful record?",
-      "new_info_revealed": "Margin cannot register on the audit's sincerity score; Noor cites Form 7B Section 7B-Precedent (unscorable conduct notation, no injury claimed, escalation risk recorded). Vell exercises narrow discretion and logs ‘RECEIVED — NOT SCORED’. Mr. B accepts being addressed without being asked what was broken.",
+      "new_info_revealed": "Margin cannot register on the audit’s sincerity score; Noor recalls the clause on the form — 7B-PRECEDENT — and states its conditions (no citizen injury claimed; escalation risk recorded). Vell exercises narrow discretion and logs ‘RECEIVED — NOT SCORED’. Mr. B accepts being addressed without being asked what was broken.",
       "emotional_tone": "Tense restraint resolving into understated recognition",
       "pacing_note": "Hold the decision beat; stamp sound marks procedural-but-honest closure.",
-      "visual_focus": "Vell’s tablet/clause, idle dial, RECEIVED—NOT SCORED stamp, Mr. B’s nod.",
+      "visual_focus": "Vell’s tablet/clause matching the form footer, idle dial, RECEIVED—NOT SCORED stamp, Mr. B’s nod.",
       "audio_focus": "Duller, honest stamp; minimal score.",
-      "payoff_references": ["B001", "B003"],
-      "retention_risk_hypothesis": "Procedural explanation must stay brief and character-driven to avoid deflating climax."
+      "payoff_references": [
+        "B001",
+        "B003"
+      ],
+      "retention_risk_hypothesis": "Procedural explanation must stay brief and character-driven to avoid deflating climax.",
+      "review_status": "DRAFT"
     },
     {
       "beat_id": "B006",
       "scene_id": "SC05",
-      "timecode_start_seconds": 550,
-      "target_duration_seconds": 50,
+      "timecode_start_seconds": 572,
+      "target_duration_seconds": 60,
       "timing_basis": "SCRIPT_ESTIMATE",
       "narrative_function": "RESOLUTION",
       "viewer_state": "Viewer sees consequences: the non-injury is handled without consuming space meant for real harm, and Noor reclaims purpose.",
@@ -104,8 +123,13 @@
       "pacing_note": "Let final image breathe; end on purposeful action, not triumph.",
       "visual_focus": "HABITS tray label, unread complaints shelf, REAL—WATER DAMAGE file, pull-back over the Ministry.",
       "audio_focus": "Warmer stamp on real file, score lifts slightly then rests.",
-      "payoff_references": ["B001", "B002", "B004"],
-      "retention_risk_hypothesis": "Low; resolution answers central question and fulfils opening promise if final image is held clearly."
+      "payoff_references": [
+        "B001",
+        "B002",
+        "B004"
+      ],
+      "retention_risk_hypothesis": "Low; resolution answers central question and fulfils opening promise if final image is held clearly.",
+      "review_status": "DRAFT"
     }
   ]
 }
