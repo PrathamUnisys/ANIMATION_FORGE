@@ -1,103 +1,105 @@
 # Audience Experience & Screenplay Engineering — Design Pack
+
 **Status:** DRAFT_FOR_HUMAN_REVIEW. Documentation and contracts only; not active runtime behaviour.
 
 ## 1. Goal
-Help Animation Forge make stories understandable, visually producible and emotionally engaging while preserving the selected genre, series format and human creative authority. Audience Experience is cross-cutting; it does not replace genre, format, channel style, rights governance or technical QC.
 
-## 2. Source report recommendations
-The Deep Research report recommends genre-tailored screenplay templates; a library of 30+ opening hooks; a beat-by-beat Retention Map; playbooks for mystery/horror, visual storytelling and audio; title/thumbnail packaging; analytics interpretation; an advisory QA rubric; and integration across Story Architect, Screenwriter and Script Critic.
+Help Animation Forge make stories understandable, distinctive, emotionally engaging, visually producible, and honest about the experience promised to viewers. Preserve selected genre, series format, channel style, canon, rights constraints, and human creative authority.
 
-The implementation artifacts live in `PLAYBOOKS/`, `HOOK_LIBRARY/`, `SCRIPT_FORMATS/`, `SCHEMAS/`, `QUALITY_CHECKS/` and `EXAMPLES/`.
+Audience Experience is cross-cutting. It does not replace genre, format, channel style, story-source governance, rights review, technical QC, or approval policy.
 
-## 3. Screenplay format specification
+## 2. Screenwriting workflow
+
+The practical process is defined in PLAYBOOKS/SCREENPLAY_ENGINEERING.md:
+
+1. Intake the idea, brief, approved canon, format, audience, and production constraints.
+2. Find the dramatic engine: protagonist, objective, stakes, opposition, obstacle, and consequential choice.
+3. Define the audience promise and the ending that fulfils it.
+4. Build character pressure and motivation.
+5. Design the causal story spine before writing dialogue.
+6. Track rules, clues, setups, and payoffs where relevant.
+7. Create outline and scene cards with a clear scene change/function.
+8. Generate distinct hook options tied to the actual story.
+9. Draft filmable screenplay pages with purposeful dialogue and visual/audio storytelling.
+10. Create the Retention Map from the exact screenplay revision.
+11. Conduct independent evidence-led creative review.
+12. Revise in priority order, preserve revision lineage, and submit for human review.
+
+This is a flexible working sequence, not a fixed act structure, scene count, or universal timing formula. Combine stages for simple formats; expand them when story complexity requires it.
+
+## 3. Research-derived design components
+
+The Deep Research report recommends genre-tailored screenplay templates; opening hooks; a beat-by-beat Retention Map; mystery/horror checklists; visual/audio playbooks; title/thumbnail packaging; analytics interpretation; an advisory QA rubric; and later integration across Story Architect, Screenwriter, and Script Critic.
+
+Existing artifacts live in PLAYBOOKS/, HOOK_LIBRARY/, SCRIPT_FORMATS/, SCHEMAS/, QUALITY_CHECKS/, and EXAMPLES/. Timing and retention suggestions remain hypotheses, not platform guarantees.
+
+## 4. Screenplay formats
 
 ### Animated long-form episode
-Initial project target: 6–10 minutes. The source report proposes this starting structure:
 
-| Section | Suggested starting window | Purpose |
-|---|---:|---|
-| Cold open / hook | 0:00–0:30 | Present a mystery, visual anomaly, urgent reaction or striking question. |
-| Setup | 0:30–1:30 | Establish protagonist, setting, case and stakes. |
-| Investigation / development | 1:30–4:00 | Reveal clues progressively through action and concise dialogue. |
-| Midpoint development | Around 4:00 | Reverse an assumption or alter the interpretation of evidence. |
-| Climax | Later act | Bring clues and supernatural rules together under pressure. |
-| Resolution | Final section | Deliver payoff and optionally hint at wider series mythology. |
+Initial project option: 6–10 minutes. The format template includes identity/source, audience promise, dramatic engine, character pressure, story spine, logic ledger where relevant, scene cards, screenplay pages, production-critical notes, Retention Map, review, and runtime report.
 
-Windows are illustrative, not immutable scene lengths. Compress or expand for the actual runtime.
-
-Required outline fields: title, primary/secondary genre, series format, audience promise, protagonist, objective, stakes, central question, opposition, supernatural rule where relevant, clues/red herrings, main beats, emotional progression, production risks and unresolved decisions.
-
-Use scene headings (INT./EXT. + location + time). Separate visible action, dialogue/narration, audio cues, relevant visual/camera direction, scene/beat IDs and Retention Map references.
+Cold open/setup/development/midpoint/climax/resolution windows are optional examples, not immutable scene lengths or act requirements.
 
 ### YouTube Short
-Initial target: 30–60 seconds; the source report gives a 45–60 second example.
-1. Immediate hook (example starting target: first 3 seconds).
-2. Core development: one clear context item, escalation or evidence.
-3. Payoff/tag: answer, twist or deliberate open question.
-A Short should deliver its own promise and work for a viewer without prior episode knowledge.
 
-The source report also mentions 3–6 minute short episodes. Do not confuse these with vertical 30–60 second YouTube Shorts; a short episode needs a more complete dramatic arc.
+Initial option: 30–60 seconds. The Short should deliver a coherent promise of its own: legible opening, minimum necessary context, one central development, and a payoff or deliberate open question.
 
-## 4. Hook library
-The 30-entry library contains six patterns each for Mystery, Visual Anomaly, Emotional, Supernatural and Suspense hooks. Select by premise, genre and audience; attach the question raised and the later beat that fulfils it. No hook should imply a reveal the story does not deliver.
+A 3–6 minute short episode is a different format and needs room for a more complete dramatic arc.
 
-## 5. Retention Map
-For each major beat record:
-- What the viewer knows now.
-- What they may be wondering.
-- What new information is revealed.
-- Intended emotional tone.
-- Pacing note / estimated duration where helpful.
-- Visual focus and audio focus.
-- Payoff references to earlier beats.
-- Linked scene ID.
+## 5. Hook library
 
-The map is an editorial model of intended viewer experience, not measured analytics and not a prediction of what every viewer will feel. Estimate timecodes during writing and replace them with measured values only after animatic/video review.
+The 30-entry library contains patterns across Mystery, Visual Anomaly, Emotional, Supernatural, and Suspense categories. Select based on premise, genre, audience, and format. For each candidate record the question/emotional promise and later fulfilment beat. No hook should imply a reveal the story does not deliver.
 
-## 6. Mystery and horror integrity
-Use genre-specific review prompts:
-- **Occult Detective:** case clarity, clue-before-reveal, fair deductions, consistent supernatural rules, no deus ex machina.
-- **Dark Folklore:** source/context research, variants, adaptation choices, respectful treatment and human rights review.
-- **Psychological Horror:** motivation, clear unreliable narration signals where used, escalating fear and an earned ending.
-- **Cosmic Horror:** scale, restraint, consistent local facts, believable consequences and atmosphere serving story logic.
+## 6. Retention Map
 
-See `PLAYBOOKS/GENRE_MYSTERY_HORROR_CHECKLISTS.md`.
+For each meaningful beat record what the viewer knows, active question/expectation, what changes, intended emotional tone, visual/audio carrier, setup/payoff references, exact scene/beat ID, and estimated duration only where useful.
 
-## 7. Visual and audio playbooks
-Prioritise narrative-critical shots and readable clues; use camera, lighting and motion to guide attention. Use voice, ambience, music, silence and Foley to support comprehension and emotion. See the dedicated visual/audio playbooks.
+The map must be created from and validated against the actual screenplay revision. It is an editorial model, not measured analytics or a prediction of what every viewer will feel.
 
-## 8. Packaging
-Generate several title and thumbnail candidates. Check that each candidate's promise is fulfilled by the opening and the complete episode. Prefer one clear subject, readable contrast and imagery specific to the story. Text length and keyword formulas are optional design choices, not rules.
+## 7. Mystery and horror integrity
 
-## 9. Analytics feedback
-Record available creator-side metrics with definition, collection date, reporting window, video format and context: impressions, CTR, views, average view duration, average percentage viewed, watch time, intro retention, retention spikes/dips, returning viewers and Shorts viewed-vs-swiped where applicable.
+Use genre-specific prompts only when relevant:
+- Occult Detective: case clarity, clue-before-reveal, fair deductions, consistent supernatural rules, no deus ex machina.
+- Dark Folklore: source/context research, variants, adaptation choices, respectful treatment, and human review.
+- Psychological Horror: motivation, fair unreliable-narration signals where used, escalating fear, and earned ending.
+- Cosmic Horror: scale, restraint, consistent local facts, believable consequences, and atmosphere serving story logic.
 
-Treat metrics as investigation signals. Low CTR does not prove a thumbnail defect; an early drop does not prove a hook failure; a spike can mean rewatching, confusion or a memorable moment. Compare similar formats and multiple videos. Never infer private retention from public view counts.
+See PLAYBOOKS/GENRE_MYSTERY_HORROR_CHECKLISTS.md.
 
-## 10. Creative review
-Review hook strength, premise clarity, plot structure, clue logic, character depth, visual storytelling, audio design, engagement potential and production feasibility. Use cited scene evidence and recommendations. Rights/policy, story integrity and production blockers remain separate mandatory checks.
+## 8. Visual and audio storytelling
 
-The report proposes 0–10 scores and an example average gate around 7. This branch does not activate a numeric gate. Calibration and human review are required before any threshold can block progression.
+Prioritise narrative-critical shots and readable clues; use camera, lighting, composition, and motion to guide attention. Use voice, ambience, music, silence, and Foley to support comprehension and emotion. Distinguish story-critical requirements from optional embellishment.
 
-## 11. Integration boundaries
+## 9. Packaging
+
+Generate several title and thumbnail candidates. Check that each candidate's promise is fulfilled by the opening and complete episode. Prefer clear, specific, story-consistent imagery. Text length and keyword formulas are optional. A human selects the published package.
+
+## 10. Analytics feedback
+
+Record available creator-side metrics with definition, collection date, reporting window, video format, traffic context, and sample limitations. Treat metrics as investigation signals. Low CTR does not prove a thumbnail defect; an early drop does not prove a hook failure; a spike can mean rewatching, confusion, or a memorable moment. Compare similar formats and multiple videos. Never infer private retention from public view counts.
+
+## 11. Creative review and revision
+
+Review the screenplay itself before relying on the Retention Map. Assess promise, premise, agency, motivation, stakes, causality, setup/payoff, clue integrity, scene progression, dialogue, visual/audio storytelling, emotional credibility, genre, originality, ending, production feasibility, and runtime evidence as relevant.
+
+Every finding cites exact evidence, separates observation from interpretation, explains likely impact, states severity, and recommends a targeted action. The writer responds to major findings and rechecks affected downstream scenes. Numeric scores remain optional and advisory; no average gate is active.
+
+## 12. Integration boundaries
+
 Proposed future responsibilities:
-- Story Architect: audience promise, hook alternatives, story beats and packaging candidates.
-- Screenwriter: screenplay plus structured Retention Map.
-- Script Critic: evidence-based creative review and genre-integrity findings.
+- Story Architect: audience promise, dramatic engine, hook alternatives, story beats, and packaging candidates.
+- Screenwriter: screenplay plus traceable Retention Map and requirement coverage.
+- Script Critic: independent evidence-based review; no approval or self-rewrite.
 - Storyboard/Camera/Audio agents: consume relevant visual/audio annotations.
 - Quality Controller: objective technical checks only, not a prediction of audience response.
 
-No agent instruction, database, API, frontend, project schema, global output contract or workflow has been modified by this design pack. The screenplay pipeline's existing demonstration-only limitation must be addressed before claiming these features work end-to-end.
+No agent instruction, database, API, frontend, project schema, global output contract, or active workflow is changed by this design pack. Verify implementation before claiming end-to-end functionality.
 
-## 12. Pilot acceptance exercise
-Use **The Lantern Ledger — Case 01: The Thirteenth Bell of St. Jude**. Produce an audience promise, three candidate hooks, title/thumbnail options, beat outline, screenplay, Retention Map and creative review. Verify:
-- The selected hook is fulfilled.
-- The clues precede the solution.
-- The viewer can understand the central question.
-- The map accurately references real scenes.
-- Visual/audio handoffs identify what must be seen/heard.
-- The story can be produced at the target scale.
-- Human decisions are recorded separately from agent suggestions.
+## 13. Pilot acceptance exercise
 
-## 13. Implementation next step
-Submit a governed change request for schemas, agent instructions, context assembly, persistence, APIs, frontend panels, migrations, tests and rollback. Only implement after human approval under `CORE/CHANGE_CONTROL.md`.
+Use The Lantern Ledger — Case 01: The Thirteenth Bell of St. Jude, or another approved test premise. Produce audience promise, dramatic engine, hook alternatives, story spine, outline, scene cards, screenplay, Retention Map, and creative review. Verify hook fulfilment, character motivation, causal bridges, clue/rule fairness, scene purpose, map references, visual/audio handoffs, production scale, and separate human decisions.
+
+## 14. Implementation next step
+
+Submit and complete a governed change request for schemas, agent instructions, context assembly, persistence, APIs, frontend panels, migrations, tests, and rollback. Only implement protected changes after human approval under CORE/CHANGE_CONTROL.md.

@@ -1,46 +1,60 @@
 # YouTube Short — Animated Screenplay Template
-**Status:** DRAFT. Initial target 30–60 seconds; the source report illustrates 45–60 seconds.
+
+**Status:** DRAFT. Initial target 30–60 seconds; adapt to the actual concept and platform format. A Short must deliver a coherent promise of its own.
 
 ## Identity
 - Project / Short ID / related episode:
-- Working title / genre:
+- Working title / primary genre:
 - Target duration / aspect ratio:
-- Script revision / approval state:
+- Script ID / revision:
+- Required story beat / clue / exact text:
+- Audience context: standalone or requires prior knowledge?
 
 ## Single promise
-> [The one question, reveal or complete experience delivered by this Short.]
+> [One clear question, reveal, emotional moment, or complete experience delivered by this Short.]
 
-## Structure
-1. **Immediate hook (starting target: first 3 seconds):** legible visual or mystery, first sound/line, viewer question and title connection.
-2. **Core development:** one clear piece of context, evidence or escalation; keep visual and audio information easy to understand on a mobile screen.
-3. **Payoff / tag:** answer, twist or deliberate open question; final image; optional connection to the related episode.
+- What should the viewer understand?
+- What is the payoff?
+- Does it work without prior episode knowledge?
 
-## Production page
-```text
-VISUAL:
-[Immediate opening image.]
+## Micro-story design
+- Opening image/action/sound:
+- Immediate question or tension:
+- Minimum context needed:
+- Escalation or evidence:
+- Character choice/action:
+- Payoff or deliberate open question:
+- Final image / emotional residue:
 
-AUDIO:
-[Sound, dialogue or music cue.]
+Avoid compressing a long story until cause and effect become unintelligible. If the concept needs a full dramatic arc, consider a short episode rather than a 30–60 second Short.
 
-ACTION:
-[One clear development.]
+## Screenplay
+    VISUAL:
+    [One immediately legible opening image.]
 
-REVEAL / PAYOFF:
-[What the viewer learns.]
+    AUDIO:
+    [Sound, dialogue, silence, or music cue.]
 
-FINAL IMAGE:
-[Closing visual beat.]
-```
+    ACTION:
+    [One clear development or escalation.]
+
+    REVEAL / PAYOFF:
+    [What changes or what the viewer learns.]
+
+    FINAL IMAGE:
+    [Closing visual or emotional beat.]
 
 ## Review
-- [ ] Works without prior episode knowledge.
-- [ ] Opening is immediately legible in vertical/mobile viewing.
-- [ ] One central question or action drives the Short.
-- [ ] Payoff fits the setup.
+- [ ] Opening represents the actual story.
+- [ ] One central question/action drives the Short.
+- [ ] Context is sufficient but not overloaded.
+- [ ] Payoff follows from setup.
+- [ ] Visual and audio information are legible on mobile.
 - [ ] Title accurately represents the content.
-- [ ] Visual and audio information are clear.
-- [ ] Not merely a cropped fragment without its own coherent ending.
+- [ ] It works without prior knowledge unless explicitly a continuation.
+- [ ] It is not merely a cropped fragment without coherent payoff.
+- [ ] Runtime is labelled estimated or measured truthfully.
 
 ## Format distinction
-The source report also refers to 3–6 minute short episodes. Those are not interchangeable with 30–60 second YouTube Shorts and require a more complete dramatic arc.
+
+A 3–6 minute short episode is not interchangeable with a 30–60 second vertical YouTube Short. Choose the format based on the dramatic material rather than forcing every idea into a short duration.

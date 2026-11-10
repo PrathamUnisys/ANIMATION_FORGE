@@ -1,33 +1,51 @@
 # Retention Playbook
-**Status:** DRAFT. Timing suggestions are editorial hypotheses, not universal rules or automatic quality gates.
+
+**Status:** DRAFT. Editorial guidance only. Timing suggestions are hypotheses, not platform requirements, universal rules, or automatic quality gates.
 
 ## Purpose
-Plan the order of information, questions, emotion and payoffs so a story is clear and worth continuing. A script cannot guarantee retention.
 
-## Retention Map fields
-For each major beat record what the viewer knows, the question they may hold, new information, emotional tone, pacing note, visual focus and (where useful) a payoff reference. Link each beat to the actual scene ID. Timecodes must be labelled as estimates or measurements.
+Plan the order in which information, questions, emotions, and payoffs reach the viewer. A Retention Map helps inspect intended comprehension and progression; it cannot guarantee retention or predict individual viewer behaviour.
 
-## Heuristics from the source report
-The report suggests opening with a question or mystery within about 15 seconds; testing beats around 15–45 seconds; moving compelling content earlier; placing natural forward-looking questions around one-third and two-thirds; alternating investigation with tension peaks; and offering meaningful progress or a payoff roughly every minute.
+## Create the map from the screenplay
 
-These are starting heuristics only. They are not platform requirements or causal guarantees. A quiet scene may be important, a beat may need more than 45 seconds, and a story should not invent cliffhangers to satisfy a timer.
+Read the screenplay first. Map only beats that actually exist in the exact revision. For each meaningful beat record:
+- Exact scene/beat reference.
+- What the viewer knows immediately before it.
+- Active question, expectation, or tension.
+- New information, action, or decision.
+- What changes in the story or viewer understanding.
+- Intended emotional shift.
+- Visual and audio carrier.
+- Setup/payoff links.
+- Estimated duration only where useful, with estimate basis.
+
+A map copied from an outline is provisional until every reference is checked against the screenplay. Mark unresolved references rather than guessing.
 
 ## Review method
-1. Read the script without the map to test basic comprehension.
-2. Read the map and identify active viewer questions.
-3. Confirm that the actual scenes support the map.
-4. Mark information dumps, unsupported leaps and answers that arrive before the question matters.
-5. Inspect beats where nothing changes in information, emotion, conflict or visual focus.
-6. Recommend the smallest useful revision.
-7. Confirm that the ending fulfils the opening promise.
+
+1. Read the screenplay without the map. Can the story be followed on its own?
+2. Identify the central question and audience promise.
+3. Read the map. Does it accurately describe what each scene reveals?
+4. Track active questions: where are they created, developed, answered, or intentionally left open?
+5. Inspect causal bridges and information order. Is the viewer asked to accept something before it is established?
+6. Identify stretches where information, conflict, emotion, relationship, or visual understanding does not change.
+7. Preserve meaningful quiet scenes that create anticipation, grief, intimacy, dread, or contrast.
+8. Check that the opening promise is fulfilled by the ending.
+9. Recommend the smallest useful revision.
+
+## Pacing heuristics
+
+The research report suggests testing early questions, varying beat length, moving compelling material earlier, and offering meaningful progress or payoff throughout. These are prompts, not a stopwatch. A beat may need seconds or a sustained sequence. Do not insert cliffhangers, cuts, reveals, or dialogue solely to satisfy a timer. Do not delay a clear answer merely to inflate runtime.
 
 ## Avoid
 - Artificial "stay tuned" interruptions.
 - Fake stakes or unrelated shock images.
-- Delaying a clear answer only to inflate runtime.
-- Unpaid cliffhangers.
+- Repeating the same question without development.
+- Delaying a payoff without increasing meaning or pressure.
 - Cutting a meaningful quiet beat merely because it is slow.
 - Treating rapid editing as a substitute for narrative momentum.
+- Treating the map as proof of actual audience retention.
 
-## Analytics loop
-A drop identifies a segment to inspect, not the cause of viewer behaviour. Consider packaging, traffic source, audience mix, clarity, sound, production and sample limitations before recommending a story revision.
+## Analytics feedback
+
+A retention dip identifies a segment to inspect, not the cause of viewer behaviour. Consider packaging, traffic source, audience mix, clarity, sound, pacing, production, and sample limitations. Compare similar formats and multiple videos where possible. Keep measured platform analytics separate from intended viewer experience.
