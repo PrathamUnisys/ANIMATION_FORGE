@@ -1,0 +1,15 @@
+{
+  "script_id": "YS01_REVISED",
+  "project_id": "YS01",
+  "episode_id": "EP01",
+  "version": 1,
+  "approval_status": "NOT_APPROVED",
+  "is_immutable": false,
+  "created_at": "2026-11-10T18:56:49Z",
+  "sha256": "90a4d3642ffc10313fb484e418771e98eac6a4e1c4f2b93babccc3b0af8ccd48",
+  "database_path": null,
+  "source_path": "D:\\Work\\ANIMATION_FORGE\\PROJECTS\\YOUTUBE_SCRIPT_EXPERIMENT\\SCRIPTS\\REVISED\\YS01_THE_FOG_THAT_CHANGED_THE_AIR.md",
+  "source_type": "FILE",
+  "approval_note": "Imported from a plain file for exploration. This source was not approved through the Animation Forge governance process.",
+  "imported_at": "2026-11-10T18:56:49Z"
+}

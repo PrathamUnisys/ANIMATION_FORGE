@@ -1,0 +1,565 @@
+{
+  "schema_version": "1.0.0",
+  "analysis_id": "ANALYSIS_B27E8BC91C5B",
+  "project_id": "VDEV_YS01_YS01_REVISED_V1",
+  "source_script_sha256": "90a4d3642ffc10313fb484e418771e98eac6a4e1c4f2b93babccc3b0af8ccd48",
+  "created_at": "2026-11-10T18:56:49Z",
+  "source_format": "NARRATOR",
+  "episode": {
+    "episode_id": "EP_VDEV_YS01_YS01_REVISED_V1",
+    "title": "YS01 Revised — When London’s Fog Turned Deadly",
+    "genre": "Single narrator, documentary history",
+    "target_runtime_sec": 490,
+    "logline": "Explain how familiar winter fog became a deadly pollution event, and how it changed public policy."
+  },
+  "sequences": [
+    {
+      "sequence_id": "SEQ_01",
+      "act_label": "",
+      "title": "The city disappears",
+      "timecode": "0:00-1:15",
+      "start_seconds": 0,
+      "purpose": "Narrated segment beginning at 00:00.",
+      "scenes": [
+        {
+          "scene_id": "SCN_01_01",
+          "heading": "00:00 - The city disappears",
+          "int_ext": "NARRATED",
+          "location": "London street at street level",
+          "time": "NARRATED SEGMENT",
+          "action": "A London street gradually fades behind fog. The fog separates into pale water droplets and dark particles, with labels appearing one at a time",
+          "characters": [],
+          "props": [],
+          "source_spans": [
+            {
+              "start": 1524,
+              "end": 2308,
+              "text": "\n**[NARRATION]**  \nLondon’s fog was so thick that the city seemed to vanish. The greater danger came from the smoke people were breathing, much of it from coal fires across the city.\n\nIn December 1952, a fog settled over London and stayed for days. Buses struggled or stopped. People had trouble seeing across streets. The event became known as the Great Smog.\n\nLondon already knew fog. This one looked familiar at first, but smoke from homes and factories made it far more dangerous. Weather then kept much of that pollution close to the ground.\n\n**[VISUAL]** A London street gradually fades behind fog. The fog separates into pale water droplets and dark particles, with labels appearing one at a time.  \n**[SOUND]** Distant traffic and a low winter wind fade under the narration.\n\n"
+            }
+          ],
+          "explicit_facts": [
+            "Narration: London’s fog was so thick that the city seemed to vanish. The greater danger came from the smoke people were breathing, much of it from coal fires across the city. In December 1952, a fog settled over London and stayed for days. Buses struggled or stopped. People had trouble seeing across streets. The event became known as the Great Smog. London already knew fog. This one looked familiar at first, but smoke from homes and factories made it far more dangerous. Weather then kept much of that pollution close to the ground.",
+            "Visual: {'text': 'A London street gradually fades behind fog. The fog separates into pale water droplets and dark particles, with labels appearing one at a time.', 'start': 2072}",
+            "Sound: Distant traffic and a low winter wind fade under the narration."
+          ],
+          "inferred_staging": [],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_01_01_001",
+              "purpose": "The city disappears - visual beat",
+              "visual_description": "A London street gradually fades behind fog. The fog separates into pale water droplets and dark particles, with labels appearing one at a time",
+              "environment": "London street at street level",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "wide establishing shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 75.0,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 2085,
+                  "end": 2227,
+                  "text": "A London street gradually fades behind fog. The fog separates into pale water droplets and dark particles, with labels appearing one at a time"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: A London street gradually fades behind fog. The fog separates into pale water droplets and dark particles, with labels appearing one at a time"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: wide establishing shot."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 0:00-1:15 by direction length."
+            }
+          ],
+          "start_offset": 1524,
+          "implicit": false
+        }
+      ],
+      "start_offset": 1524,
+      "end_seconds": 75
+    },
+    {
+      "sequence_id": "SEQ_02",
+      "act_label": "",
+      "title": "Why the smoke stayed",
+      "timecode": "1:15-2:45",
+      "start_seconds": 75,
+      "purpose": "Narrated segment beginning at 01:15.",
+      "scenes": [
+        {
+          "scene_id": "SCN_02_01",
+          "heading": "01:15 - Why the smoke stayed",
+          "int_ext": "NARRATED",
+          "location": "London street at street level",
+          "time": "NARRATED SEGMENT",
+          "action": "A simple side view of the city: cold layer at street level, warm inversion layer above, smoke and particles trapped below. Avoid dense labels; define “temperature inversion” on screen once. **[ON-SCREEN TEXT]** `TEMPERATURE INVERSION: warm air above traps cooler air below`",
+          "characters": [],
+          "props": [],
+          "source_spans": [
+            {
+              "start": 2341,
+              "end": 3751,
+              "text": "\n**[NARRATION]**  \nTo understand what happened, start with the cold. Londoners burned coal to heat their homes. Factories also released smoke and particles. Pollution from fires and chimneys rose into the air.\n\nUsually, rising warm air helps carry pollution upward, where wind can spread it. But in early December, a high-pressure weather system brought calm conditions. Cold air sat near the ground, while a layer of warmer air above it acted like a lid. Weather scientists call this a temperature inversion.\n\nThe name sounds technical, but the idea is simple: the air was warmer above than below. That unusual arrangement stopped the lower air from rising freely. Smoke and other pollutants built up close to the streets.\n\nAt the same time, moisture in the fog clung to tiny particles in the smoke. The fog became darker and thicker. London’s fires were feeding the haze, and the weather was holding it in place.\n\nThis was not a cloud that had arrived from somewhere else. Much of the material in it came from the city itself.\n\n**[VISUAL]** A simple side view of the city: cold layer at street level, warm inversion layer above, smoke and particles trapped below. Avoid dense labels; define “temperature inversion” on screen once.  \n**[ON-SCREEN TEXT]** `TEMPERATURE INVERSION: warm air above traps cooler air below`  \n**[SOUND]** A soft pressure tone as the warm layer forms, then a muffled city ambience.\n\n"
+            }
+          ],
+          "explicit_facts": [
+            "Narration: To understand what happened, start with the cold. Londoners burned coal to heat their homes. Factories also released smoke and particles. Pollution from fires and chimneys rose into the air. Usually, rising warm air helps carry pollution upward, where wind can spread it. But in early December, a high-pressure weather system brought calm conditions. Cold air sat near the ground, while a layer of warmer air above it acted like a lid. Weather scientists call this a temperature inversion. The name sounds technical, but the idea is simple: the air was warmer above than below. That unusual arrangement stopped the lower air from rising freely. Smoke and other pollutants built up close to the streets. At the same time, moisture in the fog clung to tiny particles in the smoke. The fog became darker and thicker. London’s fires were feeding the haze, and the weather was holding it in place. This was not a cloud that had arrived from somewhere else. Much of the material in it came from the city itself.",
+            "Visual: {'text': 'A simple side view of the city: cold layer at street level, warm inversion layer above, smoke and particles trapped below. Avoid dense labels; define “temperature inversion” on screen once. **[ON-SCREEN TEXT]** `TEMPERATURE INVERSION: warm air above traps cooler air below`', 'start': 3371}",
+            "Sound: A soft pressure tone as the warm layer forms, then a muffled city ambience."
+          ],
+          "inferred_staging": [],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_02_01_001",
+              "purpose": "Why the smoke stayed - visual beat",
+              "visual_description": "A simple side view of the city: cold layer at street level, warm inversion layer above, smoke and particles trapped below. Avoid dense labels; define “temperature inversion” on screen once. **[ON-SCREEN TEXT]** `TEMPERATURE INVERSION: warm air above traps cooler air below`",
+              "environment": "London street at street level",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "orthographic side view",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "explanatory side view",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 90.0,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 3384,
+                  "end": 3444,
+                  "text": "A simple side view of the city: cold layer at street level, "
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: A simple side view of the city: cold layer at street level, warm inversion layer above, smoke and particles trapped below. Avoid dense labels; define “temperature inversion” on screen once. **[ON-SCREEN TEXT]** `TEMPERATURE INVERSION: warm air above traps cooler air below`"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: explanatory side view."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 1:15-2:45 by direction length."
+            }
+          ],
+          "start_offset": 2341,
+          "implicit": false
+        }
+      ],
+      "start_offset": 2341,
+      "end_seconds": 165
+    },
+    {
+      "sequence_id": "SEQ_03",
+      "act_label": "",
+      "title": "A familiar danger",
+      "timecode": "2:45-4:40",
+      "start_seconds": 165,
+      "purpose": "Narrated segment beginning at 02:45.",
+      "scenes": [
+        {
+          "scene_id": "SCN_03_01",
+          "heading": "02:45 - A familiar danger",
+          "int_ext": "NARRATED",
+          "location": "London street at street level",
+          "time": "NARRATED SEGMENT",
+          "action": "The street-level fog dissolves into a hospital window, then a plain chart: “known deaths” and “later estimates above the usual number.” Do not display an unsourced single total. The spoken line defines the later estimate",
+          "characters": [],
+          "props": [],
+          "source_spans": [
+            {
+              "start": 3781,
+              "end": 5456,
+              "text": "\n**[NARRATION]**  \nThe smoke had a history. London had suffered serious smogs before. Coal smoke was familiar, and the public had lived with dirty air for years. That familiarity made this event harder to read.\n\nThe first response was not a citywide alarm. People carried on as best they could. Yet the fog disrupted transport, work, and ordinary movement. At some places, visibility became extremely poor. The Met Office describes the episode as lasting from 5 to 9 December.\n\nThe danger was also harder to see than the disruption. A person could notice a bus that was not coming. They could not easily tell what each breath was doing to their lungs.\n\nThe smog contained harmful pollutants, including smoke and sulfur dioxide. The exact effects varied by person and place. People with existing breathing and heart problems were especially vulnerable. Hospitals and public services faced a growing burden, while the full scale was not clear in real time.\n\nThe Met Office says about 4,000 people were known to have died as a result of the fog, and that the toll could have been much higher. Later estimates count deaths above the number normally expected, across different time windows. They are estimates, not a final agreed total. Even the known figure describes a major public-health disaster.\n\n**[VISUAL]** The street-level fog dissolves into a hospital window, then a plain chart: “known deaths” and “later estimates above the usual number.” Do not display an unsourced single total. The spoken line defines the later estimate.  \n**[EDITOR NOTE]** Keep the death-estimate explanation calm and brief. The uncertainty is part of the story, not a reason to evade the harm.\n\n"
+            }
+          ],
+          "explicit_facts": [
+            "Narration: The smoke had a history. London had suffered serious smogs before. Coal smoke was familiar, and the public had lived with dirty air for years. That familiarity made this event harder to read. The first response was not a citywide alarm. People carried on as best they could. Yet the fog disrupted transport, work, and ordinary movement. At some places, visibility became extremely poor. The Met Office describes the episode as lasting from 5 to 9 December. The danger was also harder to see than the disruption. A person could notice a bus that was not coming. They could not easily tell what each breath was doing to their lungs. The smog contained harmful pollutants, including smoke and sulfur dioxide. The exact effects varied by person and place. People with existing breathing and heart problems were especially vulnerable. Hospitals and public services faced a growing burden, while the full scale was not clear in real time. The Met Office says about 4,000 people were known to have died as a result of the fog, and that the toll could have been much higher. Later estimates count deaths above the number normally expected, across different time windows. They are estimates, not a final agreed total. Even the known figure describes a major public-health disaster.",
+            "Visual: {'text': 'The street-level fog dissolves into a hospital window, then a plain chart: “known deaths” and “later estimates above the usual number.” Do not display an unsourced single total. The spoken line defines the later estimate.', 'start': 5078}",
+            "Editor note: Keep the death-estimate explanation calm and brief. The uncertainty is part of the story, not a reason to evade the harm."
+          ],
+          "inferred_staging": [],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_03_01_001",
+              "purpose": "A familiar danger - visual beat",
+              "visual_description": "The street-level fog dissolves into a hospital window, then a plain chart: “known deaths” and “later estimates above the usual number.” Do not display an unsourced single total. The spoken line defines the later estimate",
+              "environment": "London street at street level",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "straight-on",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "explanatory graphic frame",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 115.0,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 5091,
+                  "end": 5311,
+                  "text": "The street-level fog dissolves into a hospital window, then a plain chart: “known deaths” and “later estimates above the usual number.” Do not display an unsourced single total. The spoken line defines the later estimate"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: The street-level fog dissolves into a hospital window, then a plain chart: “known deaths” and “later estimates above the usual number.” Do not display an unsourced single total. The spoken line defines the later estimate"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: explanatory graphic frame."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 2:45-4:40 by direction length."
+            }
+          ],
+          "start_offset": 3781,
+          "implicit": false
+        }
+      ],
+      "start_offset": 3781,
+      "end_seconds": 280
+    },
+    {
+      "sequence_id": "SEQ_04",
+      "act_label": "",
+      "title": "Why did policy take time?",
+      "timecode": "4:40-6:25",
+      "start_seconds": 280,
+      "purpose": "Narrated segment beginning at 04:40.",
+      "scenes": [
+        {
+          "scene_id": "SCN_04_01",
+          "heading": "04:40 - Why did policy take time?",
+          "int_ext": "NARRATED",
+          "location": "coal fire and chimney smoke",
+          "time": "NARRATED SEGMENT",
+          "action": "A timeline: Dec 1952 smog → inquiry → 1954 report → 1956 Clean Air Act show one neighborhood changing from coal smoke to cleaner heating, with a note that change took time. **[ON-SCREEN TEXT]** `1956 — Clean Air Act`",
+          "characters": [],
+          "props": [],
+          "source_spans": [
+            {
+              "start": 5494,
+              "end": 6813,
+              "text": "\n**[NARRATION]**  \nLondon’s air had not become dangerous in a single week. The Great Smog made a long-running problem impossible to ignore.\n\nBut a disaster does not automatically produce a law. Officials had to investigate causes and decide what could be changed. Coal was not just a fuel choice. It heated homes and powered workplaces. Any new rule would affect ordinary families, businesses, and local government.\n\nThe government set up the Beaver Committee to study smoke pollution. Its report helped shape the Clean Air Act of 1956. The law created ways to control smoke, including smoke control areas where people were encouraged or required to use cleaner fuels.\n\nThat process took years. And passing a law did not make every chimney clean overnight. Cleaner air came through continued changes in fuel, technology, and rules.\n\nThe smog did not invent the idea of clean air. It changed the political weight of the idea. The cost of doing nothing had become visible in a way people could not easily dismiss.\n\n**[VISUAL]** A timeline: Dec 1952 smog → inquiry → 1954 report → 1956 Clean Air Act. Then show one neighborhood changing from coal smoke to cleaner heating, with a note that change took time.  \n**[ON-SCREEN TEXT]** `1956 — Clean Air Act`  \n**[SOUND]** A restrained ticking clock as the timeline advances.\n\n"
+            }
+          ],
+          "explicit_facts": [
+            "Narration: London’s air had not become dangerous in a single week. The Great Smog made a long-running problem impossible to ignore. But a disaster does not automatically produce a law. Officials had to investigate causes and decide what could be changed. Coal was not just a fuel choice. It heated homes and powered workplaces. Any new rule would affect ordinary families, businesses, and local government. The government set up the Beaver Committee to study smoke pollution. Its report helped shape the Clean Air Act of 1956. The law created ways to control smoke, including smoke control areas where people were encouraged or required to use cleaner fuels. That process took years. And passing a law did not make every chimney clean overnight. Cleaner air came through continued changes in fuel, technology, and rules. The smog did not invent the idea of clean air. It changed the political weight of the idea. The cost of doing nothing had become visible in a way people could not easily dismiss.",
+            "Visual: {'text': 'A timeline: Dec 1952 smog → inquiry → 1954 report → 1956 Clean Air Act. Then show one neighborhood changing from coal smoke to cleaner heating, with a note that change took time. **[ON-SCREEN TEXT]** `1956 — Clean Air Act`', 'start': 6507}",
+            "Sound: A restrained ticking clock as the timeline advances."
+          ],
+          "inferred_staging": [],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_04_01_001",
+              "purpose": "Why did policy take time? - visual beat",
+              "visual_description": "A timeline: Dec 1952 smog → inquiry → 1954 report → 1956 Clean Air Act",
+              "environment": "editorial timeline graphic",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "straight-on",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "explanatory graphic frame",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 34.19,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 6520,
+                  "end": 6590,
+                  "text": "A timeline: Dec 1952 smog → inquiry → 1954 report → 1956 Clean Air Act"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: A timeline: Dec 1952 smog → inquiry → 1954 report → 1956 Clean Air Act"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: explanatory graphic frame."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 4:40-6:25 by direction length."
+            },
+            {
+              "shot_id": "SHT_SCN_04_01_002",
+              "purpose": "Why did policy take time? - visual beat",
+              "visual_description": "show one neighborhood changing from coal smoke to cleaner heating, with a note that change took time. **[ON-SCREEN TEXT]** `1956 — Clean Air Act`",
+              "environment": "coal fire and chimney smoke",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "medium",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "medium shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 70.81,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 6597,
+                  "end": 6657,
+                  "text": "show one neighborhood changing from coal smoke to cleaner he"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: show one neighborhood changing from coal smoke to cleaner heating, with a note that change took time. **[ON-SCREEN TEXT]** `1956 — Clean Air Act`"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: medium shot."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 4:40-6:25 by direction length."
+            }
+          ],
+          "start_offset": 5494,
+          "implicit": false
+        }
+      ],
+      "start_offset": 5494,
+      "end_seconds": 385
+    },
+    {
+      "sequence_id": "SEQ_05",
+      "act_label": "",
+      "title": "The fog was made by choices",
+      "timecode": "6:25-7:45",
+      "start_seconds": 385,
+      "purpose": "Narrated segment beginning at 06:25.",
+      "scenes": [
+        {
+          "scene_id": "SCN_05_01",
+          "heading": "06:25 - The fog was made by choices",
+          "int_ext": "NARRATED",
+          "location": "explanatory diagram",
+          "time": "NARRATED SEGMENT",
+          "action": "Return to the streetlamp from the opening. The fog clears, revealing many small chimneys connected by faint lines to the same grey layer show a simple policy diagram: homes and factories moving from smoky fuel to smokeless fuel",
+          "characters": [],
+          "props": [],
+          "source_spans": [
+            {
+              "start": 6853,
+              "end": 7989,
+              "text": "\n**[NARRATION]**  \nThe Great Smog made the source and the harm share the same air. Coal warmed rooms and powered industry, while also adding smoke to the city. Weather trapped it, but the pollution was already there.\n\nThat does not mean every person who burned coal was equally responsible. Many people had few practical alternatives. It does mean the danger was built into how the city produced heat and power. Changing it required more than asking individuals to try harder. It required new choices at the level of homes, industry, and law.\n\nThe 1956 law gave cities tools to reduce smoke, including smoke-control areas and a shift toward smokeless fuels. The change took time. The Met Office notes that London still suffered a deadly fog in 1962, though nothing on the scale of 1952 happened again.\n\n**[VISUAL]** Return to the streetlamp from the opening. The fog clears, revealing many small chimneys connected by faint lines to the same grey layer. Then show a simple policy diagram: homes and factories moving from smoky fuel to smokeless fuel.  \n**[SOUND]** The wind returns; let a short breath of silence follow “normal life.”\n\n"
+            }
+          ],
+          "explicit_facts": [
+            "Narration: The Great Smog made the source and the harm share the same air. Coal warmed rooms and powered industry, while also adding smoke to the city. Weather trapped it, but the pollution was already there. That does not mean every person who burned coal was equally responsible. Many people had few practical alternatives. It does mean the danger was built into how the city produced heat and power. Changing it required more than asking individuals to try harder. It required new choices at the level of homes, industry, and law. The 1956 law gave cities tools to reduce smoke, including smoke-control areas and a shift toward smokeless fuels. The change took time. The Met Office notes that London still suffered a deadly fog in 1962, though nothing on the scale of 1952 happened again.",
+            "Visual: {'text': 'Return to the streetlamp from the opening. The fog clears, revealing many small chimneys connected by faint lines to the same grey layer. Then show a simple policy diagram: homes and factories moving from smoky fuel to smokeless fuel.', 'start': 7656}",
+            "Sound: The wind returns; let a short breath of silence follow “normal life.”"
+          ],
+          "inferred_staging": [],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_05_01_001",
+              "purpose": "The fog was made by choices - visual beat",
+              "visual_description": "Return to the streetlamp from the opening. The fog clears, revealing many small chimneys connected by faint lines to the same grey layer",
+              "environment": "London street at street level",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "wide establishing shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 48.14,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 7669,
+                  "end": 7805,
+                  "text": "Return to the streetlamp from the opening. The fog clears, revealing many small chimneys connected by faint lines to the same grey layer"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: Return to the streetlamp from the opening. The fog clears, revealing many small chimneys connected by faint lines to the same grey layer"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: wide establishing shot."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 6:25-7:45 by direction length."
+            },
+            {
+              "shot_id": "SHT_SCN_05_01_002",
+              "purpose": "The fog was made by choices - visual beat",
+              "visual_description": "show a simple policy diagram: homes and factories moving from smoky fuel to smokeless fuel",
+              "environment": "explanatory diagram",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "straight-on",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "explanatory graphic frame",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 31.86,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 7812,
+                  "end": 7902,
+                  "text": "show a simple policy diagram: homes and factories moving from smoky fuel to smokeless fuel"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: show a simple policy diagram: homes and factories moving from smoky fuel to smokeless fuel"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: explanatory graphic frame."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 6:25-7:45 by direction length."
+            }
+          ],
+          "start_offset": 6853,
+          "implicit": false
+        }
+      ],
+      "start_offset": 6853,
+      "end_seconds": 465
+    },
+    {
+      "sequence_id": "SEQ_06",
+      "act_label": "",
+      "title": "Ending",
+      "timecode": "7:45-8:10",
+      "start_seconds": 465,
+      "purpose": "Narrated segment beginning at 07:45.",
+      "scenes": [
+        {
+          "scene_id": "SCN_06_01",
+          "heading": "07:45 - Ending",
+          "int_ext": "NARRATED",
+          "location": "London street at street level",
+          "time": "NARRATED SEGMENT",
+          "action": "Hold on a clean, ordinary London street. A faint fog line remains on the map, connecting the final image to the opening. Fade to black without a subscribe prompt",
+          "characters": [],
+          "props": [],
+          "source_spans": [
+            {
+              "start": 8008,
+              "end": 8477,
+              "text": "\n**[NARRATION]**  \nIn December 1952, London’s air became impossible to ignore. The city responded with new laws, then took years to change its heating and industry. The fog cleared on 9 December. The work of clearing the air lasted much longer.\n\n**[VISUAL]** Hold on a clean, ordinary London street. A faint fog line remains on the map, connecting the final image to the opening. Fade to black without a subscribe prompt.\n**[SOUND]** City ambience, then silence.\n\n---\n\n"
+            }
+          ],
+          "explicit_facts": [
+            "Narration: In December 1952, London’s air became impossible to ignore. The city responded with new laws, then took years to change its heating and industry. The fog cleared on 9 December. The work of clearing the air lasted much longer.",
+            "Visual: {'text': 'Hold on a clean, ordinary London street. A faint fog line remains on the map, connecting the final image to the opening. Fade to black without a subscribe prompt.', 'start': 8254}",
+            "Sound: City ambience, then silence. ---"
+          ],
+          "inferred_staging": [],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_06_01_001",
+              "purpose": "Ending - visual beat",
+              "visual_description": "Hold on a clean, ordinary London street. A faint fog line remains on the map, connecting the final image to the opening. Fade to black without a subscribe prompt",
+              "environment": "London street at street level",
+              "characters": [],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "wide",
+              "camera_angle": "straight-on",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "explanatory graphic frame",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 25.0,
+              "production_complexity": "MEDIUM",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 8267,
+                  "end": 8428,
+                  "text": "Hold on a clean, ordinary London street. A faint fog line remains on the map, connecting the final image to the opening. Fade to black without a subscribe prompt"
+                }
+              ],
+              "explicit_facts": [
+                "VISUAL: Hold on a clean, ordinary London street. A faint fog line remains on the map, connecting the final image to the opening. Fade to black without a subscribe prompt"
+              ],
+              "inferred_staging": [
+                "Camera and composition inferred from the visual direction: explanatory graphic frame."
+              ],
+              "beat_kind": "VISUAL",
+              "duration_basis": "Proportional split of segment 7:45-8:10 by direction length."
+            }
+          ],
+          "start_offset": 8008,
+          "implicit": false
+        }
+      ],
+      "start_offset": 8008,
+      "end_seconds": 490
+    }
+  ],
+  "characters": [],
+  "open_questions": []
+}

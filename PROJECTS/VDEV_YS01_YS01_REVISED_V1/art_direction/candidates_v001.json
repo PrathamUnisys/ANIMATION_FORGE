@@ -1,0 +1,291 @@
+{
+  "schema_version": "1.0.0",
+  "candidate_set_id": "ARTSET_F9805126E537",
+  "project_id": "VDEV_YS01_YS01_REVISED_V1",
+  "analysis_id": "ANALYSIS_B27E8BC91C5B",
+  "comparison_scene_id": "SCN_01_01",
+  "comparison_seed": 536354036775427,
+  "created_at": "2026-11-10T18:56:50Z",
+  "candidates": [
+    {
+      "candidate_id": "ART_01",
+      "style_name": "Cinematic Realism",
+      "description": "Grounded live-action cinematography with naturalistic light and measurable depth.",
+      "style_prompt": "cinematic realism, live-action feature film still, naturalistic lighting, anamorphic lens, shallow depth of field, film grain, physically plausible materials",
+      "comparison_prompt": "cinematic realism, live-action feature film still, naturalistic lighting, anamorphic lens, shallow depth of field, film grain, physically plausible materials. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Desaturated earth tones with warm amber highlights and cool shadow fill.",
+      "lighting": "Motivated three-point cinematic lighting; soft key, practical sources, gentle rim.",
+      "materials": "Worn stone, oxidized bronze, damp moss, woven cloth; believable surface wear.",
+      "geometry": "Real-world proportions and perspective; no exaggerated anatomy.",
+      "environment": "Architectural scale readable from foreground to background; atmospheric haze.",
+      "character_design": "Human-proportioned squire; translucent slime familiar with internal refraction.",
+      "camera": "35mm anamorphic, eye-level coverage, restrained movement.",
+      "storytelling": "Performance and spatial relationships drive the frame.",
+      "feasibility": "High for Blender/Unreal; needs believable textures and character rigs.",
+      "generation_requirements": "Checkpoint only; no control net required.",
+      "strengths": [
+        "Strong production readability",
+        "Easy engine translation"
+      ],
+      "limitations": [
+        "Less stylized; may read generic without strong art direction"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_70D45FABFCD8",
+        "image_path": "art_direction/candidate_ART_01/GEN_70D45FABFCD8.png",
+        "prompt": "cinematic realism, live-action feature film still, naturalistic lighting, anamorphic lens, shallow depth of field, film grain, physically plausible materials, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "5669140e-477d-42c5-a828-08fa1222bee9"
+      }
+    },
+    {
+      "candidate_id": "ART_02",
+      "style_name": "Stylized 3D Animation",
+      "description": "Pixar-style dimensional staging with appealing shapes and readable silhouettes.",
+      "style_prompt": "stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette",
+      "comparison_prompt": "stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Saturated primaries balanced by neutral stone; teal-and-amber contrast.",
+      "lighting": "Soft key with broad fill, colored bounce, gentle rim for silhouette separation.",
+      "materials": "Slightly exaggerated surface response; moss reads as soft velvet, metal as toy-like.",
+      "geometry": "Rounded, appealing forms; proportions slightly compressed for charm.",
+      "environment": "Readable stage-like space with clear foreground, midground and background planes.",
+      "character_design": "Appealing cartoon proportions; expressive eyes and readable gestures.",
+      "camera": "50mm-equivalent, slightly low camera for hero staging, smooth moves.",
+      "storytelling": "Shape language and color carry the joke and the beat.",
+      "feasibility": "High for Blender/Unreal stylized pipelines; needs toon or stylized shaders.",
+      "generation_requirements": "Checkpoint plus optional stylized LoRA.",
+      "strengths": [
+        "Highly readable at thumbnail size",
+        "Strong character appeal"
+      ],
+      "limitations": [
+        "Requires shader work to match in engine"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_62E980EA29FF",
+        "image_path": "art_direction/candidate_ART_02/GEN_62E980EA29FF.png",
+        "prompt": "stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "09303cf4-9ede-473a-b75d-ee32942f436d"
+      }
+    },
+    {
+      "candidate_id": "ART_03",
+      "style_name": "Miniature Diorama",
+      "description": "A hand-built tabletop world with tilt-shift depth and practical textures.",
+      "style_prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light",
+      "comparison_prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Muted craft-store colors with selective bright accents on props.",
+      "lighting": "Large soft source from above; subtle practicals; tilt-shift falloff.",
+      "materials": "Foam, clay, paper, painted wood; visible but tasteful craft texture.",
+      "geometry": "Slightly compressed depth; architectural details simplified but layered.",
+      "environment": "A contained stage that reads as a built set with visible edges.",
+      "character_design": "Maquette-style figures with sculpted clothing and simplified faces.",
+      "camera": "Tilt-shift macro, high angle or low hero angle, shallow depth.",
+      "storytelling": "The set itself is a character; scale and craft communicate tone.",
+      "feasibility": "Good for previs; engine version needs modular kit assets.",
+      "generation_requirements": "Checkpoint only; optional LoRA for craft texture.",
+      "strengths": [
+        "Distinctive, charming, highly reproducible",
+        "Clear spatial read"
+      ],
+      "limitations": [
+        "Harder to make dramatic; craft look may not suit all genres"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_B7602441EA81",
+        "image_path": "art_direction/candidate_ART_03/GEN_B7602441EA81.png",
+        "prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "153a6fc4-8c6d-4d11-9f3a-e355f4a2c907"
+      }
+    },
+    {
+      "candidate_id": "ART_04",
+      "style_name": "Painterly Environments",
+      "description": "Traditional oil-painting language with visible brushwork and atmospheric depth.",
+      "style_prompt": "painterly environment art, oil painting, visible brushwork, atmospheric perspective, classical composition, rich impasto highlights, moody chiaroscuro",
+      "comparison_prompt": "painterly environment art, oil painting, visible brushwork, atmospheric perspective, classical composition, rich impasto highlights, moody chiaroscuro. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Warm ochre, umber, deep green, and muted gold; limited but harmonious.",
+      "lighting": "Chiaroscuro with a single dominant source; soft atmospheric falloff.",
+      "materials": "Paint handling suggests stone, metal and slime rather than describing them.",
+      "geometry": "Classical perspective; forms simplified into value masses.",
+      "environment": "Layered depth with foreground framing elements and hazy background.",
+      "character_design": "Painted figures with strong value shapes and minimal interior line.",
+      "camera": "Painted-frame composition; classical thirds and foreground framing.",
+      "storytelling": "Mood and value structure carry narrative emphasis.",
+      "feasibility": "Excellent concept reference; engine version needs matching texture language.",
+      "generation_requirements": "Checkpoint plus painterly LoRA if available.",
+      "strengths": [
+        "Strong mood and memorable key art",
+        "Good for tone alignment"
+      ],
+      "limitations": [
+        "Loose detail can conflict with precise production needs"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_86B68CDBF9CC",
+        "image_path": "art_direction/candidate_ART_04/GEN_86B68CDBF9CC.png",
+        "prompt": "painterly environment art, oil painting, visible brushwork, atmospheric perspective, classical composition, rich impasto highlights, moody chiaroscuro, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "c43f9799-16ed-4314-bd80-88d9b53cd090"
+      }
+    },
+    {
+      "candidate_id": "ART_05",
+      "style_name": "Graphic Novel Noir",
+      "description": "High-contrast ink illustration with bold shapes and limited flat color.",
+      "style_prompt": "graphic novel art, noir comic illustration, bold ink outlines, high-contrast shadows, limited flat color palette, halftone texture, dynamic panel composition",
+      "comparison_prompt": "graphic novel art, noir comic illustration, bold ink outlines, high-contrast shadows, limited flat color palette, halftone texture, dynamic panel composition. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Black, bone white, emerald green, and one amber accent.",
+      "lighting": "Hard graphic shadows; light rendered as negative space.",
+      "materials": "Ink and flat color; texture implied by line weight and pattern.",
+      "geometry": "Slightly exaggerated poses; strong silhouettes and forced perspective.",
+      "environment": "Architectural shapes reduced to bold graphic masses.",
+      "character_design": "Expressive ink figures with readable silhouettes and graphic costumes.",
+      "camera": "Dynamic angles, Dutch tilts, dramatic foreshortening.",
+      "storytelling": "Panel-like framing; each image is a story beat.",
+      "feasibility": "Great for shot flow and readability; engine version needs toon shading.",
+      "generation_requirements": "Checkpoint plus graphic-novel LoRA if available.",
+      "strengths": [
+        "Extremely readable story beats",
+        "Strong consistent identity"
+      ],
+      "limitations": [
+        "Limited tonal subtlety; may need post to match in engine"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_9BB6A8D3AAB4",
+        "image_path": "art_direction/candidate_ART_05/GEN_9BB6A8D3AAB4.png",
+        "prompt": "graphic novel art, noir comic illustration, bold ink outlines, high-contrast shadows, limited flat color palette, halftone texture, dynamic panel composition, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "7dd62af9-0a9f-467c-80b7-b95450843d08"
+      }
+    },
+    {
+      "candidate_id": "ART_06",
+      "style_name": "Stop-Motion Aesthetic",
+      "description": "Frame-by-frame puppet animation with tactile sets and intentional imperfection.",
+      "style_prompt": "stop-motion animation, puppet film still, tactile miniature set, visible fingerprints in clay, practical lighting, slight motion blur, handcrafted texture",
+      "comparison_prompt": "stop-motion animation, puppet film still, tactile miniature set, visible fingerprints in clay, practical lighting, slight motion blur, handcrafted texture. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Dusty, slightly faded colors with warm tungsten practicals.",
+      "lighting": "Visible practical lamps and soft key; shadows have a handmade quality.",
+      "materials": "Clay, fabric, fur, metal foil; real textures photographed under light.",
+      "geometry": "Slightly chunky proportions; joints and armature implied.",
+      "environment": "Full practical sets with visible seams and construction.",
+      "character_design": "Puppets with replacement faces or expressive sculpted features.",
+      "camera": "18mm-ish wide coverage or 35mm medium; locked-off or gentle motion.",
+      "storytelling": "Physical performance and tactile detail create charm.",
+      "feasibility": "Good for previs; engine version needs puppet-style rigs and shaders.",
+      "generation_requirements": "Checkpoint only.",
+      "strengths": [
+        "Warm, distinctive, highly consistent",
+        "Strong material read"
+      ],
+      "limitations": [
+        "Slower to interpret for realistic engine pipelines"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_DBB27D8E2F25",
+        "image_path": "art_direction/candidate_ART_06/GEN_DBB27D8E2F25.png",
+        "prompt": "stop-motion animation, puppet film still, tactile miniature set, visible fingerprints in clay, practical lighting, slight motion blur, handcrafted texture, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "c42fbc1c-8493-49f8-bb3e-4428a89b4bbf"
+      }
+    },
+    {
+      "candidate_id": "ART_07",
+      "style_name": "Documentary Visualization",
+      "description": "Informational realism with clear diagrams, labels and explainer staging.",
+      "style_prompt": "documentary visualization, educational explainer still, clean informative composition, neutral lighting, clear silhouettes, subtle annotations, realistic rendering",
+      "comparison_prompt": "documentary visualization, educational explainer still, clean informative composition, neutral lighting, clear silhouettes, subtle annotations, realistic rendering. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Neutral grays and browns with a single informative accent color.",
+      "lighting": "Even, shadow-minimizing light for clarity; no dramatic contrast.",
+      "materials": "Accurate material reads; surfaces are legible rather than expressive.",
+      "geometry": "True proportions and clear spatial relationships.",
+      "environment": "Uncluttered staging that isolates the subject and action.",
+      "character_design": "Clear, neutral character reads with accurate costume detail.",
+      "camera": "Locked-off, eye-level or slightly elevated; diagram-friendly framing.",
+      "storytelling": "Clarity first; every visual element explains rather than decorates.",
+      "feasibility": "Excellent for blocking and production planning.",
+      "generation_requirements": "Checkpoint only.",
+      "strengths": [
+        "Best production readability",
+        "Clear blocking and continuity"
+      ],
+      "limitations": [
+        "Least emotionally expressive; may feel dry"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_D8B820F6A459",
+        "image_path": "art_direction/candidate_ART_07/GEN_D8B820F6A459.png",
+        "prompt": "documentary visualization, educational explainer still, clean informative composition, neutral lighting, clear silhouettes, subtle annotations, realistic rendering, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "17f32942-17d1-4439-994b-c13ee24deda1"
+      }
+    },
+    {
+      "candidate_id": "ART_08",
+      "style_name": "Low-Poly Stylization",
+      "description": "Faceted geometric forms with flat shading and bold color blocking.",
+      "style_prompt": "low-poly 3D stylization, faceted geometry, flat shading, bold color blocking, geometric shapes, clean isometric-inspired composition, stylized game art",
+      "comparison_prompt": "low-poly 3D stylization, faceted geometry, flat shading, bold color blocking, geometric shapes, clean isometric-inspired composition, stylized game art. 00:00 - The city disappears. The scene is set in London street at street level (NARRATED SEGMENT). The frame shows: A London street gradually fades behind fog, London street at street level. single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders, cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Limited palette of 6-8 bold colors; strong value separation.",
+      "lighting": "Flat or simple two-tone shading; no realistic falloff.",
+      "materials": "Faceted surfaces; material read through color and shape, not texture.",
+      "geometry": "Simplified planar forms; readable silhouettes at low detail.",
+      "environment": "Geometric architecture with clear planes and depth layers.",
+      "character_design": "Faceted characters with bold readable shapes and simple faces.",
+      "camera": "Slightly elevated three-quarter view; clean composition.",
+      "storytelling": "Shape and color communicate action and hierarchy.",
+      "feasibility": "Very high for real-time Unreal/Blender; cheap to build.",
+      "generation_requirements": "Checkpoint only.",
+      "strengths": [
+        "Fastest engine translation",
+        "Highly consistent and readable"
+      ],
+      "limitations": [
+        "Limited detail; may undersell dramatic moments"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "comparison_subject": "A London street gradually fades behind fog, London street at street level",
+      "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
+      "generation_manifest": {
+        "generation_id": "GEN_C6050DAD3E56",
+        "image_path": "art_direction/candidate_ART_08/GEN_C6050DAD3E56.png",
+        "prompt": "low-poly 3D stylization, faceted geometry, flat shading, bold color blocking, geometric shapes, clean isometric-inspired composition, stylized game art, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
+        "prompt_id": "e1981884-c3bf-4b3d-b2fa-55d35bf3e067"
+      }
+    }
+  ]
+}
