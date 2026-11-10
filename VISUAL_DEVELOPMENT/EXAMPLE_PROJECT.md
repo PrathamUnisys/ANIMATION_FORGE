@@ -222,3 +222,15 @@ $proj = "PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1"
 
 With ComfyUI running, the whole run takes roughly **5 minutes** on the verification
 machine.
+
+## Repository note
+
+The pilot images are 18.2 MB across 36 PNGs. Pushing that in one pack from this machine
+is reset by the network (`RPC failed; curl 55 Send failure: Connection was reset`), so
+the pilot was committed as the code and documentation in one commit, followed by the
+binaries in several smaller commits. Each generation manifest stores the SHA-256 of its
+own image, and the test suite asserts that every committed manifest still matches its
+file byte for byte, so the split history does not weaken the integrity contract.
+
+Do not modify the committed PNGs to shrink the payload: their hashes are recorded in the
+manifests and in the handoff package.

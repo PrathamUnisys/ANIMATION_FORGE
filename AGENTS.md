@@ -197,6 +197,7 @@ procedural blink/LookAt/micro-motion (T15 remainder), `diffusion_models/seedvr2_
 - **Two realities:** README/status describe the *app* (simulated); `PIPELINE/PIPELINE.md` describes *manual trials* (real tools). Never merge these claims.
 - **Tests dirty tracked files:** `TESTS/test_animation_forge_suite.py` runs the demo runner against the repo root, rewriting `PROJECTS/` manifests and reports. Revert with `git checkout -- PROJECTS/` after a test run.
 - **Observed extra test noise:** a 2026-11-10 prescribed test run also inserted a blank line into `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/SCRIPTS/REVISED/YS03_LAKE_NATRON.md`; that exact change was restored. Recheck `git status` after future runs.
+- **Large pushes get reset:** pushing ~18 MB of generated PNGs to GitHub from this machine fails with `RPC failed; curl 55 Send failure: Connection was reset`. Smaller packs (about 5 MB) push reliably, and a retry often succeeds after a failure. Commit generated image binaries in batches of a few megabytes and push each batch separately; keep code and documentation in their own commit.
 
 ---
 
