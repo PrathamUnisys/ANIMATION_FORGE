@@ -20,6 +20,10 @@ from backend.governance.windows_reviewer import (
 from backend.rnd.research_engine import ProductionRndEngine
 from backend.integrations.mcp_gateway import AnimationForgeMcpGateway
 from backend.integrations.comfyui_adapter import ComfyUIAdapter
+from backend.integrations.visual_development import (
+    VisualDevelopmentBridge,
+    VisualDevelopmentError,
+)
 from backend.qc.quality_controller import QualityControlEngine
 from backend.qc.screenplay_qc import DeterministicValidator, CreativeCritique
 from backend.providers.manager import ProviderManager, ProviderError
@@ -47,6 +51,7 @@ approvals = ApprovalEngine(db)
 rnd_engine = ProductionRndEngine(ROOT_DIR, db, approvals)
 mcp_gateway = AnimationForgeMcpGateway(db)
 comfyui = ComfyUIAdapter(ROOT_DIR, db)
+visual_development = VisualDevelopmentBridge(ROOT_DIR)
 qc_engine = QualityControlEngine(db)
 provider_manager = ProviderManager(db)
 story_pipeline = StoryAndScreenplayPipeline(ROOT_DIR, db, approvals)
@@ -625,6 +630,72 @@ def get_project_file(project_id: str, path: str = Query(..., min_length=1), _: s
     resolved = _resolve_project_file(project_id, path)
     media_type, _ = mimetypes.guess_type(resolved.name)
     return FileResponse(resolved, media_type=media_type or "application/octet-stream", filename=resolved.name)
+
+
+# ---------------------------------------------------------------------------
+# Visual Development and Storyboard module (read-mostly bridge).
+#
+# The module itself lives in VISUAL_DEVELOPMENT/ and owns its own files; these
+# routes only list its project packages and serve the real generated files so
+# the frontend can display them. Nothing here writes to animation_forge.db and
+# no existing route, schema or table is changed.
+# ---------------------------------------------------------------------------
+
+class VisualDecisionPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: str = Field(..., pattern="^(SELECT|APPROVE|REJECT|REGENERATE)$")
+    target_type: str
+    target_id: str
+    actor: str = "frontend"
+    note: str = ""
+
+
+@app.get("/api/visual-development/projects")
+def list_visual_development_projects(_: str = Depends(verify_local_ipc_token)) -> Dict[str, Any]:
+    projects = visual_development.list_projects()
+    return {"projects": projects, "count": len(projects)}
+
+
+@app.get("/api/visual-development/{project_id}")
+def get_visual_development_project(project_id: str, _: str = Depends(verify_local_ipc_token)) -> Dict[str, Any]:
+    try:
+        return visual_development.detail(project_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/visual-development/{project_id}/media")
+def get_visual_development_media(
+    project_id: str,
+    path: str = Query(..., min_length=1),
+    _: str = Depends(verify_local_ipc_token),
+) -> FileResponse:
+    try:
+        resolved = visual_development.media(project_id, path)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    media_type, _ = mimetypes.guess_type(resolved.name)
+    return FileResponse(resolved, media_type=media_type or "application/octet-stream", filename=resolved.name)
+
+
+@app.post("/api/visual-development/{project_id}/decision")
+def record_visual_development_decision(
+    project_id: str,
+    payload: VisualDecisionPayload,
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
+    try:
+        event = visual_development.record_decision(
+            project_id,
+            payload.action,
+            payload.target_type,
+            payload.target_id,
+            payload.actor,
+            payload.note,
+        )
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"status": "recorded", "event": event}
 
 
 # ---------------------------------------------------------------------------

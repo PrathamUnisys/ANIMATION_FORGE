@@ -56,6 +56,10 @@ operating systems.
 | `GET /api/projects/{project_id}/executions` | Return redacted agent executions, prompt metadata/hashes, and execution logs. | Read-only; server-side redaction; `agent_prompts` has no prompt bodies to return. |
 | `GET /api/projects/{project_id}/files` | List servable project files under `PROJECTS/{project_id}/`. | Read-only; extension allowlist only. |
 | `GET /api/projects/{project_id}/file` | Serve one project file (text, image or audio) by root-relative path. | Read-only; path is resolved and contained inside the project directory (traversal/symlink escapes rejected); size-capped. |
+| `GET /api/visual-development/projects` | List Visual Development project packages with source-script approval status, format, counts and continuity status. | Read-only; requires IPC token; only `PROJECTS/VDEV_*` packages that contain `project.json` are listed. |
+| `GET /api/visual-development/{project_id}` | Read one Visual Development project: art-direction candidates, shot breakdown, Style Bible, generation provenance and review events. | Read-only; requires IPC token; 404 for an unknown or non-`VDEV_` id. |
+| `GET /api/visual-development/{project_id}/media` | Serve one real generated image or layout file from a Visual Development package. | Read-only; requires IPC token; path is contained inside the project package (traversal escapes rejected). |
+| `POST /api/visual-development/{project_id}/decision` | Record a human decision (SELECT / APPROVE / REJECT / REGENERATE) in the module's append-only review event log. | Requires IPC token; the system never selects or approves a style on its own; REGENERATE writes a new image revision and never overwrites an approved image. |
 | `POST /api/change-requests` | Create an architecture change request in ARCHITECTURE_MODE (AWAITING_HUMAN_REVIEW). | Requires IPC token; duplicate ID rejected; approval only via trusted Windows reviewer path. |
 | `GET /api/story-bibles/{series_id}` | Read head revision of a Series Bible. | Requires IPC token; 404 if none. |
 | `GET /api/story-bibles/{series_id}/revisions` | List Bible revisions with hashes. | Read-only. |

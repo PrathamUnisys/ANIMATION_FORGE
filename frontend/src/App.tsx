@@ -911,6 +911,235 @@ function StoryContextPanel({ projectId }: { projectId: string }) {
   );
 }
 
+/** Visual Development and Storyboard panel.
+ *  Reads the isolated VISUAL_DEVELOPMENT module through the local API and shows
+ *  the real generated image files, not placeholders. Decisions are recorded in
+ *  the module's own append-only review event log. */
+async function vdevBlobUrl(projectId: string, relPath: string): Promise<string> {
+  const r = await apiFetch(`/api/visual-development/${projectId}/media?path=${encodeURIComponent(relPath)}`);
+  if (!r.ok) throw new Error(`${relPath} -> ${r.status}`);
+  const blob = await r.blob();
+  return URL.createObjectURL(blob);
+}
+
+function VdevImage({ projectId, relPath, alt }: { projectId: string; relPath: string; alt: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true; let obj = '';
+    vdevBlobUrl(projectId, relPath)
+      .then((u) => { if (alive) { obj = u; setUrl(u); } })
+      .catch((e) => alive && setErr(String(e.message || e)));
+    return () => { alive = false; if (obj) URL.revokeObjectURL(obj); };
+  }, [projectId, relPath]);
+  if (err) return <div className="text-xs text-red-300">Image unavailable: {err}</div>;
+  if (!url) return <div className="text-xs text-slate-400">Loading image…</div>;
+  return <img src={url} alt={alt} className="w-full rounded border border-slate-700" />;
+}
+
+function VisualDevelopmentPanel() {
+  const [list, setList] = useState<any[]>([]);
+  const [selected, setSelected] = useState<string>('');
+  const [detail, setDetail] = useState<any>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiJson('/api/visual-development/projects')
+      .then((r) => {
+        const ps = r.projects || [];
+        setList(ps);
+        if (ps.length && !ps.some((p: any) => p.project_id === selected)) setSelected(ps[0].project_id);
+      })
+      .catch((e: any) => setErr(e.message || String(e)));
+  }, []);
+
+  useEffect(() => {
+    if (!selected) { setDetail(null); return; }
+    apiJson(`/api/visual-development/${selected}`)
+      .then(setDetail)
+      .catch((e: any) => setErr(e.message || String(e)));
+  }, [selected]);
+
+  const decide = async (action: string, targetType: string, targetId: string) => {
+    setBusy(`${action}:${targetId}`);
+    setErr(null);
+    try {
+      const r = await apiFetch(`/api/visual-development/${selected}/decision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, target_type: targetType, target_id: targetId, actor: 'frontend' }),
+      });
+      if (!r.ok) throw new Error(`decision -> ${r.status}`);
+      const updated = await apiJson(`/api/visual-development/${selected}`);
+      setDetail(updated);
+    } catch (e: any) {
+      setErr(e.message || String(e));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const gens = (detail?.generations || []) as any[];
+  const genFor = (type: string, shotId: string) =>
+    gens.filter((g) => g.artifact_type === type && g.shot_id === shotId).slice(-1)[0];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="text-xs text-slate-400">Project</label>
+        <select
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          className="bg-slate-800 text-slate-100 text-sm rounded px-2 py-1 border border-slate-600"
+        >
+          {list.length === 0 && <option value="">no visual development projects</option>}
+          {list.map((p) => (
+            <option key={p.project_id} value={p.project_id}>
+              {p.project_id} — {p.source_script?.script_id} ({p.source_script?.approval_status})
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => selected && apiJson(`/api/visual-development/${selected}`).then(setDetail)}
+          className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700"
+        >Refresh</button>
+      </div>
+
+      {err && <div className="p-2 rounded bg-red-900/40 text-red-200 text-xs">{err}</div>}
+      {busy && <div className="p-2 rounded bg-amber-900/30 text-amber-200 text-xs">Working: {busy}…</div>}
+
+      {detail && (
+        <>
+          {detail.source_script?.approval_status !== 'APPROVED' && (
+            <div className="p-2 rounded bg-red-900/40 text-red-200 text-xs">
+              EXPLORATION ONLY — source script is '{detail.source_script?.approval_status}', not APPROVED.
+              Nothing here is a production-ready package and no decision in this panel is a governance approval.
+            </div>
+          )}
+
+          <div className="flex gap-2 flex-wrap text-xs">
+            <Chip label={`format: ${detail.source_format || 'unknown'}`} />
+            <Chip label={`${detail.counts?.sequences || 0} sequences`} />
+            <Chip label={`${detail.counts?.shots || 0} shots`} />
+            <Chip label={`${detail.counts?.art_direction_images || 0} art direction`} />
+            <Chip label={`${detail.counts?.storyboard_images || 0} storyboard`} />
+            <Chip label={`${detail.counts?.blocking_images || 0} blocking`} />
+            <Chip label={`continuity: ${detail.continuity_status || 'NOT_RUN'}`} />
+          </div>
+
+          {(detail.open_questions || []).length > 0 && (
+            <div className="p-2 rounded bg-amber-900/25 border border-amber-700 text-xs text-amber-100">
+              <div className="font-semibold mb-1">Open questions — the script does not say this:</div>
+              <ul className="list-disc ml-4 space-y-0.5">
+                {detail.open_questions.map((q: string, i: number) => <li key={i}>{q}</li>)}
+              </ul>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-lg font-semibold text-amber-300 mb-1">Art Direction</h3>
+            <div className="text-xs text-slate-400 mb-2">
+              All candidates use the same comparison scene
+              {detail.comparison_scene_id ? ` (${detail.comparison_scene_id})` : ''}
+              {detail.comparison_seed != null ? ` and the same seed (${detail.comparison_seed})` : ''}.
+              Nothing is selected automatically.
+            </div>
+            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+              {(detail.candidates || []).map((c: any) => (
+                <div key={c.candidate_id} className={`rounded border p-2 ${c.selected ? 'border-amber-500 bg-amber-900/20' : 'border-slate-700 bg-slate-900/60'}`}>
+                  {c.image_path
+                    ? <VdevImage projectId={selected} relPath={c.image_path} alt={c.style_name} />
+                    : <div className="text-xs text-slate-500 p-4 text-center">no image generated</div>}
+                  <div className="text-xs mt-2">
+                    <div className="font-semibold text-slate-100">{c.candidate_id} · {c.style_name}</div>
+                    <div className="text-slate-400 mt-1">{c.description}</div>
+                    <div className="text-slate-500 mt-1">Palette: {c.palette}</div>
+                    <div className="text-slate-500">Camera: {c.camera}</div>
+                  </div>
+                  <button
+                    disabled={c.selected || busy !== null}
+                    onClick={() => decide('SELECT', 'ART_DIRECTION_CANDIDATE', c.candidate_id)}
+                    className={`mt-2 text-xs px-2 py-1 rounded ${c.selected ? 'bg-amber-600 text-black' : 'bg-slate-700 hover:bg-slate-600'}`}
+                  >{c.selected ? 'Selected' : 'Select this direction'}</button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {detail.style_bible && Object.keys(detail.style_bible).length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-amber-300 mb-1">
+                Style Bible — {detail.style_bible.style_identity} (v{detail.style_bible.version}, {detail.style_bible.status})
+              </h3>
+              <div className="text-xs text-slate-300 bg-slate-900/60 border border-slate-700 rounded p-2 whitespace-pre-wrap">
+                {JSON.stringify(detail.style_bible.global_rules, null, 2)}
+              </div>
+            </div>
+          )}
+
+          {(detail.shots || []).length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-amber-300 mb-1">Storyboard & Blocking</h3>
+              <div className="space-y-3">
+                {detail.shots.map((s: any) => {
+                  const sb = genFor('STORYBOARD', s.shot_id);
+                  const bl = genFor('BLOCKING', s.shot_id);
+                  return (
+                    <div key={s.shot_id} className="border border-slate-700 rounded p-2 bg-slate-900/40">
+                      <div className="text-xs text-slate-200 font-semibold">
+                        {s.shot_id} · {s.shot_size} · {s.duration_sec}s
+                        {sb && <span className="ml-2"><Chip label={sb.review_status} /></span>}
+                        {bl && <span className="ml-1"><Chip label={bl.review_status} /></span>}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">{s.description}</div>
+                      <div className="grid gap-2 mt-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                        <div>
+                          <div className="text-[10px] uppercase text-slate-500 mb-1">Storyboard</div>
+                          {sb ? <VdevImage projectId={selected} relPath={sb.image_path} alt={s.shot_id} />
+                              : <div className="text-xs text-slate-500">not generated</div>}
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase text-slate-500 mb-1">Blocking</div>
+                          {bl ? <VdevImage projectId={selected} relPath={bl.image_path} alt={s.shot_id} />
+                              : <div className="text-xs text-slate-500">not generated</div>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button disabled={!sb || busy !== null} onClick={() => decide('APPROVE', 'STORYBOARD', s.shot_id)}
+                          className="text-xs px-2 py-1 rounded bg-green-900/60 hover:bg-green-800 disabled:opacity-40">Approve storyboard</button>
+                        <button disabled={!sb || busy !== null} onClick={() => decide('REJECT', 'STORYBOARD', s.shot_id)}
+                          className="text-xs px-2 py-1 rounded bg-red-900/60 hover:bg-red-800 disabled:opacity-40">Reject</button>
+                        <button disabled={busy !== null} onClick={() => decide('REGENERATE', 'STORYBOARD', s.shot_id)}
+                          className="text-xs px-2 py-1 rounded bg-amber-900/60 hover:bg-amber-800 disabled:opacity-40">Regenerate</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-lg font-semibold text-amber-300 mb-1">Review events</h3>
+            <div className="text-xs text-slate-400 border border-slate-700 rounded p-2 max-h-56 overflow-auto">
+              {(detail.review_events || []).slice().reverse().map((e: any) => (
+                <div key={e.event_id} className="py-0.5 border-b border-slate-800">
+                  <span className="text-slate-500">{e.timestamp}</span>{' '}
+                  <span className="text-amber-300">{e.action}</span>{' '}
+                  <span className="text-slate-300">{e.target_type} {e.target_id}</span>
+                  {e.note ? <span className="text-slate-500"> — {e.note}</span> : null}
+                </div>
+              ))}
+              {(detail.review_events || []).length === 0 && <div className="text-slate-500">No decisions recorded yet.</div>}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const { activeProjectId, setActiveProjectId, operatingMode } = useForgeStore();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -925,6 +1154,7 @@ export default function App() {
   const [showFiles, setShowFiles] = useState(false);
   const [showProvenance, setShowProvenance] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showVisual, setShowVisual] = useState(false);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -1035,9 +1265,10 @@ export default function App() {
           ))}
         </nav>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
-          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
-          <button onClick={() => { setShowStory(!showStory); setShowFiles(false); setShowProvenance(false); }} className={`text-xs px-2 py-1 rounded ${showStory ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Story Context (CR_006)</button>
+          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); setShowStory(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
+          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); setShowStory(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
+          <button onClick={() => { setShowStory(!showStory); setShowFiles(false); setShowProvenance(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showStory ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Story Context (CR_006)</button>
+          <button onClick={() => { setShowVisual(!showVisual); setShowFiles(false); setShowProvenance(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showVisual ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Visual Development</button>
           <button onClick={() => { loadProjects(); loadProject(); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700">Refresh</button>
         </div>
         <div className="mt-auto pt-4 text-xs text-slate-500">
@@ -1056,6 +1287,16 @@ export default function App() {
           <div>
             <h2 className="text-xl font-semibold text-amber-400 uppercase mb-3">Story Context & Screenplay (CR_006)</h2>
             <StoryContextPanel projectId={activeProjectId} />
+          </div>
+        )}
+        {showVisual && (
+          <div>
+            <h2 className="text-xl font-semibold text-amber-400 uppercase mb-1">Visual Development & Storyboard</h2>
+            <div className="text-xs text-slate-400 mb-3">
+              Art direction, Style Bible, storyboard and blocking references produced by the isolated
+              VISUAL_DEVELOPMENT module from an approved or draft screenplay. Images are the real generated files.
+            </div>
+            <VisualDevelopmentPanel />
           </div>
         )}
         {showProvenance && (

@@ -654,7 +654,6 @@ def test_comparison_prompt_forbids_multi_panel_layout(ys01_analysis: dict[str, A
 
 # ------------------------------------------------- unapproved source files
 
-
 def test_script_file_import_is_never_marked_approved(tmp_path: Path) -> None:
     script_file = tmp_path / "draft.md"
     script_file.write_text("# Draft\n\nSome narration.\n", encoding="utf-8")
@@ -672,3 +671,63 @@ def test_approved_script_gate_still_rejects_unapproved_database_rows(database: P
         load_approved_script(database, "SCR_SCRIPT_LAB_10_V01")
     record = load_approved_script(database, SCRIPT_ID)
     assert record["approval_status"] == "APPROVED"
+
+
+# ------------------------------------------------------- review page script
+
+
+def _unterminated_js_string(script: str) -> str | None:
+    """Return the quote character of an unterminated JS string, or None.
+
+    A single unbalanced quote in the served page silently blanks the whole
+    review UI, because the browser refuses to run the script block at all.
+    """
+    index = 0
+    length = len(script)
+    while index < length:
+        char = script[index]
+        if char == "/" and index + 1 < length and script[index + 1] == "/":
+            while index < length and script[index] != "\n":
+                index += 1
+            continue
+        if char in "\"'`":
+            quote = char
+            index += 1
+            while index < length:
+                if script[index] == "\\":
+                    index += 2
+                    continue
+                if script[index] == quote:
+                    break
+                index += 1
+            if index >= length:
+                return quote
+        index += 1
+    return None
+
+
+def test_review_page_script_is_syntactically_balanced() -> None:
+    """Regression guard: the review page must never serve a blank shell."""
+    from VISUAL_DEVELOPMENT.review_server import PAGE_TEMPLATE
+
+    state = {
+        "project": {
+            "project_id": "P",
+            "source_script": {"script_id": "S", "approval_status": "APPROVED"},
+        },
+        "episode": {},
+        "open_questions": [],
+        "candidates": {"comparison_scene_id": "SCN_01", "candidates": []},
+        "style_bible": {},
+        "shots": [],
+        "events": [],
+        "comfyui": {},
+        "continuity": {},
+    }
+    html = PAGE_TEMPLATE.replace("__STATE__", json.dumps(state)).replace("__PROJECT__", "P")
+    assert "<script>" in html and "</script>" in html
+    script = html.split("<script>", 1)[1].split("</script>", 1)[0]
+    unterminated = _unterminated_js_string(script)
+    assert unterminated is None, f"unterminated {unterminated!r} quote in the review page script"
+    assert "onclick=" not in script, "use data attributes and a delegated handler, not inline onclick"
+    assert "data-act=" in script

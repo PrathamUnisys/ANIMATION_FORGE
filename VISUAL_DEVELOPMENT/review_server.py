@@ -92,6 +92,14 @@ async function act(action, target_type, target_id, extra){
   if(data.reload){ setTimeout(()=>location.reload(), 900); }
 }
 
+// Delegated handler: buttons carry data-act/data-type/data-id instead of inline
+// onclick attributes, so no HTML attribute quoting can break the script.
+document.addEventListener("click", (e) => {
+  const button = e.target && e.target.closest ? e.target.closest("button[data-act]") : null;
+  if (!button) return;
+  act(button.dataset.act, button.dataset.type, button.dataset.id);
+});
+
 function render(){
   document.getElementById("subtitle").textContent = STATE.project.project_id + " - source " + STATE.project.source_script.script_id + " (" + STATE.project.source_script.approval_status + ")";
   const approved = STATE.project.source_script.approval_status === "APPROVED";
@@ -114,7 +122,7 @@ function render(){
         "<figure><img loading='lazy' src='/media/"+encodeURI(c.image_path||"")+"' onerror=\"this.style.background='#3a2020';this.alt='no image'\">"
         + "<figcaption><b>"+esc(c.candidate_id)+" - "+esc(c.style_name)+"</b>"+esc(c.description)
         + "<br><span class='pill "+ (c.selected?"APPROVED":"DRAFT")+"'>"+(c.selected?"SELECTED":"DRAFT")+"</span>"
-        + "<br><button class='act' onclick=\"act('SELECT','ART_DIRECTION_CANDIDATE','"+c.candidate_id+"')\">Select this direction</button>"
+        + "<br><button class='act' data-act='SELECT' data-type='ART_DIRECTION_CANDIDATE' data-id='"+c.candidate_id+"'>Select this direction</button>"
         + "</figcaption></figure>").join("") + "</div>";
 
   const sb = document.getElementById("tab-stylebible");
@@ -130,9 +138,9 @@ function render(){
       "<figure><img loading='lazy' src='/media/"+encodeURI(s.image_path||"")+"' onerror=\"this.style.background='#3a2020'\">"
       + "<figcaption><b>"+esc(s.shot_id)+" - "+esc(s.shot_size)+"</b>"+esc(s.description)
       + "<br><span class='pill "+esc(s.review_status)+"'>"+esc(s.review_status)+"</span>"
-      + "<br><button class='act approve' onclick=\"act('APPROVE','STORYBOARD','"+s.shot_id+"')\">Approve</button>"
-      + "<button class='act reject' onclick=\"act('REJECT','STORYBOARD','"+s.shot_id+"')\">Reject</button>"
-      + "<button class='act regen' onclick=\"act('REGENERATE','STORYBOARD','"+s.shot_id+"')\">Regenerate</button>"
+      + "<br><button class='act approve' data-act='APPROVE' data-type='STORYBOARD' data-id='"+s.shot_id+"'>Approve</button>"
+      + "<button class='act reject' data-act='REJECT' data-type='STORYBOARD' data-id='"+s.shot_id+"'>Reject</button>"
+      + "<button class='act regen' data-act='REGENERATE' data-type='STORYBOARD' data-id='"+s.shot_id+"'>Regenerate</button>"
       + "</figcaption></figure>").join("") + "</div>";
   });
   document.getElementById("tab-storyboard").innerHTML = sbhtml || "<p>No shots analysed yet.</p>";
@@ -143,8 +151,8 @@ function render(){
       "<div class='card row'><div><b>Storyboard "+esc(s.shot_id)+"</b><br><img style='max-width:100%;border:1px solid #2a3442' src='/media/"+encodeURI(s.image_path||"")+"'></div>"
       + "<div><b>Blocking "+esc(s.shot_id)+"</b><br><img style='max-width:100%;border:1px solid #2a3442' src='/media/"+encodeURI(s.blocking_image_path||"")+"'>"
       + "<br><span class='pill "+esc(s.blocking_review_status||"PENDING")+"'>"+esc(s.blocking_review_status||"PENDING")+"</span>"
-      + "<br><button class='act approve' onclick=\"act('APPROVE','BLOCKING','"+s.shot_id+"')\">Approve</button>"
-      + "<button class='act reject' onclick=\"act('REJECT','BLOCKING','"+s.shot_id+"')\">Reject</button>"
+      + "<br><button class='act approve' data-act='APPROVE' data-type='BLOCKING' data-id='"+s.shot_id+"'>Approve</button>"
+      + "<button class='act reject' data-act='REJECT' data-type='BLOCKING' data-id='"+s.shot_id+"'>Reject</button>"
       + "</div></div>").join("");
   });
   document.getElementById("tab-blocking").innerHTML = blhtml || "<p>No blocking layouts yet.</p>";
