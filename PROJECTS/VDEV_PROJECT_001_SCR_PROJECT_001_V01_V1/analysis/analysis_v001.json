@@ -1,0 +1,576 @@
+{
+  "schema_version": "1.0.0",
+  "analysis_id": "ANALYSIS_4CC0DF9167F0",
+  "project_id": "VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1",
+  "source_script_sha256": "ea80754c9b86849c61e9bd57552db5860edd2912db3f62747245a78517100e1a",
+  "created_at": "2026-11-10T14:01:14Z",
+  "episode": {
+    "episode_id": "EP_VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1",
+    "title": "THE FORGOTTEN KINGDOM — SCREENPLAY (REVISION v1)",
+    "genre": "Fantasy Comedy",
+    "target_runtime_sec": 45.0,
+    "logline": "Dry British fantasy satire with slapstick visual timing"
+  },
+  "sequences": [
+    {
+      "sequence_id": "SEQ_01",
+      "act_label": "I",
+      "title": "THE CRUMBLING THRONE ROOM",
+      "timecode": "0:00 – 0:15",
+      "purpose": "",
+      "scenes": [
+        {
+          "scene_id": "SCN_01_01",
+          "heading": "INT. FORGOTTEN CITADEL THRONE ROOM - MORNING",
+          "int_ext": "INT.",
+          "location": "FORGOTTEN CITADEL THRONE ROOM",
+          "time": "MORNING",
+          "action": "Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.",
+          "characters": [
+            "Sir Pip",
+            "Gloop"
+          ],
+          "props": [
+            "pauldrons",
+            "crown",
+            "turnip cloth",
+            "monocle"
+          ],
+          "source_spans": [
+            {
+              "start": 472,
+              "end": 520,
+              "text": "**INT. FORGOTTEN CITADEL THRONE ROOM - MORNING**"
+            }
+          ],
+          "explicit_facts": [
+            "Action text: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically.",
+            "Action text: Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.",
+            "Action text: And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon."
+          ],
+          "inferred_staging": [
+            "Shot boundaries inferred from screenplay structure.",
+            "Camera/staging inferred from content: establishing shot.",
+            "Camera/staging inferred from content: detail or reaction close-up.",
+            "Camera/staging inferred from content: medium shot."
+          ],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_01_01_001",
+              "purpose": "Action beat",
+              "visual_description": "Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically.",
+              "environment": "FORGOTTEN CITADEL THRONE ROOM",
+              "characters": [
+                "Sir Pip",
+                "Gloop"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [
+                "pauldrons",
+                "crown",
+                "turnip cloth",
+                "monocle"
+              ],
+              "camera_shot_type": "wide",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "establishing shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 6.41,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 521,
+                  "end": 776,
+                  "text": "Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically.\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically."
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: establishing shot."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:00 – 0:15 by source excerpt length."
+            },
+            {
+              "shot_id": "SHT_SCN_01_01_002",
+              "purpose": "Dialogue: Sir Pip",
+              "visual_description": "Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.",
+              "environment": "FORGOTTEN CITADEL THRONE ROOM",
+              "characters": [
+                "Sir Pip"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "close-up",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "detail or reaction close-up",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 4.6,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 777,
+                  "end": 960,
+                  "text": "**SIR PIP**\n*(whispering, reverent)*\nBehold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions."
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: detail or reaction close-up."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:00 – 0:15 by source excerpt length."
+            },
+            {
+              "shot_id": "SHT_SCN_01_01_003",
+              "purpose": "Dialogue: Gloop",
+              "visual_description": "And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.",
+              "environment": "FORGOTTEN CITADEL THRONE ROOM",
+              "characters": [
+                "Gloop"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "medium",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "medium shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 3.99,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 961,
+                  "end": 1120,
+                  "text": "**GLOOP**\n*(sarcastic blorp, deadpan)*\nAnd according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon."
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: medium shot."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:00 – 0:15 by source excerpt length."
+            }
+          ],
+          "start_offset": 472,
+          "implicit": false
+        }
+      ],
+      "start_offset": 421
+    },
+    {
+      "sequence_id": "SEQ_02",
+      "act_label": "II",
+      "title": "THE AWAKENING",
+      "timecode": "0:15 – 0:32",
+      "purpose": "",
+      "scenes": [
+        {
+          "scene_id": "SCN_02_01",
+          "heading": "INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS",
+          "int_ext": "INT.",
+          "location": "FORGOTTEN CITADEL THRONE ROOM",
+          "time": "CONTINUOUS",
+          "action": "Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard. CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION? Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?",
+          "characters": [
+            "Sir Pip",
+            "Stone Golem"
+          ],
+          "props": [
+            "rune",
+            "stone clipboard"
+          ],
+          "source_spans": [
+            {
+              "start": 1161,
+              "end": 1212,
+              "text": "**INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS**"
+            }
+          ],
+          "explicit_facts": [
+            "Action text: Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard.",
+            "Action text: CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?",
+            "Action text: Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?"
+          ],
+          "inferred_staging": [
+            "Shot boundaries inferred from screenplay structure.",
+            "Camera/staging inferred from content: establishing shot.",
+            "Camera/staging inferred from content: detail or reaction close-up."
+          ],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_02_01_001",
+              "purpose": "Action beat",
+              "visual_description": "Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard.",
+              "environment": "FORGOTTEN CITADEL THRONE ROOM",
+              "characters": [
+                "Sir Pip",
+                "Stone Golem"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [
+                "rune",
+                "stone clipboard"
+              ],
+              "camera_shot_type": "wide",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "establishing shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 7.02,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 1213,
+                  "end": 1422,
+                  "text": "Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard.\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard."
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: establishing shot."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:15 – 0:32 by source excerpt length."
+            },
+            {
+              "shot_id": "SHT_SCN_02_01_002",
+              "purpose": "Dialogue: Stone Golem",
+              "visual_description": "CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?",
+              "environment": "FORGOTTEN CITADEL THRONE ROOM",
+              "characters": [
+                "Stone Golem"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "close-up",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "detail or reaction close-up",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 5.41,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 1423,
+                  "end": 1584,
+                  "text": "**STONE GOLEM**\n*(booming, bureaucratic monotone)*\nCITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?"
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: detail or reaction close-up."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:15 – 0:32 by source excerpt length."
+            },
+            {
+              "shot_id": "SHT_SCN_02_01_003",
+              "purpose": "Dialogue: Sir Pip",
+              "visual_description": "Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?",
+              "environment": "FORGOTTEN CITADEL THRONE ROOM",
+              "characters": [
+                "Sir Pip"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "close-up",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "detail or reaction close-up",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 4.57,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 1585,
+                  "end": 1721,
+                  "text": "**SIR PIP**\n*(nervous gulp, forced heroic grin)*\nAha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?"
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: detail or reaction close-up."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:15 – 0:32 by source excerpt length."
+            }
+          ],
+          "start_offset": 1161,
+          "implicit": false
+        }
+      ],
+      "start_offset": 1121
+    },
+    {
+      "sequence_id": "SEQ_03",
+      "act_label": "III",
+      "title": "THE SLAPSTICK SETTLEMENT",
+      "timecode": "0:32 – 0:45",
+      "purpose": "",
+      "scenes": [
+        {
+          "scene_id": "SCN_03_01",
+          "heading": "",
+          "int_ext": "INT.",
+          "location": "",
+          "time": "",
+          "action": "Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off. NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS. Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!",
+          "characters": [
+            "Sir Pip",
+            "Gloop",
+            "Stone Golem"
+          ],
+          "props": [
+            "crown",
+            "monocle"
+          ],
+          "source_spans": [],
+          "explicit_facts": [
+            "Action text: Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off.",
+            "Action text: NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.",
+            "Action text: Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!"
+          ],
+          "inferred_staging": [
+            "Shot boundaries inferred from screenplay structure.",
+            "Camera/staging inferred from content: establishing shot.",
+            "Camera/staging inferred from content: medium shot."
+          ],
+          "shots": [
+            {
+              "shot_id": "SHT_SCN_03_01_001",
+              "purpose": "Action beat",
+              "visual_description": "Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off.",
+              "environment": "",
+              "characters": [
+                "Sir Pip",
+                "Gloop"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [
+                "crown",
+                "monocle"
+              ],
+              "camera_shot_type": "wide",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "establishing shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 3.51,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 1774,
+                  "end": 1884,
+                  "text": "Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off.\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off."
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: establishing shot."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:32 – 0:45 by source excerpt length."
+            },
+            {
+              "shot_id": "SHT_SCN_03_01_002",
+              "purpose": "Dialogue: Stone Golem",
+              "visual_description": "NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.",
+              "environment": "",
+              "characters": [
+                "Stone Golem"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "medium",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "medium shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 5.01,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 1885,
+                  "end": 2042,
+                  "text": "**STONE GOLEM**\n*(Tilts stone head, stamps clipboard)*\nNEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS."
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: medium shot."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:32 – 0:45 by source excerpt length."
+            },
+            {
+              "shot_id": "SHT_SCN_03_01_003",
+              "purpose": "Dialogue: Gloop",
+              "visual_description": "Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!",
+              "environment": "",
+              "characters": [
+                "Gloop"
+              ],
+              "character_positions": "",
+              "character_actions": "",
+              "props": [],
+              "camera_shot_type": "medium",
+              "camera_angle": "eye-level",
+              "camera_perspective": "",
+              "camera_movement": "",
+              "composition": "medium shot",
+              "foreground": "",
+              "middle_ground": "",
+              "background": "",
+              "lighting": "",
+              "weather": "",
+              "continuity_refs": [],
+              "estimated_duration_sec": 4.48,
+              "production_complexity": "LOW",
+              "engine_notes": "",
+              "source_spans": [
+                {
+                  "start": 2043,
+                  "end": 2183,
+                  "text": "**GLOOP**\n*(excited royal fanfare voice)*\nDecree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!\n"
+                }
+              ],
+              "explicit_facts": [
+                "Action text: Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!"
+              ],
+              "inferred_staging": [
+                "Shot boundaries inferred from screenplay structure.",
+                "Camera/staging inferred from content: medium shot."
+              ],
+              "duration_basis": "Proportional split of sequence timecode 0:32 – 0:45 by source excerpt length."
+            }
+          ],
+          "start_offset": 1774,
+          "implicit": true
+        }
+      ],
+      "start_offset": 1722
+    }
+  ],
+  "characters": [
+    {
+      "name": "Sir Pip",
+      "description": "20s, earnest squire in oversized dented pauldrons",
+      "source_spans": [
+        {
+          "start": 565,
+          "end": 624,
+          "text": "SIR PIP (20s, earnest squire in oversized dented pauldrons)"
+        }
+      ]
+    },
+    {
+      "name": "Gloop",
+      "description": "translucent emerald slime familiar wearing a tiny monocle",
+      "source_spans": [
+        {
+          "start": 689,
+          "end": 754,
+          "text": "GLOOP (translucent emerald slime familiar wearing a tiny monocle)"
+        }
+      ]
+    },
+    {
+      "name": "Stone Golem",
+      "description": "3 meters tall, mossy basalt plates, glowing amber eyes",
+      "source_spans": [
+        {
+          "start": 1285,
+          "end": 1361,
+          "text": "STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes)"
+        }
+      ]
+    }
+  ],
+  "open_questions": [
+    "SEQ_03 has no scene heading; location and time are unknown."
+  ]
+}

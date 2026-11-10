@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/visual-development/candidate.schema.json",
+  "title": "ArtDirectionCandidateSet",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "candidate_set_id",
+    "project_id",
+    "analysis_id",
+    "comparison_scene_id",
+    "created_at",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "candidate_set_id": { "type": "string" },
+    "project_id": { "type": "string" },
+    "analysis_id": { "type": "string" },
+    "comparison_scene_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "candidates": { "type": "array", "items": { "$ref": "#/$defs/candidate" } }
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "style_name",
+        "description",
+        "comparison_prompt",
+        "palette",
+        "lighting",
+        "materials",
+        "geometry",
+        "environment",
+        "character_design",
+        "camera",
+        "storytelling",
+        "feasibility",
+        "generation_requirements",
+        "strengths",
+        "limitations"
+      ],
+      "properties": {
+        "candidate_id": { "type": "string" },
+        "style_name": { "type": "string" },
+        "description": { "type": "string" },
+        "comparison_prompt": { "type": "string" },
+        "palette": { "type": "string" },
+        "lighting": { "type": "string" },
+        "materials": { "type": "string" },
+        "geometry": { "type": "string" },
+        "environment": { "type": "string" },
+        "character_design": { "type": "string" },
+        "camera": { "type": "string" },
+        "storytelling": { "type": "string" },
+        "feasibility": { "type": "string" },
+        "generation_requirements": { "type": "string" },
+        "strengths": { "type": "array", "items": { "type": "string" } },
+        "limitations": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string" },
+        "selected": { "type": "boolean" },
+        "generation_manifest": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/visual-development/style_bible.schema.json",
+  "title": "StyleBible",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "style_bible_id",
+    "project_id",
+    "candidate_id",
+    "version",
+    "status",
+    "created_at",
+    "global_rules",
+    "scene_variables"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "style_bible_id": { "type": "string" },
+    "project_id": { "type": "string" },
+    "candidate_id": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "status": { "type": "string" },
+    "created_at": { "type": "string" },
+    "style_identity": { "type": "string" },
+    "global_rules": {
+      "type": "object",
+      "required": [
+        "visual_principles",
+        "color_palette",
+        "materials",
+        "geometry",
+        "character_design",
+        "environment_design",
+        "lighting",
+        "camera_language",
+        "composition",
+        "atmosphere",
+        "accuracy_requirements",
+        "restrictions",
+        "positive_prompt",
+        "negative_prompt",
+        "generation_settings"
+      ],
+      "properties": {
+        "visual_principles": { "type": "array", "items": { "type": "string" } },
+        "color_palette": { "type": "string" },
+        "materials": { "type": "string" },
+        "geometry": { "type": "string" },
+        "character_design": { "type": "string" },
+        "environment_design": { "type": "string" },
+        "lighting": { "type": "string" },
+        "camera_language": { "type": "string" },
+        "composition": { "type": "string" },
+        "atmosphere": { "type": "string" },
+        "accuracy_requirements": { "type": "string" },
+        "restrictions": { "type": "array", "items": { "type": "string" } },
+        "positive_prompt": { "type": "array", "items": { "type": "string" } },
+        "negative_prompt": { "type": "array", "items": { "type": "string" } },
+        "generation_settings": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "scene_variables": {
+      "type": "object",
+      "properties": {
+        "location": { "type": "string" },
+        "time": { "type": "string" },
+        "weather": { "type": "string" },
+        "action": { "type": "string" },
+        "lighting_conditions": { "type": "string" },
+        "camera_angle": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "reference_images": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

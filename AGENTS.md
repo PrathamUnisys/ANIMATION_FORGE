@@ -8,10 +8,10 @@
 
 ## 0. Snapshot (verify before trusting)
 
-- **Last source review:** 2026-11-10. CR_006 remains active at ARCH_V1.3.0. EP10 revision 2 and the YouTube script experiment were merged through PR #4 (`8469d6e7c1d67fb337962c53f1efbe6dbd2e2b88`). The `visual-development-storyboard` branch is based on that merge; it contains an R&D/prototype checkpoint described in `VISUAL_DEVELOPMENT/IMPLEMENTATION_STATUS.md`, not a complete or runnable generation workflow.
-- **Git:** default branch is main. Current partial visual-development work is isolated on `visual-development-storyboard`, based on `origin/main` at PR #4 merge commit. Verify branch and HEAD before any push; do not commit to main directly.
-- **Tests:** historical CR_006 baseline: 45 passed (18 animation_forge_suite + 13 instruction_repository + 8 cr006_story_screenplay + 6 cr006_hardening) on 2026-11-09. Current prescribed run (2026-11-10): 30 passed, 1 failed at the validator-backed CR_007 check; two cache permission warnings. Nine known demo/workflow rewrites plus one extra blank line in the revised YS03 script were restored.
-- **Instruction validator:** historical baseline was 130 files, 9 rules, 0 findings (2026-11-09). Current run (2026-11-10): 131 files, 9 rules, 2 findings for `DOCS/CHANGE_REQUESTS/CR_007_YOUTUBE_SCREENWRITING_AUDIENCE_EXPERIENCE.md` (missing opening YAML delimiter; missing audit inventory entry). These findings were not changed in this writing experiment.
+- **Last source review:** 2026-11-10. CR_006 remains active at ARCH_V1.3.0. EP10 revision 2 and the YouTube script experiment were merged through PR #4 (`8469d6e7c1d67fb337962c53f1efbe6dbd2e2b88`). The `visual-development-storyboard` branch is based on that merge and now contains a **working** local Visual Development / Storyboard module: the full approved-script -> analysis -> art direction -> Style Bible -> storyboard -> blocking -> review -> handoff pipeline, verified against a live local ComfyUI 0.34.2 instance (26 real images). Status and exact limits: `VISUAL_DEVELOPMENT/IMPLEMENTATION_STATUS.md`.
+- **Git:** default branch is main. Visual-development work is isolated on `visual-development-storyboard`, based on `origin/main` at PR #4 merge commit. Verify branch and HEAD before any push; do not commit to main directly. The `script-creation-framework` branch (isolated Script Creation Framework MVP, commit `53a5ad33`) was pushed separately and is unrelated to this module.
+- **Tests:** historical CR_006 baseline: 45 passed (18 animation_forge_suite + 13 instruction_repository + 8 cr006_story_screenplay + 6 cr006_hardening) on 2026-11-09. Current prescribed run (2026-11-10): 30 passed, 1 failed at the validator-backed CR_007 check. New module suite `TESTS/test_visual_development.py`: **30 passed** (hermetic; uses an in-process mock ComfyUI server). Nine known demo/workflow rewrites plus one extra blank line in the revised YS03 script were restored after the prescribed run.
+- **Instruction validator:** historical baseline was 130 files, 9 rules, 0 findings (2026-11-09). Current run (2026-11-10): 131 files, 9 rules, 2 findings for `DOCS/CHANGE_REQUESTS/CR_007_YOUTUBE_SCREENWRITING_AUDIENCE_EXPERIENCE.md` (missing opening YAML delimiter; missing audit inventory entry). These findings are pre-existing and were not changed by the visual-development work.
 - **Frontend:** `npm run build` passed (vite 5.4.21); Story Workspace tabs A–G implemented.
 - **DB:** animation_forge.db tracked; CR_006 hardening added migration v3 (source/context columns), total 44 tables, ARCH_V1.3.0 active, CR_006 APPROVED. Pre-hardening backup at `C:\Users\sb291\AppData\Local\Temp\opencode\animation_forge_backup_20261109_181757_469325.db` (integrity ok). Migration tested on disposable copy before tracked DB.
 - **CR_006 hardening (H1–H8):** outline/approval gates enforced (no outline → fail; latest unapproved → fail; new outline supersedes old approval); collision-resistant artifact IDs (`ART_{project}_{episode}_{type}_{uuid8}`) with BEGIN IMMEDIATE + retry; exact source-revision refs on every downstream artifact; context package feeds every generation stage with hash over project/brief/canon/profiles (no Fantasy fallback, no fabricated channel); QC project+episode isolated with NOT_TESTED semantics and unique report IDs; critique findings validated, dedicated CritiquePayload; staged screenplay approval requires exact-revision QC (no BLOCKER) + critique (+ MAJOR acknowledgement). Live screenplay pilot (opencode/crouton-alpha-free, 6 LIVE stages, real tokens) shows QC FAIL on live output — approval gate correctly blocks; no fake success.
@@ -57,7 +57,7 @@ Core principle: **agents propose, humans approve**. Never mark creative work app
 | Bake-off spec + machine scorecard | `PIPELINE/BAKEOFF.md`, `PIPELINE/BAKEOFF/scorecard.json` |
 | Pipeline scaffolding (shot manifest, env gate) | `scripts/pipeline/shot_manifest.py`, `scripts/pipeline/env_guard.ps1` |
 | Verified capability matrix (disk truth) | `P0_GAP_MATRIX.md` (+ Corrections table) |
-| Visual development/storyboard module R&D and isolated implementation | `VISUAL_DEVELOPMENT/RESEARCH_REPORT.md`, `TECHNICAL_DECISIONS.md`, `ARCHITECTURE.md`, `IMPLEMENTATION_PLAN.md`, `KNOWN_LIMITATIONS.md`; standalone from backend/frontend until a separate approved integration change |
+| Visual development/storyboard module (working, live-verified) | `VISUAL_DEVELOPMENT/README.md` (entry point), `USER_GUIDE.md`, `COMFYUI_SETUP.md`, `EXAMPLE_PROJECT.md`; status and limits in `IMPLEMENTATION_STATUS.md` and `KNOWN_LIMITATIONS.md`; standalone from backend/frontend until a separate approved integration change |
 
 Do **not** read the full repo by default. Read this file, then only the rows above that match the task.
 
@@ -83,6 +83,7 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 | Post-production | SIMULATED | OTIO/SRT demo files only |
 | Technical QC | IMPLEMENTED (script only, H3) | `DeterministicValidator` is project+episode isolated, exact scene-card revision, canon from approved Bible (missing = NOT_TESTED), scene/screenplay correspondence, unique report IDs (repeat-safe). Media QC remains simulated. |
 | ComfyUI / Blender / Unreal adapters | SIMULATION_ONLY / DOCUMENTED_ONLY | validate/record only; do not launch apps or dispatch jobs |
+| Visual development / storyboard module (isolated) | IMPLEMENTED + LIVE-VERIFIED (outside the app) | `VISUAL_DEVELOPMENT/` implements approved-script -> analysis -> 8 art-direction candidates (one shared scene/seed) -> human selection -> versioned Style Bible -> storyboard images -> deterministic normalized blocking layouts + ControlNet blocking references -> loopback review UI -> continuity report -> Blender/Unreal handoff. Verified against live ComfyUI 0.34.2 on 2026-11-10 (26 real images). **No** protected file, backend route, DB table or React change; app integration needs an approved CR. Image-to-image identity is `NOT_CHECKED`; no 3D coordinates are produced. |
 | MCP gateway | CATALOG ONLY | names registered, no real dispatch (`mcp_gateway.py`) |
 | Asset library | INDEX ONLY | Check current asset hashes and machine-specific roots before reuse; local storage-root configuration is separate. |
 | Story acquisition | DOCUMENTATION ONLY | STORY_ACQUISITION contains source/rights templates and workflow guidance; no automated rights clearance engine |
@@ -114,6 +115,7 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 - Pilot `PROJECT_BELL`: Series Bible 3 revisions (head APPROVED), Episode Brief 3 revisions, story artifacts (analysis/hooks/outline/cards/screenplay/retention), 3 screenplay revisions (V03 QC PASS, pre-hardening).
 - Library/tool catalog/genres unchanged (Fantasy, Comedy; CHANNELS empty).
 - Provider requests: mock entries only; no live usage (Ollama BLOCKED).
+- **Visual development pilot (2026-11-10, new):** `PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1/` built from the only `APPROVED` screenplay (`SCR_PROJECT_001_V01`). Contains 1 analysis (3 sequences / 3 scenes / 9 shots), 1 candidate set (8 candidates), 1 Style Bible v1, **26 generations** (8 art direction, 9 storyboard, 9 blocking), 9 blocking layouts (JSON+SVG+PNG), 27 review events, 1 continuity report and 1 handoff package. The database was **not** modified; the module reads it read-only.
 
 ---
 
@@ -122,12 +124,20 @@ Do **not** read the full repo by default. Read this file, then only the rows abo
 ```powershell
 .\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py TESTS/test_instruction_repository.py
 .\.venv\Scripts\python scripts\validate_instruction_repository.py
+.\.venv\Scripts\python -m pytest -q TESTS/test_visual_development.py -p no:cacheprovider
 ```
 
 Current verification (2026-11-09, CR_006 hardening):
 - `.\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py TESTS/test_instruction_repository.py TESTS/test_cr006_story_screenplay.py TESTS/test_cr006_hardening.py` → 45 passed
 - `.\.venv\Scripts\python scripts\validate_instruction_repository.py` → 130 files, 9 rules, 0 findings
 - `npm run build` (frontend) → passed (vite 5.4.21)
+
+Current verification (2026-11-10, Visual Development module):
+- `.\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py TESTS/test_instruction_repository.py` → **30 passed, 1 failed**. The sole failure is the pre-existing `ContractTests.test_complete_instruction_repository_passes` CR_007 frontmatter/audit-inventory finding, unchanged by this work.
+- `.\.venv\Scripts\python scripts\validate_instruction_repository.py` → **131 files, 9 rules, 2 findings**, the same two pre-existing CR_007 findings.
+- `.\.venv\Scripts\python -m pytest -q TESTS/test_visual_development.py -p no:cacheprovider` → **30 passed** (hermetic; in-process mock ComfyUI server).
+- Live ComfyUI 0.34.2 verified: `/system_stats`, `/object_info`, `/models/{checkpoints,loras,controlnet}`, `/upload/image`, `/prompt`, `/history/{id}`, `/view`. 26 images generated (8 art direction, 9 storyboard, 9 blocking); measured ~8 s per 768x768 image, 12-16 s for the ControlNet branch.
+- Nine known demo/workflow rewrites plus `CORE/GLOBAL_WORKFLOW.md` were rewritten by the prescribed run and restored from their exact paths.
 
 **Side effect:** the app suite runs the demo runner against the repo root and rewrites
 tracked files under `PROJECTS/` **and `CORE/GLOBAL_WORKFLOW.md`** (timestamps, research dates,
@@ -149,7 +159,11 @@ CR_006 verified + hardened historically: 45 passed / 0 findings / vite build pas
 
 **Current validator red (2026-11-10):** `DOCS/CHANGE_REQUESTS/CR_007_YOUTUBE_SCREENWRITING_AUDIENCE_EXPERIENCE.md` is missing its opening YAML front matter delimiter and is absent from `DOCS/INSTRUCTION_REPOSITORY_AUDIT.md` inventory. This experiment does not edit or repair the proposed framework change. The prescribed test command fails only at the validator-backed repository-cleanliness assertion for these two findings; see §0 and the newest change-log entry.
 
-The 2026-11-10 visual-development checkpoint also ran `compileall` successfully (syntax only); it has no behavioral test suite yet. Local ComfyUI was unavailable. See `VISUAL_DEVELOPMENT/IMPLEMENTATION_STATUS.md`.
+The 2026-11-10 visual-development module now has a behavioral test suite
+(`TESTS/test_visual_development.py`, 30 passed, hermetic via an in-process mock ComfyUI
+server) and was live-verified against a local ComfyUI 0.34.2 instance. The earlier
+checkpoint note (compileall only, ComfyUI unavailable) is superseded. See
+`VISUAL_DEVELOPMENT/IMPLEMENTATION_STATUS.md`.
 
 Remaining gaps (not CR_006 scope or BLOCKED):
 - Live Ollama smoke test BLOCKED 2026-11-09 (connection refused on localhost:11434). Adapter + mock tests complete; live generation needs Ollama running.
@@ -207,6 +221,7 @@ If you cannot update this file, stop and say why.
 
 | Date | Change | Files | Verification |
 |---|---|---|---|
+| 2026-11-10 | **Visual Development module implemented and live-verified**: full approved-script -> analysis -> 8 art-direction candidates (one shared scene/seed) -> human selection -> versioned Style Bible -> storyboard images -> deterministic normalized blocking layouts + ControlNet blocking references -> loopback review UI -> continuity report -> Blender/Unreal handoff. 13 CLI commands, 6 module schemas, 30 module tests. Pilot produced 26 real images through local ComfyUI 0.34.2. No backend route, DB table, protected file or React change. | `VISUAL_DEVELOPMENT/` (14 modules, 6 schemas, 9 docs), `TESTS/test_visual_development.py`, `PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1/`, `AGENTS.md` | Live ComfyUI 0.34.2 (RTX 4060, 8 GB): `/system_stats`, `/object_info`, `/models/*`, `/upload/image`, `/prompt`, `/history/{id}`, `/view` all exercised; 26 images generated (~8 s each, 12-16 s for ControlNet). Module suite **30 passed**. Review UI: HTTP 200 dashboard, real PNG served (885 777 B), path traversal refused, approve/reject recorded. Continuity: 6 PASS, 0 FAIL, 1 REVIEW (Act III has no scene heading), 1 NOT_CHECKED (image identity). Prescribed pytest: 30 passed, 1 failed on the pre-existing CR_007 findings; validator: 131 files, 9 rules, same 2 findings. Nine test-noise files plus `CORE/GLOBAL_WORKFLOW.md` restored. Three pilot defects found and fixed (non-unique shot ids, `APPROVE` vs `APPROVED` review vocabulary, orphan PNG on manifest failure). |
 | 2026-11-10 | Paused visual-development implementation after R&D and initial project-core checkpoint; documented exact implemented/incomplete status. No existing runtime or protected framework structures changed. | `VISUAL_DEVELOPMENT/`, `AGENTS.md` | `compileall` PASS (syntax only); module unit tests NOT_RUN. Prescribed pytest: 30 passed, 1 failed on existing CR_007 frontmatter/audit-inventory findings; validator: 131 files, 9 rules, same 2 findings. Test-generated changes restored. ComfyUI unavailable at `127.0.0.1:8188`. See `VISUAL_DEVELOPMENT/IMPLEMENTATION_STATUS.md`. |
 | 2026-11-10 | Added visual-development R&D, architecture and implementation decisions. Selected an isolated file-backed module; documented current approved-script availability and unavailable local ComfyUI without changing runtime structures. | `VISUAL_DEVELOPMENT/{RESEARCH_REPORT.md,TECHNICAL_DECISIONS.md,ARCHITECTURE.md,IMPLEMENTATION_PLAN.md,KNOWN_LIMITATIONS.md}`, `AGENTS.md` | Prescribed pytest: 30 passed, 1 failed on existing CR_007 frontmatter/audit-inventory findings; validator: 131 files, 9 rules, same 2 findings. Nine test-noise files restored. Live ComfyUI health/object-info requests timed out; no process or listener found. |
 | 2026-11-10 | Refreshed stale repository snapshot after PR #4 merged EP10 revision 2 and the YouTube script experiment; created the isolated `visual-development-storyboard` implementation branch from current `origin/main` | `AGENTS.md` | Prescribed pytest: 30 passed, 1 failed at the validator-backed contract check because of the existing two CR_007 findings; validator: 131 files, 9 rules, 2 findings (same CR_007 issues). Nine test-noise files restored. Snapshot verified: start HEAD `8469d6e7c1d67fb337962c53f1efbe6dbd2e2b88`, branch `visual-development-storyboard`. |

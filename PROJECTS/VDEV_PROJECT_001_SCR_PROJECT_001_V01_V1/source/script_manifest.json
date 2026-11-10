@@ -1,0 +1,12 @@
+{
+  "script_id": "SCR_PROJECT_001_V01",
+  "project_id": "PROJECT_001",
+  "episode_id": null,
+  "version": 1,
+  "approval_status": "APPROVED",
+  "is_immutable": true,
+  "created_at": "2026-11-08T20:14:58.356040Z",
+  "sha256": "ea80754c9b86849c61e9bd57552db5860edd2912db3f62747245a78517100e1a",
+  "database_path": "D:\\Work\\ANIMATION_FORGE\\animation_forge.db",
+  "imported_at": "2026-11-10T14:01:13Z"
+}

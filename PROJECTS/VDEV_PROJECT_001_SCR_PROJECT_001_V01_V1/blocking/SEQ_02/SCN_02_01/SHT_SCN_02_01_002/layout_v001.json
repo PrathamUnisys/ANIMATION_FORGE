@@ -1,0 +1,41 @@
+{
+  "shot_id": "SHT_SCN_02_01_002",
+  "scene_id": "SCN_02_01",
+  "coordinate_space": "NORMALIZED_STAGE_0_TO_1",
+  "not_world_coordinates": true,
+  "stage": {
+    "x": 0.06,
+    "y": 0.04,
+    "width": 0.88,
+    "height": 0.8
+  },
+  "camera": {
+    "x": 0.5,
+    "y": 0.92,
+    "fov_deg": 28.0,
+    "focus_x": 0.5,
+    "focus_y": 0.44,
+    "sightline": true
+  },
+  "characters": [
+    {
+      "name": "Stone Golem",
+      "x": 0.5,
+      "y": 0.44,
+      "radius": 0.045,
+      "facing": "toward_camera"
+    }
+  ],
+  "props": [],
+  "movement": {
+    "direction": "upstage_left_to_right",
+    "note": "Movement direction is inferred from shot content, not measured."
+  },
+  "environment": "FORGOTTEN CITADEL THRONE ROOM",
+  "inferred": true,
+  "notes": [
+    "Positions are relative staging decisions inferred from the shot description.",
+    "This layout is not a validated 3D scene and carries no scale or unit."
+  ],
+  "sequence_id": "SEQ_02"
+}

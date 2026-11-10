@@ -67,6 +67,24 @@ class ProjectStore:
         write_json_new(path, value)
         return path
 
+    def update_json(self, relative: str, value: Any, schema: str | None = None) -> Path:
+        """Atomically replace an existing JSON file.
+
+        Used only for mutable working state such as the candidate set. Immutable
+        generation artifacts are always written with write_json so revisions are
+        never overwritten.
+        """
+        if schema:
+            validate_schema(value, schema)
+        path = self.path(relative)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_name(f".{path.name}.tmp")
+        with temporary.open("w", encoding="utf-8", newline="\n") as handle:
+            json.dump(value, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        temporary.replace(path)
+        return path
+
     def write_bytes(self, relative: str, value: bytes) -> Path:
         path = self.path(relative)
         write_bytes_new(path, value)
@@ -123,6 +141,11 @@ class ProjectStore:
         manifest["image_path"] = image_path
         manifest["image_sha256"] = sha256_bytes(image_bytes)
         manifest["created_at"] = utc_now()
-        self.write_bytes(image_path, image_bytes)
-        self.write_json(manifest_path, manifest, "generation_manifest.schema.json")
+        try:
+            self.write_bytes(image_path, image_bytes)
+            self.write_json(manifest_path, manifest, "generation_manifest.schema.json")
+        except Exception:
+            # Do not leave an image without its provenance manifest.
+            self.path(image_path).unlink(missing_ok=True)
+            raise
         return image_path, manifest_path

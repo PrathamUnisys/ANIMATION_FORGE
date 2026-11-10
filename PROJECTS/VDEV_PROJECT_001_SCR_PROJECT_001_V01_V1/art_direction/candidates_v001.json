@@ -1,0 +1,275 @@
+{
+  "schema_version": "1.0.0",
+  "candidate_set_id": "ARTSET_7B2788D999D3",
+  "project_id": "VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1",
+  "analysis_id": "ANALYSIS_4CC0DF9167F0",
+  "comparison_scene_id": "SCN_01_01",
+  "comparison_seed": 536354036775427,
+  "created_at": "2026-11-10T14:01:14Z",
+  "candidates": [
+    {
+      "candidate_id": "ART_01",
+      "style_name": "Cinematic Realism",
+      "description": "Grounded live-action cinematography with naturalistic light and measurable depth.",
+      "style_prompt": "cinematic realism, live-action feature film still, naturalistic lighting, anamorphic lens, shallow depth of field, film grain, physically plausible materials",
+      "comparison_prompt": "cinematic realism, live-action feature film still, naturalistic lighting, anamorphic lens, shallow depth of field, film grain, physically plausible materials. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Desaturated earth tones with warm amber highlights and cool shadow fill.",
+      "lighting": "Motivated three-point cinematic lighting; soft key, practical sources, gentle rim.",
+      "materials": "Worn stone, oxidized bronze, damp moss, woven cloth; believable surface wear.",
+      "geometry": "Real-world proportions and perspective; no exaggerated anatomy.",
+      "environment": "Architectural scale readable from foreground to background; atmospheric haze.",
+      "character_design": "Human-proportioned squire; translucent slime familiar with internal refraction.",
+      "camera": "35mm anamorphic, eye-level coverage, restrained movement.",
+      "storytelling": "Performance and spatial relationships drive the frame.",
+      "feasibility": "High for Blender/Unreal; needs believable textures and character rigs.",
+      "generation_requirements": "Checkpoint only; no control net required.",
+      "strengths": [
+        "Strong production readability",
+        "Easy engine translation"
+      ],
+      "limitations": [
+        "Less stylized; may read generic without strong art direction"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_0268D1CCE12E",
+        "image_path": "art_direction/candidate_ART_01/GEN_0268D1CCE12E.png",
+        "prompt": "cinematic realism, live-action feature film still, naturalistic lighting, anamorphic lens, shallow depth of field, film grain, physically plausible materials, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "76ee46b0-a184-4179-af05-f0ea411d8c7f"
+      }
+    },
+    {
+      "candidate_id": "ART_02",
+      "style_name": "Stylized 3D Animation",
+      "description": "Pixar-style dimensional staging with appealing shapes and readable silhouettes.",
+      "style_prompt": "stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette",
+      "comparison_prompt": "stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Saturated primaries balanced by neutral stone; teal-and-amber contrast.",
+      "lighting": "Soft key with broad fill, colored bounce, gentle rim for silhouette separation.",
+      "materials": "Slightly exaggerated surface response; moss reads as soft velvet, metal as toy-like.",
+      "geometry": "Rounded, appealing forms; proportions slightly compressed for charm.",
+      "environment": "Readable stage-like space with clear foreground, midground and background planes.",
+      "character_design": "Appealing cartoon proportions; expressive eyes and readable gestures.",
+      "camera": "50mm-equivalent, slightly low camera for hero staging, smooth moves.",
+      "storytelling": "Shape language and color carry the joke and the beat.",
+      "feasibility": "High for Blender/Unreal stylized pipelines; needs toon or stylized shaders.",
+      "generation_requirements": "Checkpoint plus optional stylized LoRA.",
+      "strengths": [
+        "Highly readable at thumbnail size",
+        "Strong character appeal"
+      ],
+      "limitations": [
+        "Requires shader work to match in engine"
+      ],
+      "status": "SELECTED",
+      "selected": true,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_E5BE47293A47",
+        "image_path": "art_direction/candidate_ART_02/GEN_E5BE47293A47.png",
+        "prompt": "stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "acfebeea-82f8-4c23-9a91-1d0f833af0d4"
+      }
+    },
+    {
+      "candidate_id": "ART_03",
+      "style_name": "Miniature Diorama",
+      "description": "A hand-built tabletop world with tilt-shift depth and practical textures.",
+      "style_prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light",
+      "comparison_prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Muted craft-store colors with selective bright accents on props.",
+      "lighting": "Large soft source from above; subtle practicals; tilt-shift falloff.",
+      "materials": "Foam, clay, paper, painted wood; visible but tasteful craft texture.",
+      "geometry": "Slightly compressed depth; architectural details simplified but layered.",
+      "environment": "A contained stage that reads as a built set with visible edges.",
+      "character_design": "Maquette-style figures with sculpted clothing and simplified faces.",
+      "camera": "Tilt-shift macro, high angle or low hero angle, shallow depth.",
+      "storytelling": "The set itself is a character; scale and craft communicate tone.",
+      "feasibility": "Good for previs; engine version needs modular kit assets.",
+      "generation_requirements": "Checkpoint only; optional LoRA for craft texture.",
+      "strengths": [
+        "Distinctive, charming, highly reproducible",
+        "Clear spatial read"
+      ],
+      "limitations": [
+        "Harder to make dramatic; craft look may not suit all genres"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_7EF78FD4E60B",
+        "image_path": "art_direction/candidate_ART_03/GEN_7EF78FD4E60B.png",
+        "prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "7da84ad5-aadd-449a-9ec6-7f575a37e0bd"
+      }
+    },
+    {
+      "candidate_id": "ART_04",
+      "style_name": "Painterly Environments",
+      "description": "Traditional oil-painting language with visible brushwork and atmospheric depth.",
+      "style_prompt": "painterly environment art, oil painting, visible brushwork, atmospheric perspective, classical composition, rich impasto highlights, moody chiaroscuro",
+      "comparison_prompt": "painterly environment art, oil painting, visible brushwork, atmospheric perspective, classical composition, rich impasto highlights, moody chiaroscuro. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Warm ochre, umber, deep green, and muted gold; limited but harmonious.",
+      "lighting": "Chiaroscuro with a single dominant source; soft atmospheric falloff.",
+      "materials": "Paint handling suggests stone, metal and slime rather than describing them.",
+      "geometry": "Classical perspective; forms simplified into value masses.",
+      "environment": "Layered depth with foreground framing elements and hazy background.",
+      "character_design": "Painted figures with strong value shapes and minimal interior line.",
+      "camera": "Painted-frame composition; classical thirds and foreground framing.",
+      "storytelling": "Mood and value structure carry narrative emphasis.",
+      "feasibility": "Excellent concept reference; engine version needs matching texture language.",
+      "generation_requirements": "Checkpoint plus painterly LoRA if available.",
+      "strengths": [
+        "Strong mood and memorable key art",
+        "Good for tone alignment"
+      ],
+      "limitations": [
+        "Loose detail can conflict with precise production needs"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_4AA33D30E7B0",
+        "image_path": "art_direction/candidate_ART_04/GEN_4AA33D30E7B0.png",
+        "prompt": "painterly environment art, oil painting, visible brushwork, atmospheric perspective, classical composition, rich impasto highlights, moody chiaroscuro, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "1e8f5160-eeed-4729-87ae-4445b2a33df1"
+      }
+    },
+    {
+      "candidate_id": "ART_05",
+      "style_name": "Graphic Novel Noir",
+      "description": "High-contrast ink illustration with bold shapes and limited flat color.",
+      "style_prompt": "graphic novel art, noir comic illustration, bold ink outlines, high-contrast shadows, limited flat color palette, halftone texture, dynamic panel composition",
+      "comparison_prompt": "graphic novel art, noir comic illustration, bold ink outlines, high-contrast shadows, limited flat color palette, halftone texture, dynamic panel composition. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Black, bone white, emerald green, and one amber accent.",
+      "lighting": "Hard graphic shadows; light rendered as negative space.",
+      "materials": "Ink and flat color; texture implied by line weight and pattern.",
+      "geometry": "Slightly exaggerated poses; strong silhouettes and forced perspective.",
+      "environment": "Architectural shapes reduced to bold graphic masses.",
+      "character_design": "Expressive ink figures with readable silhouettes and graphic costumes.",
+      "camera": "Dynamic angles, Dutch tilts, dramatic foreshortening.",
+      "storytelling": "Panel-like framing; each image is a story beat.",
+      "feasibility": "Great for shot flow and readability; engine version needs toon shading.",
+      "generation_requirements": "Checkpoint plus graphic-novel LoRA if available.",
+      "strengths": [
+        "Extremely readable story beats",
+        "Strong consistent identity"
+      ],
+      "limitations": [
+        "Limited tonal subtlety; may need post to match in engine"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_F25B67C25AED",
+        "image_path": "art_direction/candidate_ART_05/GEN_F25B67C25AED.png",
+        "prompt": "graphic novel art, noir comic illustration, bold ink outlines, high-contrast shadows, limited flat color palette, halftone texture, dynamic panel composition, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "11b97ffe-8d54-4941-a9e0-a49480883b7f"
+      }
+    },
+    {
+      "candidate_id": "ART_06",
+      "style_name": "Stop-Motion Aesthetic",
+      "description": "Frame-by-frame puppet animation with tactile sets and intentional imperfection.",
+      "style_prompt": "stop-motion animation, puppet film still, tactile miniature set, visible fingerprints in clay, practical lighting, slight motion blur, handcrafted texture",
+      "comparison_prompt": "stop-motion animation, puppet film still, tactile miniature set, visible fingerprints in clay, practical lighting, slight motion blur, handcrafted texture. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Dusty, slightly faded colors with warm tungsten practicals.",
+      "lighting": "Visible practical lamps and soft key; shadows have a handmade quality.",
+      "materials": "Clay, fabric, fur, metal foil; real textures photographed under light.",
+      "geometry": "Slightly chunky proportions; joints and armature implied.",
+      "environment": "Full practical sets with visible seams and construction.",
+      "character_design": "Puppets with replacement faces or expressive sculpted features.",
+      "camera": "18mm-ish wide coverage or 35mm medium; locked-off or gentle motion.",
+      "storytelling": "Physical performance and tactile detail create charm.",
+      "feasibility": "Good for previs; engine version needs puppet-style rigs and shaders.",
+      "generation_requirements": "Checkpoint only.",
+      "strengths": [
+        "Warm, distinctive, highly consistent",
+        "Strong material read"
+      ],
+      "limitations": [
+        "Slower to interpret for realistic engine pipelines"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_BF0AFC2E9AC8",
+        "image_path": "art_direction/candidate_ART_06/GEN_BF0AFC2E9AC8.png",
+        "prompt": "stop-motion animation, puppet film still, tactile miniature set, visible fingerprints in clay, practical lighting, slight motion blur, handcrafted texture, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "1ff54845-f88f-468a-a50e-57d3956cc376"
+      }
+    },
+    {
+      "candidate_id": "ART_07",
+      "style_name": "Documentary Visualization",
+      "description": "Informational realism with clear diagrams, labels and explainer staging.",
+      "style_prompt": "documentary visualization, educational explainer still, clean informative composition, neutral lighting, clear silhouettes, subtle annotations, realistic rendering",
+      "comparison_prompt": "documentary visualization, educational explainer still, clean informative composition, neutral lighting, clear silhouettes, subtle annotations, realistic rendering. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Neutral grays and browns with a single informative accent color.",
+      "lighting": "Even, shadow-minimizing light for clarity; no dramatic contrast.",
+      "materials": "Accurate material reads; surfaces are legible rather than expressive.",
+      "geometry": "True proportions and clear spatial relationships.",
+      "environment": "Uncluttered staging that isolates the subject and action.",
+      "character_design": "Clear, neutral character reads with accurate costume detail.",
+      "camera": "Locked-off, eye-level or slightly elevated; diagram-friendly framing.",
+      "storytelling": "Clarity first; every visual element explains rather than decorates.",
+      "feasibility": "Excellent for blocking and production planning.",
+      "generation_requirements": "Checkpoint only.",
+      "strengths": [
+        "Best production readability",
+        "Clear blocking and continuity"
+      ],
+      "limitations": [
+        "Least emotionally expressive; may feel dry"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_DF596C64A489",
+        "image_path": "art_direction/candidate_ART_07/GEN_DF596C64A489.png",
+        "prompt": "documentary visualization, educational explainer still, clean informative composition, neutral lighting, clear silhouettes, subtle annotations, realistic rendering, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "27c41dee-16f3-42b9-897f-f6780401c197"
+      }
+    },
+    {
+      "candidate_id": "ART_08",
+      "style_name": "Low-Poly Stylization",
+      "description": "Faceted geometric forms with flat shading and bold color blocking.",
+      "style_prompt": "low-poly 3D stylization, faceted geometry, flat shading, bold color blocking, geometric shapes, clean isometric-inspired composition, stylized game art",
+      "comparison_prompt": "low-poly 3D stylization, faceted geometry, flat shading, bold color blocking, geometric shapes, clean isometric-inspired composition, stylized game art. INT. FORGOTTEN CITADEL THRONE ROOM - MORNING. The scene is set in FORGOTTEN CITADEL THRONE ROOM (MORNING). Characters present: Sir Pip, Gloop. Visible props: pauldrons, crown, turnip cloth, monocle. Action: Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon. Cinematic storybook composition, consistent character identity, high detail, production-ready concept art.",
+      "palette": "Limited palette of 6-8 bold colors; strong value separation.",
+      "lighting": "Flat or simple two-tone shading; no realistic falloff.",
+      "materials": "Faceted surfaces; material read through color and shape, not texture.",
+      "geometry": "Simplified planar forms; readable silhouettes at low detail.",
+      "environment": "Geometric architecture with clear planes and depth layers.",
+      "character_design": "Faceted characters with bold readable shapes and simple faces.",
+      "camera": "Slightly elevated three-quarter view; clean composition.",
+      "storytelling": "Shape and color communicate action and hierarchy.",
+      "feasibility": "Very high for real-time Unreal/Blender; cheap to build.",
+      "generation_requirements": "Checkpoint only.",
+      "strengths": [
+        "Fastest engine translation",
+        "Highly consistent and readable"
+      ],
+      "limitations": [
+        "Limited detail; may undersell dramatic moments"
+      ],
+      "status": "DRAFT",
+      "selected": false,
+      "comparison_scene_id": "SCN_01_01",
+      "generation_manifest": {
+        "generation_id": "GEN_AF291A038C6C",
+        "image_path": "art_direction/candidate_ART_08/GEN_AF291A038C6C.png",
+        "prompt": "low-poly 3D stylization, faceted geometry, flat shading, bold color blocking, geometric shapes, clean isometric-inspired composition, stylized game art, INT. FORGOTTEN CITADEL THRONE ROOM - MORNING, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Gloop (translucent emerald slime familiar wearing a tiny monocle), Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically. Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions. And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon., pauldrons, crown, turnip cloth, monocle, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, art direction comparison frame",
+        "prompt_id": "6090de1b-24ed-49d3-8e39-3d60d0d3a3f7"
+      }
+    }
+  ]
+}

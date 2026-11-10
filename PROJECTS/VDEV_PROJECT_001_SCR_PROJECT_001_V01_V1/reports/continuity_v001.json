@@ -1,0 +1,77 @@
+{
+  "status": "REVIEW",
+  "checks": [
+    {
+      "check_id": "shot_ids_unique",
+      "status": "PASS",
+      "message": "Every shot identifier is unique.",
+      "details": {
+        "duplicates": [],
+        "shot_count": 9
+      }
+    },
+    {
+      "check_id": "shot_script_reference",
+      "status": "PASS",
+      "message": "Every shot traces back to a screenplay passage.",
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "check_id": "character_identity_known",
+      "status": "PASS",
+      "message": "All shot characters are described in the script.",
+      "details": {
+        "unknown": {}
+      }
+    },
+    {
+      "check_id": "scene_location_continuity",
+      "status": "REVIEW",
+      "message": "Scenes without an explicit location need a human decision.",
+      "details": {
+        "scenes": [
+          {
+            "scene_id": "SCN_03_01",
+            "issue": "Scene heading missing in source; location and time unknown."
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "source_hash_current",
+      "status": "PASS",
+      "message": "Every generated image was produced from the current screenplay.",
+      "details": {
+        "stale": []
+      }
+    },
+    {
+      "check_id": "style_version_current",
+      "status": "PASS",
+      "message": "Every generated image matches the current Style Bible version.",
+      "details": {
+        "stale": []
+      }
+    },
+    {
+      "check_id": "generation_metadata_complete",
+      "status": "PASS",
+      "message": "Every generated image records prompt, model, seed and workflow.",
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "check_id": "visual_identity_between_images",
+      "status": "NOT_CHECKED",
+      "message": "Visual identity, clothing and palette consistency between images require human comparison; no validated vision comparison model is configured.",
+      "details": null
+    }
+  ],
+  "passed": 6,
+  "failed": 0,
+  "needs_review": 1,
+  "not_checked": 1
+}

@@ -1,0 +1,37 @@
+{
+  "artifact_type": "BLOCKING",
+  "shot_id": "SHT_SCN_02_01_001",
+  "sequence_id": "SEQ_02",
+  "scene_id": "SCN_02_01",
+  "prompt": "production blocking reference render, previs staging view, clean readable staging, stylized 3D animation, feature animation still, appealing shapes, clean silhouettes, soft global illumination, subsurface scattering, vibrant but controlled palette, consistent character identity, coherent environment design, clear composition, INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS, CONTINUOUS, FORGOTTEN CITADEL THRONE ROOM, Sir Pip (20s, earnest squire in oversized dented pauldrons), Stone Golem (3 meters tall, mossy basalt plates, glowing amber eyes), Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard., rune, stone clipboard, wide, eye-level, establishing shot, Soft key with broad fill, colored bounce, gentle rim for silhouette separation., Soft key with broad fill, colored bounce, gentle rim for silhouette separation., Slightly exaggerated surface response; moss reads as soft velvet, metal as toy-like., Action beat",
+  "negative_prompt": "extra characters, inconsistent character design, changing outfit, unreadable composition, watermark, text, logo, low resolution, blurry, poor anatomy, extra limbs, missing hands, cropped subject, text overlay, annotation labels, photorealistic skin, busy background",
+  "workflow_id": "txt2img_canny_v1",
+  "workflow_version": "1.0.0",
+  "model": "dreamshaper_8.safetensors",
+  "seed": 536354046175280,
+  "width": 768,
+  "height": 768,
+  "steps": 25,
+  "cfg": 8.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "control_net": "control_v11p_sd15_canny.pth",
+  "reference_images": [
+    "layout_v001.png"
+  ],
+  "style_bible_sha256": "5eecfe25861242a962b1141b9c21f7e3f5da1821cb8a15014a183c23b2c7e83e",
+  "source_script_sha256": "ea80754c9b86849c61e9bd57552db5860edd2912db3f62747245a78517100e1a",
+  "comfyui_prompt_id": "2eea1550-e9af-4fbf-a823-b3537b5aa65f",
+  "comfyui_output": {
+    "filename": "BL_SHT_SCN_02_01_001_00001_.png",
+    "subfolder": "",
+    "type": "output"
+  },
+  "generation_seconds": 12.07,
+  "status": "GENERATED",
+  "review_status": "PENDING",
+  "created_at": "2026-11-10T14:12:51Z",
+  "generation_id": "GEN_CD1494F84C1C",
+  "image_path": "blocking/SEQ_02/SCN_02_01/SHT_SCN_02_01_001/GEN_CD1494F84C1C.png",
+  "image_sha256": "ae5b5ecafb499faff8015e805121349050a4b10428e7232c65459428263d146d"
+}

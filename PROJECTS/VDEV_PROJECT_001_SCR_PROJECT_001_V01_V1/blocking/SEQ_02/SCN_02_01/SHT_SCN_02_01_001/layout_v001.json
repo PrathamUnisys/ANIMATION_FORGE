@@ -1,0 +1,61 @@
+{
+  "shot_id": "SHT_SCN_02_01_001",
+  "scene_id": "SCN_02_01",
+  "coordinate_space": "NORMALIZED_STAGE_0_TO_1",
+  "not_world_coordinates": true,
+  "stage": {
+    "x": 0.06,
+    "y": 0.04,
+    "width": 0.88,
+    "height": 0.8
+  },
+  "camera": {
+    "x": 0.5,
+    "y": 0.97,
+    "fov_deg": 55.0,
+    "focus_x": 0.34,
+    "focus_y": 0.45,
+    "sightline": true
+  },
+  "characters": [
+    {
+      "name": "Sir Pip",
+      "x": 0.34,
+      "y": 0.45,
+      "radius": 0.045,
+      "facing": "toward_camera"
+    },
+    {
+      "name": "Stone Golem",
+      "x": 0.66,
+      "y": 0.45,
+      "radius": 0.045,
+      "facing": "toward_camera"
+    }
+  ],
+  "props": [
+    {
+      "name": "rune",
+      "x": 0.22,
+      "y": 0.74,
+      "size": 0.05
+    },
+    {
+      "name": "stone clipboard",
+      "x": 0.78,
+      "y": 0.74,
+      "size": 0.05
+    }
+  ],
+  "movement": {
+    "direction": "upstage_left_to_right",
+    "note": "Movement direction is inferred from shot content, not measured."
+  },
+  "environment": "FORGOTTEN CITADEL THRONE ROOM",
+  "inferred": true,
+  "notes": [
+    "Positions are relative staging decisions inferred from the shot description.",
+    "This layout is not a validated 3D scene and carries no scale or unit."
+  ],
+  "sequence_id": "SEQ_02"
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/visual-development/project.schema.json",
+  "title": "VisualDevelopmentProject",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project_id",
+    "title",
+    "created_at",
+    "status",
+    "source_script",
+    "stage"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string" },
+    "status": { "type": "string" },
+    "stage": { "type": "string" },
+    "source_script": { "type": "object" }
+  },
+  "additionalProperties": true
+}

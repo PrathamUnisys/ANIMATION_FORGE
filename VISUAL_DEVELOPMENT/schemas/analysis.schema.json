@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/visual-development/analysis.schema.json",
+  "title": "VisualAnalysis",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "analysis_id",
+    "project_id",
+    "source_script_sha256",
+    "created_at",
+    "episode",
+    "sequences"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "analysis_id": { "type": "string" },
+    "project_id": { "type": "string" },
+    "source_script_sha256": { "type": "string" },
+    "created_at": { "type": "string" },
+    "episode": {
+      "type": "object",
+      "required": ["episode_id", "title", "genre", "target_runtime_sec"],
+      "properties": {
+        "episode_id": { "type": "string" },
+        "title": { "type": "string" },
+        "genre": { "type": "string" },
+        "target_runtime_sec": { "type": "number" },
+        "logline": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "sequences": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sequence" }
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "source_spans": { "type": "array", "items": { "$ref": "#/$defs/span" } }
+        },
+        "additionalProperties": true
+      }
+    },
+    "open_questions": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "span": {
+      "type": "object",
+      "required": ["start", "end", "text"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "sequence": {
+      "type": "object",
+      "required": ["sequence_id", "title", "purpose", "scenes"],
+      "properties": {
+        "sequence_id": { "type": "string" },
+        "title": { "type": "string" },
+        "purpose": { "type": "string" },
+        "scenes": { "type": "array", "items": { "$ref": "#/$defs/scene" } }
+      },
+      "additionalProperties": true
+    },
+    "scene": {
+      "type": "object",
+      "required": ["scene_id", "heading", "location", "time", "action", "source_spans", "shots"],
+      "properties": {
+        "scene_id": { "type": "string" },
+        "heading": { "type": "string" },
+        "location": { "type": "string" },
+        "time": { "type": "string" },
+        "action": { "type": "string" },
+        "characters": { "type": "array", "items": { "type": "string" } },
+        "props": { "type": "array", "items": { "type": "string" } },
+        "source_spans": { "type": "array", "items": { "$ref": "#/$defs/span" } },
+        "explicit_facts": { "type": "array", "items": { "type": "string" } },
+        "inferred_staging": { "type": "array", "items": { "type": "string" } },
+        "shots": { "type": "array", "items": { "$ref": "#/$defs/shot" } }
+      },
+      "additionalProperties": true
+    },
+    "shot": {
+      "type": "object",
+      "required": ["shot_id", "purpose", "visual_description", "source_spans"],
+      "properties": {
+        "shot_id": { "type": "string" },
+        "purpose": { "type": "string" },
+        "visual_description": { "type": "string" },
+        "environment": { "type": "string" },
+        "characters": { "type": "array", "items": { "type": "string" } },
+        "character_positions": { "type": "string" },
+        "character_actions": { "type": "string" },
+        "props": { "type": "array", "items": { "type": "string" } },
+        "camera_shot_type": { "type": "string" },
+        "camera_angle": { "type": "string" },
+        "camera_perspective": { "type": "string" },
+        "camera_movement": { "type": "string" },
+        "composition": { "type": "string" },
+        "foreground": { "type": "string" },
+        "middle_ground": { "type": "string" },
+        "background": { "type": "string" },
+        "lighting": { "type": "string" },
+        "weather": { "type": "string" },
+        "continuity_refs": { "type": "array", "items": { "type": "string" } },
+        "estimated_duration_sec": { "type": "number" },
+        "production_complexity": { "type": "string" },
+        "engine_notes": { "type": "string" },
+        "source_spans": { "type": "array", "items": { "$ref": "#/$defs/span" } },
+        "explicit_facts": { "type": "array", "items": { "type": "string" } },
+        "inferred_staging": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
