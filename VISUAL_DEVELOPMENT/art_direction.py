@@ -168,22 +168,73 @@ STYLE_PROFILES: list[dict[str, Any]] = [
 ]
 
 
+COMPARISON_NEGATIVE_PROMPT = (
+    "split panel, multiple panels, comic layout, collage, diptych, triptych, "
+    "storyboard sheet, grid of images, multiple views, collage, border, frame, "
+    "extra characters, watermark, text, logo, blurry, low resolution, poor anatomy"
+)
+
+SINGLE_FRAME_CONSTRAINT = (
+    "single continuous frame, one shot only, full-bleed image, no split panels, "
+    "no collage, no grid, no borders"
+)
+
+
+def comparison_subject(scene: dict[str, Any]) -> str:
+    """Build one concrete, single-frame subject for the art-direction comparison.
+
+    The whole scene action is deliberately not used: a multi-sentence direction
+    makes the model produce a split-panel layout, which would make the candidates
+    differ by composition instead of by direction.
+    """
+    shots = scene.get("shots") or []
+    source = ""
+    if shots:
+        source = shots[0].get("visual_description", "")
+    if not source:
+        source = scene.get("action", "")
+    subject = source.split(". ")[0].strip().rstrip(".")
+    parts = [subject] if subject else []
+    location = scene.get("location")
+    if location:
+        parts.append(location)
+    characters = scene.get("characters", [])
+    if characters:
+        parts.append(", ".join(characters))
+    props = scene.get("props", [])
+    if props:
+        parts.append(", ".join(props))
+    return ", ".join(parts)
+
+
 def _scene_description(scene: dict[str, Any]) -> str:
     heading = scene.get("heading") or "an unspecified interior space"
     location = scene.get("location") or "the same continuous space"
     time = scene.get("time") or "continuous"
-    action = scene.get("action") or ""
-    characters = ", ".join(scene.get("characters", [])) or "the characters"
-    props = ", ".join(scene.get("props", [])) or "key story props"
-    return (
-        f"{heading}. The scene is set in {location} ({time}). "
-        f"Characters present: {characters}. Visible props: {props}. "
-        f"Action: {action}"
-    )
+    parts = [f"{heading}.", f"The scene is set in {location} ({time})."]
+    characters = scene.get("characters", [])
+    if characters:
+        parts.append(f"Characters present: {', '.join(characters)}.")
+    props = scene.get("props", [])
+    if props:
+        parts.append(f"Visible props: {', '.join(props)}.")
+    subject = comparison_subject(scene)
+    if subject:
+        parts.append(f"The frame shows: {subject}.")
+    return " ".join(parts)
 
 
 def _pick_comparison_scene(analysis: dict[str, Any]) -> dict[str, Any]:
-    """Choose the most visually informative scene as the shared comparison frame."""
+    """Choose the most visually informative scene as the shared comparison frame.
+
+    For a narrated explainer the opening segment is the natural comparison frame:
+    it carries the episode's visual promise. For a screenplay the scene with the
+    most characters, props and shots is used.
+    """
+    if analysis.get("source_format") == "NARRATOR" and analysis.get("sequences"):
+        first = analysis["sequences"][0]
+        if first.get("scenes"):
+            return first["scenes"][0]
     best = None
     best_score = -1
     for sequence in analysis["sequences"]:
@@ -223,8 +274,8 @@ def build_candidates(
     for index, profile in enumerate(STYLE_PROFILES, start=1):
         comparison_prompt = (
             f"{profile['prompt_suffix']}. {scene_description} "
-            f"Cinematic storybook composition, consistent character identity, "
-            f"high detail, production-ready concept art."
+            f"{SINGLE_FRAME_CONSTRAINT}, cinematic storybook composition, "
+            f"consistent character identity, high detail, production-ready concept art."
         )
         candidates.append(
             {
@@ -248,6 +299,8 @@ def build_candidates(
                 "status": "DRAFT",
                 "selected": False,
                 "comparison_scene_id": scene["scene_id"],
+                "comparison_subject": comparison_subject(scene),
+                "comparison_negative_prompt": COMPARISON_NEGATIVE_PROMPT,
             }
         )
 

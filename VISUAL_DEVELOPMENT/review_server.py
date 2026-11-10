@@ -57,6 +57,7 @@ th { color:#8fa1b8; font-weight:600; }
 .PENDING,.DRAFT { background:#4a4126; color:#e8d090; }
 .NOT_CHECKED,.REVIEW { background:#26303c; color:#a9bcd2; }
 #toast { position:fixed; right:18px; bottom:18px; background:#1e2732; border:1px solid #3d4a59; padding:11px 16px; border-radius:7px; font-size:13px; display:none; }
+.banner { display:none; margin:0; padding:11px 24px; background:#5a2626; color:#ffd8d8; border-bottom:1px solid #7a3a3a; font-size:13px; }
 </style>
 </head>
 <body>
@@ -65,6 +66,7 @@ th { color:#8fa1b8; font-weight:600; }
   <div class="sub" id="subtitle"></div>
   <nav id="tabs"></nav>
 </header>
+<div id="banner" class="banner"></div>
 <main>
   <section id="tab-overview"></section>
   <section id="tab-artdirection"></section>
@@ -92,6 +94,12 @@ async function act(action, target_type, target_id, extra){
 
 function render(){
   document.getElementById("subtitle").textContent = STATE.project.project_id + " - source " + STATE.project.source_script.script_id + " (" + STATE.project.source_script.approval_status + ")";
+  const approved = STATE.project.source_script.approval_status === "APPROVED";
+  const banner = document.getElementById("banner");
+  if (!approved) {
+    banner.style.display = "block";
+    banner.textContent = "EXPLORATION ONLY - the source script is '" + STATE.project.source_script.approval_status + "', not APPROVED. Nothing here is a production-ready package and no decision in this UI is a governance approval.";
+  }
   document.getElementById("tabs").innerHTML = TABS.map(([k,l]) => '<button data-tab="'+k+'" class="'+(k===active?"active":"")+'">'+l+'</button>').join("");
   document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { active=b.dataset.tab; render(); });
 

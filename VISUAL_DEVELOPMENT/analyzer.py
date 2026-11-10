@@ -26,6 +26,19 @@ CHARACTER_DESCRIPTION_RE = re.compile(
     r"\b(SIR PIP|GLOOP|STONE GOLEM BAILIFF|STONE GOLEM|KING GLOOP)\s*\(([^)]*)\)", re.IGNORECASE
 )
 
+# Narrator / documentary-explainer format: "### 00:00 - Title" sections holding
+# **[NARRATION]**, **[VISUAL]**, **[ON-SCREEN TEXT]**, **[SOUND]** and
+# **[EDITOR NOTE]** blocks.
+NARRATOR_SECTION_RE = re.compile(r"^###\s+(\d+):(\d+)\s*[—–-]\s*(.+?)\s*$", re.MULTILINE)
+NARRATOR_TAG_RE = re.compile(r"^\*\*\[([A-Z][A-Z ]*)\]\*\*\s*(.*)$", re.MULTILINE)
+NARRATOR_FIELD_RE = re.compile(r"^\*\*([^*]+)\*\*:?\s*(.+?)\s*$", re.MULTILINE)
+NARRATOR_SCRIPT_HEADING_RE = re.compile(r"^##\s+Script\s*$", re.IGNORECASE | re.MULTILINE)
+
+# Visual-beat separators used to split a single VISUAL direction into shot beats.
+NARRATOR_BEAT_SPLIT_RE = re.compile(
+    r"(?<=[.;])\s+(?:then|after that|followed by|next|finally)\s+", re.IGNORECASE
+)
+
 CHARACTER_CANON = {
     "SIR PIP": "Sir Pip",
     "GLOOP": "Gloop",
@@ -152,7 +165,375 @@ def _distribute_durations(sequence: dict[str, Any]) -> None:
         )
 
 
+def detect_format(text: str) -> str:
+    """Return 'NARRATOR' for a narrated explainer script, 'SCREENPLAY' otherwise."""
+    if NARRATOR_SECTION_RE.search(text) or NARRATOR_TAG_RE.search(text):
+        return "NARRATOR"
+    return "SCREENPLAY"
+
+
+NARRATOR_ENVIRONMENT_HINTS: list[tuple[str, str]] = [
+    ("streetlamp", "London street at street level"),
+    ("street", "London street at street level"),
+    ("hospital", "hospital interior and window"),
+    ("timeline", "editorial timeline graphic"),
+    ("diagram", "explanatory diagram"),
+    ("chart", "plain data chart"),
+    ("map", "map graphic"),
+    ("chimney", "rooftop skyline with chimneys"),
+    ("factory", "industrial cityscape"),
+    ("bus", "London street with traffic"),
+    ("neighbourhood", "London residential street"),
+    ("sky", "open sky above the city"),
+    ("water droplets", "macro view of fog droplets and smoke particles"),
+    ("coal", "coal fire and chimney smoke"),
+]
+
+
+def _narrator_environment(text: str) -> str:
+    lowered = text.lower()
+    for keyword, label in NARRATOR_ENVIRONMENT_HINTS:
+        if keyword in lowered:
+            return label
+    return ""
+
+
+def _narrator_camera(text: str) -> tuple[str, str, str]:
+    lowered = text.lower()
+    if any(word in lowered for word in ("side view", "cross-section", "cutaway")):
+        return "wide", "orthographic side view", "explanatory side view"
+    if any(word in lowered for word in ("timeline", "chart", "diagram", "map", "graphic")):
+        return "wide", "straight-on", "explanatory graphic frame"
+    if any(word in lowered for word in ("close", "detail", "macro")):
+        return "close-up", "eye-level", "detail close-up"
+    if any(word in lowered for word in ("wide", "city", "skyline", "street")):
+        return "wide", "eye-level", "wide establishing shot"
+    return "medium", "eye-level", "medium shot"
+
+
+def _narrator_beats(text: str) -> list[str]:
+    """Split one visual direction into individual shot beats."""
+    cleaned = " ".join(text.split())
+    if not cleaned:
+        return []
+    parts = [part.strip(" .;") for part in NARRATOR_BEAT_SPLIT_RE.split(cleaned)]
+    beats = [part for part in parts if len(part) > 12]
+    return beats or [cleaned.strip(" .;")]
+
+
+def parse_narrator_script(
+    text: str,
+    project_id: str,
+    source_sha256: str,
+    analysis_id: str | None = None,
+) -> dict[str, Any]:
+    """Parse a narrated documentary/explainer script into the visual hierarchy.
+
+    Each ``### MM:SS - Title`` section becomes a sequence with one scene. The
+    section's ``[VISUAL]`` direction is split into shot beats; ``[ON-SCREEN TEXT]``
+    becomes a graphic shot. Narration, sound and editor notes are recorded as
+    explicit facts, never as shots.
+    """
+    lines = text.splitlines()
+    offsets = _line_offsets(text)
+
+    title = ""
+    metadata: dict[str, str] = {}
+    body_start = 0
+    body_end = len(text)
+
+    for index, raw in enumerate(lines):
+        line = raw.strip()
+        if not line:
+            continue
+        if not title and TITLE_RE.match(line):
+            title = TITLE_RE.match(line).group(1)
+            continue
+        if NARRATOR_SCRIPT_HEADING_RE.match(line):
+            body_start = offsets[index] + len(raw)
+            for later in range(index + 1, len(lines)):
+                if lines[later].strip().startswith("## "):
+                    body_end = offsets[later]
+                    break
+            break
+        field = NARRATOR_FIELD_RE.match(line)
+        if field:
+            key = field.group(1).strip().rstrip(":").strip()
+            metadata[key] = field.group(2).strip()
+
+    body = text[body_start:body_end]
+
+    open_questions: list[str] = []
+    sequences: list[dict[str, Any]] = []
+
+    section_matches = list(NARRATOR_SECTION_RE.finditer(body))
+    if not section_matches:
+        raise ValueError("No '### MM:SS - Title' sections found in the narrator script body.")
+
+    target_seconds = _narrator_runtime_seconds(metadata)
+
+    for section_index, section_match in enumerate(section_matches):
+        start_seconds = int(section_match.group(1)) * 60 + int(section_match.group(2))
+        section_title = section_match.group(3).strip()
+        section_body_start = body_start + section_match.end()
+        section_body_end = (
+            body_start + section_matches[section_index + 1].start()
+            if section_index + 1 < len(section_matches)
+            else body_end
+        )
+        section_body = text[section_body_start:section_body_end]
+
+        narration_paragraphs: list[str] = []
+        visual_blocks: list[str] = []
+        on_screen_texts: list[str] = []
+        sound_notes: list[str] = []
+        editor_notes: list[str] = []
+
+        current_tag: str | None = None
+        current_lines: list[str] = []
+        current_start = 0
+
+        def flush_narrator_block() -> None:
+            nonlocal current_tag, current_lines
+            if current_tag is None:
+                current_lines = []
+                return
+            body_text = " ".join(current_lines).strip()
+            if current_tag == "NARRATION":
+                for paragraph in re.split(r"\n\s*\n", body_text):
+                    cleaned = " ".join(paragraph.split())
+                    if cleaned:
+                        narration_paragraphs.append(cleaned)
+            elif current_tag == "VISUAL":
+                if body_text:
+                    visual_blocks.append({"text": body_text, "start": current_start})
+            elif current_tag == "ON-SCREEN TEXT":
+                if body_text:
+                    on_screen_texts.append({"text": body_text, "start": current_start})
+            elif current_tag == "SOUND":
+                if body_text:
+                    sound_notes.append(body_text)
+            elif current_tag == "EDITOR NOTE":
+                if body_text:
+                    editor_notes.append(body_text)
+            current_tag = None
+            current_lines = []
+
+        section_lines = section_body.splitlines()
+        section_line_offsets = _line_offsets(section_body)
+        for line_index, raw_line in enumerate(section_lines):
+            stripped = raw_line.strip()
+            tag_match = NARRATOR_TAG_RE.match(stripped)
+            if tag_match:
+                flush_narrator_block()
+                current_tag = tag_match.group(1).strip().upper()
+                inline = tag_match.group(2).strip()
+                current_lines = [inline] if inline else []
+                current_start = section_body_start + section_line_offsets[line_index]
+                continue
+            if not stripped:
+                continue
+            if current_tag is not None:
+                current_lines.append(stripped)
+        flush_narrator_block()
+
+        beats: list[tuple[str, str, int]] = []
+        for block in visual_blocks:
+            for beat in _narrator_beats(block["text"]):
+                beats.append(("VISUAL", beat, block["start"]))
+        for overlay in on_screen_texts:
+            beats.append(("ON-SCREEN TEXT", " ".join(overlay["text"].split()), overlay["start"]))
+        if not beats:
+            for paragraph in narration_paragraphs:
+                beats.append(("NARRATION", paragraph, section_body_start))
+
+        sequence_id = f"SEQ_{section_index + 1:02d}"
+        scene_id = f"SCN_{section_index + 1:02d}_01"
+        shots: list[dict[str, Any]] = []
+
+        for beat_index, (beat_kind, beat_text, beat_offset) in enumerate(beats):
+            shot_type, angle, composition = (
+                _narrator_camera(beat_text)
+                if beat_kind == "VISUAL"
+                else ("wide", "straight-on", "graphic overlay frame")
+            )
+            environment = _narrator_environment(beat_text)
+            shot_id = f"SHT_{scene_id}_{beat_index + 1:03d}"
+            span_start = text.find(beat_text, beat_offset)
+            span_end = span_start + len(beat_text)
+            if span_start < 0:
+                probe = beat_text[:60]
+                span_start = text.find(probe, beat_offset)
+                span_end = (span_start + len(probe)) if span_start >= 0 else beat_offset
+            if span_start < 0:
+                span_start = beat_offset
+                span_end = min(beat_offset + len(beat_text), len(text))
+            shots.append(
+                {
+                    "shot_id": shot_id,
+                    "purpose": f"{section_title} - {beat_kind.lower()} beat",
+                    "visual_description": beat_text,
+                    "environment": environment,
+                    "characters": [],
+                    "character_positions": "",
+                    "character_actions": "",
+                    "props": [],
+                    "camera_shot_type": shot_type,
+                    "camera_angle": angle,
+                    "camera_perspective": "",
+                    "camera_movement": "",
+                    "composition": composition,
+                    "foreground": "",
+                    "middle_ground": "",
+                    "background": "",
+                    "lighting": "",
+                    "weather": "",
+                    "continuity_refs": [],
+                    "estimated_duration_sec": 0.0,
+                    "production_complexity": "MEDIUM" if beat_kind == "VISUAL" else "LOW",
+                    "engine_notes": "",
+                    "source_spans": [_span(text, span_start, min(span_end, len(text)))],
+                    "explicit_facts": [f"{beat_kind}: {beat_text}"],
+                    "inferred_staging": [
+                        f"Camera and composition inferred from the {beat_kind.lower()} direction: {composition}."
+                    ],
+                    "beat_kind": beat_kind,
+                }
+            )
+
+        if not environment:
+            open_questions.append(
+                f"{scene_id} visual direction does not name a location; location is unknown."
+            )
+
+        sequences.append(
+            {
+                "sequence_id": sequence_id,
+                "act_label": "",
+                "title": section_title,
+                "timecode": f"{section_match.group(1)}:{section_match.group(2)}",
+                "start_seconds": start_seconds,
+                "purpose": f"Narrated segment beginning at {section_match.group(1)}:{section_match.group(2)}.",
+                "scenes": [
+                    {
+                        "scene_id": scene_id,
+                        "heading": f"{section_match.group(1)}:{section_match.group(2)} - {section_title}",
+                        "int_ext": "NARRATED",
+                        "location": environment,
+                        "time": "NARRATED SEGMENT",
+                        "action": " ".join(beat[1] for beat in beats),
+                        "characters": [],
+                        "props": [],
+                        "source_spans": [
+                            _span(
+                                text,
+                                section_body_start,
+                                min(section_body_end, len(text)),
+                            )
+                        ],
+                        "explicit_facts": [
+                            f"Narration: {paragraph}" for paragraph in narration_paragraphs
+                        ]
+                        + [f"Visual: {block}" for block in visual_blocks]
+                        + [f"On-screen text: {overlay}" for overlay in on_screen_texts]
+                        + [f"Sound: {note}" for note in sound_notes]
+                        + [f"Editor note: {note}" for note in editor_notes],
+                        "inferred_staging": [],
+                        "shots": shots,
+                        "start_offset": section_body_start,
+                        "implicit": False,
+                    }
+                ],
+                "start_offset": section_body_start,
+            }
+        )
+
+    # Section end times come from the next section start; the last one runs to the
+    # stated target runtime.
+    for index, sequence in enumerate(sequences):
+        if index + 1 < len(sequences):
+            end_seconds = sequences[index + 1]["start_seconds"]
+        else:
+            end_seconds = target_seconds or (sequence["start_seconds"] + 30)
+        end_seconds = int(end_seconds)
+        sequence["end_seconds"] = end_seconds
+        sequence["timecode"] = (
+            f"{sequence['start_seconds'] // 60}:{sequence['start_seconds'] % 60:02d}"
+            f"-{end_seconds // 60}:{end_seconds % 60:02d}"
+        )
+        shots = sequence["scenes"][0]["shots"]
+        total = max(end_seconds - sequence["start_seconds"], 1)
+        weights = [max(len(shot["visual_description"]), 1) for shot in shots]
+        weight_sum = sum(weights) or 1
+        remaining = float(total)
+        for shot_index, shot in enumerate(shots):
+            if shot_index == len(shots) - 1:
+                value = remaining
+            else:
+                value = round(total * weights[shot_index] / weight_sum, 2)
+                remaining = round(remaining - value, 2)
+            shot["estimated_duration_sec"] = value
+            shot["duration_basis"] = (
+                f"Proportional split of segment {sequence['timecode']} by direction length."
+            )
+
+    target_runtime = 0.0
+    for key, value in metadata.items():
+        if "duration" in key.lower() or "runtime" in key.lower():
+            numbers = re.findall(r"(\d+):(\d+)", value)
+            if numbers:
+                minutes, seconds = numbers[-1]
+                target_runtime = int(minutes) * 60 + int(seconds)
+
+    return {
+        "schema_version": "1.0.0",
+        "analysis_id": analysis_id or new_id("ANALYSIS"),
+        "project_id": project_id,
+        "source_script_sha256": source_sha256,
+        "created_at": utc_now(),
+        "source_format": "NARRATOR",
+        "episode": {
+            "episode_id": f"EP_{project_id}",
+            "title": title,
+            "genre": metadata.get("Format", "Narrated documentary"),
+            "target_runtime_sec": target_runtime,
+            "logline": metadata.get("Opening promise", ""),
+        },
+        "sequences": sequences,
+        "characters": [],
+        "open_questions": open_questions,
+    }
+
+
+def _narrator_runtime_seconds(metadata: dict[str, str]) -> float:
+    """Best-effort end time for the final narrated segment."""
+    for key, value in metadata.items():
+        if "runtime" in key.lower() or "duration" in key.lower():
+            numbers = re.findall(r"(\d+):(\d+)", value)
+            if numbers:
+                minutes, seconds = numbers[-1]
+                return float(int(minutes) * 60 + int(seconds))
+    return 0.0
+
+
 def parse_script(
+    text: str,
+    project_id: str,
+    source_sha256: str,
+    analysis_id: str | None = None,
+) -> dict[str, Any]:
+    """Parse a script of either supported format into the visual hierarchy.
+
+    Format is detected from the source text: a narrated explainer uses
+    ``### MM:SS - Title`` sections with ``[NARRATION]`` / ``[VISUAL]`` blocks; a
+    screenplay uses act and scene headings.
+    """
+    if detect_format(text) == "NARRATOR":
+        return parse_narrator_script(text, project_id, source_sha256, analysis_id)
+    return parse_screenplay_script(text, project_id, source_sha256, analysis_id)
+
+
+def parse_screenplay_script(
     text: str,
     project_id: str,
     source_sha256: str,
@@ -391,6 +772,7 @@ def parse_script(
         "project_id": project_id,
         "source_script_sha256": source_sha256,
         "created_at": utc_now(),
+        "source_format": "SCREENPLAY",
         "episode": {
             "episode_id": f"EP_{project_id}",
             "title": title,

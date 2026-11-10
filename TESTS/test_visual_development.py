@@ -11,10 +11,15 @@ import jsonschema
 import pytest
 
 from VISUAL_DEVELOPMENT.analyzer import parse_script
-from VISUAL_DEVELOPMENT.approved_script import ApprovedScriptError, load_approved_script
+from VISUAL_DEVELOPMENT.approved_script import (
+    ApprovedScriptError,
+    load_approved_script,
+    load_script_file,
+)
 from VISUAL_DEVELOPMENT.art_direction import build_candidates, select_candidate
 from VISUAL_DEVELOPMENT.blocking import build_blocking_layout, render_blocking_png, render_blocking_svg
 from VISUAL_DEVELOPMENT.comfyui_client import ComfyUIClient, ComfyUIError
+from VISUAL_DEVELOPMENT.common import sha256_text
 from VISUAL_DEVELOPMENT.continuity import validate_continuity
 from VISUAL_DEVELOPMENT.handoff import build_handoff, render_handoff_markdown
 from VISUAL_DEVELOPMENT.prompt_builder import build_candidate_prompt, build_shot_prompt
@@ -553,3 +558,117 @@ def test_committed_pilot_review_events_reference_existing_generations() -> None:
         generation_id = (event.get("metadata") or {}).get("generation_id")
         if generation_id:
             assert generation_id in generations, f"event points at missing {generation_id}"
+
+
+# --------------------------------------------------------- narrator format
+
+
+YS01_REVISED = (
+    ROOT / "PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/SCRIPTS/REVISED/YS01_THE_FOG_THAT_CHANGED_THE_AIR.md"
+)
+
+
+@pytest.fixture
+def ys01_analysis() -> dict[str, Any]:
+    if not YS01_REVISED.is_file():
+        pytest.skip("YS01 revised script is not present in this checkout.")
+    text = YS01_REVISED.read_text(encoding="utf-8")
+    return parse_script(text, "YS01", sha256_text(text))
+
+
+def test_narrator_format_is_detected_and_screenplay_is_not(ys01_analysis: dict[str, Any]) -> None:
+    assert ys01_analysis["source_format"] == "NARRATOR"
+    assert len(ys01_analysis["sequences"]) == 6
+    schema = json.loads((SCHEMA_DIR / "analysis.schema.json").read_text(encoding="utf-8"))
+    jsonschema.validate(ys01_analysis, schema)
+
+
+def test_narrator_shots_reference_the_script(ys01_analysis: dict[str, Any]) -> None:
+    text = YS01_REVISED.read_text(encoding="utf-8")
+    shots = [
+        shot
+        for sequence in ys01_analysis["sequences"]
+        for scene in sequence["scenes"]
+        for shot in scene["shots"]
+    ]
+    assert len(shots) == 8
+    for shot in shots:
+        assert shot["source_spans"], "every narrator shot needs a source reference"
+        for span in shot["source_spans"]:
+            assert text[span["start"] : span["end"]] == span["text"]
+
+
+def test_narrator_segments_run_from_zero_to_the_stated_runtime(ys01_analysis: dict[str, Any]) -> None:
+    sequences = ys01_analysis["sequences"]
+    assert sequences[0]["start_seconds"] == 0
+    assert sequences[-1]["end_seconds"] == ys01_analysis["episode"]["target_runtime_sec"]
+    for index, sequence in enumerate(sequences):
+        if index + 1 < len(sequences):
+            assert sequence["end_seconds"] == sequences[index + 1]["start_seconds"]
+    total = sum(
+        shot["estimated_duration_sec"]
+        for sequence in sequences
+        for scene in sequence["scenes"]
+        for shot in scene["shots"]
+    )
+    assert total == pytest.approx(ys01_analysis["episode"]["target_runtime_sec"], abs=1.0)
+
+
+def test_narrator_narration_and_sound_are_facts_not_shots(ys01_analysis: dict[str, Any]) -> None:
+    scene = ys01_analysis["sequences"][0]["scenes"][0]
+    facts = " ".join(scene["explicit_facts"])
+    assert "Narration:" in facts
+    assert "Sound:" in facts
+    for shot in scene["shots"]:
+        assert not shot["visual_description"].startswith("Narration:")
+
+
+def test_art_direction_comparison_frame_is_a_single_concrete_subject(
+    ys01_analysis: dict[str, Any],
+) -> None:
+    candidate_set = build_candidates(ys01_analysis, "YS01")
+    assert candidate_set["comparison_scene_id"] == "SCN_01_01"
+    subject = candidate_set["candidates"][0]["comparison_subject"]
+    assert subject
+    assert ". " not in subject, "the comparison subject must be one frame, not a paragraph"
+    for candidate in candidate_set["candidates"]:
+        assert "split panel" in candidate["comparison_negative_prompt"]
+        assert "no split panels" in candidate["comparison_prompt"]
+
+
+def test_comparison_prompt_forbids_multi_panel_layout(ys01_analysis: dict[str, Any]) -> None:
+    candidate_set = build_candidates(ys01_analysis, "YS01")
+    scene = next(
+        scene
+        for sequence in ys01_analysis["sequences"]
+        for scene in sequence["scenes"]
+        if scene["scene_id"] == candidate_set["comparison_scene_id"]
+    )
+    built = build_candidate_prompt(
+        candidate_set["candidates"][0]["style_prompt"], scene, {}
+    )
+    assert "no split panels" in built["prompt"]
+    assert "split panel" in built["negative_prompt"]
+    assert "labels appearing" not in built["prompt"]
+
+
+# ------------------------------------------------- unapproved source files
+
+
+def test_script_file_import_is_never_marked_approved(tmp_path: Path) -> None:
+    script_file = tmp_path / "draft.md"
+    script_file.write_text("# Draft\n\nSome narration.\n", encoding="utf-8")
+    record = load_script_file(script_file, "DRAFT_01", "DRAFT")
+    assert record["approval_status"] == "NOT_APPROVED"
+    assert record["is_immutable"] is False
+    assert record["source_type"] == "FILE"
+    assert record["sha256"] == sha256_text("# Draft\n\nSome narration.\n")
+    assert record["approval_note"]
+
+
+def test_approved_script_gate_still_rejects_unapproved_database_rows(database: Path) -> None:
+    """The file-import path must not weaken the database approval gate."""
+    with pytest.raises(ApprovedScriptError):
+        load_approved_script(database, "SCR_SCRIPT_LAB_10_V01")
+    record = load_approved_script(database, SCRIPT_ID)
+    assert record["approval_status"] == "APPROVED"

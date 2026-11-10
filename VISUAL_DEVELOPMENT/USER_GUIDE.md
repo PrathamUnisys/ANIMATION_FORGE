@@ -40,6 +40,36 @@ database provenance (script id, version, approval status, immutability) is store
 `source/script_manifest.json`. The project directory is never overwritten — an existing
 directory is a hard error.
 
+### Working with a script that is still in draft
+
+Some scripts are not approved yet but you still want to explore art direction for them.
+Use the separate `init-file` command, which is deliberately a different command so the
+approved gate is never bypassed by accident:
+
+```powershell
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli init-file `
+    --script-file PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/SCRIPTS/REVISED/YS01_THE_FOG_THAT_CHANGED_THE_AIR.md `
+    --script-id YS01_REVISED --project-id YS01 --episode-id EP01 `
+    --project-dir PROJECTS/VDEV_YS01_YS01_REVISED_V1
+```
+
+The project records `approval_status: NOT_APPROVED`. The review UI shows a red
+exploration-only banner, and the production handoff lists the missing approval as its
+first unresolved issue. Nothing produced from this path may be presented as a
+production-ready package.
+
+### Supported script formats
+
+The format is detected from the file, so nothing needs to be configured:
+
+| Format | Detected by | Structure used |
+|---|---|---|
+| Screenplay | `## ACT` / `**INT.` headings | Act = sequence, scene heading = scene, action and dialogue = shots |
+| Narrated explainer | `### MM:SS` sections with `[NARRATION]` / `[VISUAL]` blocks | Timecoded segment = sequence, `[VISUAL]` direction = shot beats, `[ON-SCREEN TEXT]` = graphic shot |
+
+In the narrated format, `[NARRATION]`, `[SOUND]` and `[EDITOR NOTE]` are recorded as
+explicit facts, never as shots.
+
 ## 2. Analyse the script
 
 ```powershell

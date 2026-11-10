@@ -47,9 +47,18 @@ describes what the module does and does not do, not what it might do later.
 - Only one script in the database is `APPROVED` and immutable, so it was the only
   eligible pilot input. The ten YouTube experiment scripts and EP10 revision 2 are
   `AWAITING_HUMAN_REVIEW` and are correctly rejected by the approved-script gate.
-- The analyzer's rules target the Animation Forge screenplay format (act headings,
-  `INT./EXT.` scene headings, bold character cues). A materially different screenplay
-  format would need new parsing rules, not new prompts.
+- The analyzer's rules target two formats: the Animation Forge screenplay format (act
+  headings, `INT./EXT.` scene headings, bold character cues) and the narrated
+  explainer format (`### MM:SS` sections, `[NARRATION]` / `[VISUAL]` blocks). A
+  materially different screenplay format would need new parsing rules, not new prompts.
+- The art-direction comparison uses **one concrete frame**, deliberately. Feeding a
+  multi-sentence visual direction to SD 1.5 produces a split-panel layout, which makes
+  the candidates differ by composition instead of by direction. The single-frame
+  constraint reduces but does not eliminate that risk.
+- A source script that is not approved can be imported with `init-file` for exploration
+  only. It is recorded as `NOT_APPROVED` in the project, shown as a banner in the review
+  UI and listed as an unresolved issue in the handoff. It is not a shortcut around the
+  governance process.
 
 ## Scope boundaries of the review
 

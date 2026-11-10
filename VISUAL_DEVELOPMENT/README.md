@@ -33,11 +33,17 @@ never claims that a 2D image contains exact 3D geometry or world coordinates.
 
 - **Approved-script gate.** Imports only `APPROVED`, immutable screenplay records from
   `animation_forge.db` using a read-only SQLite connection. The exact source text is
-  stored with a SHA-256 and re-checked before every later stage.
+  stored with a SHA-256 and re-checked before every later stage. A separate,
+  explicitly-named `init-file` command exists for **exploring a script that is still in
+  draft**; it records the source as `NOT_APPROVED` and the review UI and the handoff
+  both flag it.
 - **Script analysis.** Deterministic parser producing episode -> sequence -> scene ->
   shot records with exact character-offset source spans. Explicit script facts and
   inferred staging are stored in separate fields. Missing information becomes an open
-  question, never an invention.
+  question, never an invention. **Two script formats are supported** and detected
+  automatically: Animation Forge screenplays (act and scene headings) and narrated
+  documentary/explainer scripts (`### MM:SS` sections with `[NARRATION]` and
+  `[VISUAL]` blocks).
 - **Art-direction exploration.** 6-8 style profiles rendered from the *same* comparison
   scene, workflow, dimensions and seed, so the human compares direction rather than
   content.
@@ -117,6 +123,20 @@ $proj = "PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1"
 .\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli review --project-dir $proj
 # -> http://127.0.0.1:8790
 ```
+
+### Working with a script that is still in draft
+
+```powershell
+# exploration only: the source is recorded as NOT_APPROVED everywhere
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli init-file `
+    --script-file PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/SCRIPTS/REVISED/YS01_THE_FOG_THAT_CHANGED_THE_AIR.md `
+    --script-id YS01_REVISED --project-id YS01 --episode-id EP01 `
+    --project-dir PROJECTS/VDEV_YS01_YS01_REVISED_V1
+```
+
+The review UI shows a red banner and the production handoff lists the missing approval
+as an unresolved issue. This path never marks a source as approved and never weakens
+the database approval gate.
 
 Check the live ComfyUI connection at any time:
 

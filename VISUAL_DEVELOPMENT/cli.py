@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .analyzer import parse_script
-from .approved_script import ApprovedScriptError, load_approved_script
+from .approved_script import ApprovedScriptError, load_approved_script, load_script_file
 from .art_direction import build_candidates, select_candidate
 from .common import new_id, sha256_bytes, utc_now
 from .continuity import validate_continuity
@@ -87,6 +87,30 @@ def cmd_init(args: argparse.Namespace) -> int:
             "approval_status": script["approval_status"],
             "source_sha256": script["sha256"],
             "message": "Approved screenplay imported. No images generated and nothing approved.",
+        }
+    )
+    return 0
+
+
+def cmd_init_file(args: argparse.Namespace) -> int:
+    script = load_script_file(
+        args.script_file, args.script_id, args.project_id, args.episode_id, args.version
+    )
+    store = ProjectStore.create(args.project_dir, script)
+    _print(
+        {
+            "status": "PASS",
+            "project_dir": str(store.root),
+            "project_id": store.read("project.json")["project_id"],
+            "script_id": script["script_id"],
+            "approval_status": script["approval_status"],
+            "source_sha256": script["sha256"],
+            "warning": (
+                "This source was imported from a plain file and was NOT approved through "
+                "the Animation Forge governance process. Use it for exploration and art "
+                "direction only. It must not be presented as a production-ready package."
+            ),
+            "message": "Script file imported. No images generated and nothing approved.",
         }
     )
     return 0
@@ -176,7 +200,7 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
             artifact_type="ART_DIRECTION",
             relative_dir=f"art_direction/candidate_{candidate['candidate_id']}",
             prompt=built["prompt"],
-            negative_prompt=candidate.get("negative_prompt")
+            negative_prompt=candidate.get("comparison_negative_prompt")
             or "extra characters, inconsistent character design, watermark, text, blurry, low resolution",
             settings={
                 "model": "dreamshaper_8.safetensors",
@@ -520,6 +544,17 @@ def build_parser() -> argparse.ArgumentParser:
     init.add_argument("--script-id", required=True)
     init.add_argument("--project-dir", type=Path, required=True)
 
+    init_file = commands.add_parser(
+        "init-file",
+        help="Import a plain script file for exploration only (not an approved screenplay).",
+    )
+    init_file.add_argument("--script-file", type=Path, required=True)
+    init_file.add_argument("--script-id", required=True)
+    init_file.add_argument("--project-id", required=True)
+    init_file.add_argument("--episode-id")
+    init_file.add_argument("--version", type=int, default=1)
+    init_file.add_argument("--project-dir", type=Path, required=True)
+
     analyze = commands.add_parser("analyze", help="Parse the approved screenplay into a visual breakdown.")
     analyze.add_argument("--project-dir", type=Path, required=True)
 
@@ -581,6 +616,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     handlers = {
         "init": cmd_init,
+        "init-file": cmd_init_file,
         "analyze": cmd_analyze,
         "art-direction": cmd_art_direction,
         "generate-candidates": cmd_generate_candidates,

@@ -100,6 +100,14 @@ def build_handoff(
     ]
 
     unresolved: list[str] = list(analysis.get("open_questions", []))
+    source_approved = source_script_ref.get("approval_status") == "APPROVED"
+    if not source_approved:
+        unresolved.insert(
+            0,
+            "Source script approval status is "
+            f"{source_script_ref.get('approval_status')!r}, not 'APPROVED'. This package is "
+            "an exploration artifact and is not production-ready.",
+        )
     if continuity_report:
         for check in continuity_report.get("checks", []):
             if check["status"] in {"FAIL", "REVIEW"}:
@@ -198,6 +206,7 @@ def build_handoff(
             "coordinate_space": "NONE",
             "world_coordinates": False,
             "scale": "UNSPECIFIED",
+            "source_script_approved": source_approved,
             "statement": (
                 "This package contains shot intent, references and normalized staging only. "
                 "It contains no Blender or Unreal scene, no measured coordinates and no scale."

@@ -223,6 +223,70 @@ $proj = "PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1"
 With ComfyUI running, the whole run takes roughly **5 minutes** on the verification
 machine.
 
+## Second pilot: a narrated explainer (YS01)
+
+The module was then re-used on a **different script format** to prove it is not tied to
+the Animation Forge screenplay layout.
+
+| Item | Value |
+|---|---|
+| Script | `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/SCRIPTS/REVISED/YS01_THE_FOG_THAT_CHANGED_THE_AIR.md` |
+| Format | Narrated documentary/explainer (single narrator) |
+| Import path | `init-file` (exploration only, source recorded as `NOT_APPROVED`) |
+| Project directory | `PROJECTS/VDEV_YS01_YS01_REVISED_V1/` |
+| Detected format | `NARRATOR` |
+
+### What the narrator parser produced
+
+6 sequences, 6 scenes, 8 shots, running 0:00 to 8:10 (490 s, the runtime stated in the
+script's own metadata). Every `### MM:SS` segment became a sequence with one scene, and
+the segment's `[VISUAL]` direction became the shot beats.
+
+| Sequence | Segment | Shots |
+|---|---|---|
+| `SEQ_01` | 0:00-1:15 The city disappears | 1 |
+| `SEQ_02` | 1:15-2:45 Why the smoke stayed | 1 |
+| `SEQ_03` | 2:45-4:40 A familiar danger | 1 |
+| `SEQ_04` | 4:40-6:25 Why did policy take time? | 2 |
+| `SEQ_05` | 6:25-7:45 The fog was made by choices | 2 |
+| `SEQ_06` | 7:45-8:10 Ending | 1 |
+
+`[NARRATION]`, `[SOUND]` and `[EDITOR NOTE]` blocks are stored as explicit facts, not as
+shots. `[ON-SCREEN TEXT]` becomes a graphic shot. All 8 shots carry exact source spans
+that slice back to the script text.
+
+### The comparison frame, and a defect this pilot found
+
+The first attempt produced **triptychs** instead of single frames. The comparison prompt
+had carried the whole multi-sentence visual direction, and SD 1.5 read the several
+sentences as several panels. That is worse than a cosmetic problem: a split-panel image
+makes the candidates differ by *composition*, which defeats the entire point of the
+comparison, and it throws away two thirds of the resolution.
+
+Two fixes were made and verified:
+
+1. The comparison now uses a **single concrete subject** - the first sentence of the
+   first shot, plus the location, characters and props - instead of the whole scene
+   action.
+2. The comparison prompt carries an explicit single-frame constraint
+   (`single continuous frame, one shot only, no split panels, no collage, no grid`) and
+   the negative prompt forbids `split panel, multiple panels, comic layout, collage,
+   diptych, triptych, storyboard sheet, grid of images`.
+
+After the fix, all 8 candidates are single full-bleed frames that share the same subject
+(a London street fading into fog, Big Ben in the distance, a lit streetlamp) and differ
+only in rendering language. That is the comparison the assignment asks for.
+
+### Result
+
+8 art-direction candidates generated at ~8 s each from the same scene, the same seed
+(`536354036775427`), the same 768x768 dimensions and the same workflow.
+
+Because the source is a draft, the project records `approval_status: NOT_APPROVED`, the
+review UI shows a red exploration-only banner, and the production handoff lists the
+missing approval as its first unresolved issue. The database approval gate is unchanged
+and still rejects every non-`APPROVED` row.
+
 ## Repository note
 
 The pilot images are 18.2 MB across 36 PNGs. Pushing that in one pack from this machine

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .art_direction import COMPARISON_NEGATIVE_PROMPT
+
 SHOT_NEGATIVES = [
     "duplicate character",
     "crowd",
@@ -115,7 +117,15 @@ def build_candidate_prompt(
     comparison_scene: dict[str, Any],
     character_index: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Build the shared comparison prompt used for every art-direction candidate."""
+    """Build the shared comparison prompt used for every art-direction candidate.
+
+    The prompt deliberately describes a single concrete frame rather than the whole
+    scene action. A multi-sentence direction makes the model produce a split-panel
+    layout, which would make the candidates differ by composition instead of by
+    direction and would waste the image resolution.
+    """
+    from .art_direction import SINGLE_FRAME_CONSTRAINT, comparison_subject
+
     character_index = character_index or {}
     characters = [
         f"{name} ({entry['description']})" if entry.get("description") else name
@@ -127,15 +137,16 @@ def build_candidate_prompt(
         "scene_context": comparison_scene.get("heading", ""),
         "environment": comparison_scene.get("location", ""),
         "characters": _join(characters),
-        "action": comparison_scene.get("action", ""),
+        "action": comparison_subject(comparison_scene),
         "objects": ", ".join(comparison_scene.get("props", [])),
         "camera": "wide establishing composition",
         "composition": "readable foreground, middle ground and background separation",
         "lighting": "motivated cinematic key light",
         "atmosphere": "storybook production concept art",
-        "emphasis": "art direction comparison frame",
+        "emphasis": SINGLE_FRAME_CONSTRAINT,
     }
     return {
         "prompt": _join([value for value in modules.values() if value]),
+        "negative_prompt": COMPARISON_NEGATIVE_PROMPT,
         "modules": modules,
     }

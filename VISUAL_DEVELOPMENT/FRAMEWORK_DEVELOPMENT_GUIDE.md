@@ -93,7 +93,7 @@ loopback server serves the actual files from the project directory.
 | `common.py` | Hashing, path containment, JSON IO, schema validation, UTC timestamps |
 | `approved_script.py` | Read-only `APPROVED` screenplay loader with provenance |
 | `storage.py` | `ProjectStore`: immutable artifacts, revision numbering, append-only events |
-| `analyzer.py` | Screenplay -> episode / sequence / scene / shot with source spans |
+| `analyzer.py` | Screenplay -> episode / sequence / scene / shot with source spans; also the narrated-explainer format |
 | `art_direction.py` | 8 style profiles, shared comparison scene, human selection |
 | `style_bible.py` | Versioned immutable rules + scene variables |
 | `prompt_builder.py` | Modular prompt assembly from Style Bible + shot spec |
@@ -130,6 +130,17 @@ Put the checkpoint in `ComfyUI\models\checkpoints\`, confirm it with
 `GET /models/checkpoints`, then set `generation_settings.model` in the Style Bible
 (`style_bible.py`, `DEFAULT_GENERATION_SETTINGS`). The model name is recorded in every
 manifest, so earlier images keep pointing at the model that produced them.
+
+### Add another script format
+
+1. Write a parser in `analyzer.py` that returns the same analysis structure as
+   `parse_screenplay_script()` and `parse_narrator_script()`.
+2. Extend `detect_format()` to recognise it and add a branch in `parse_script()`.
+3. Every shot must carry a non-empty `source_spans` list whose `text` slices back
+   exactly from the source, and a non-empty `explicit_facts` list.
+4. Add a test that parses a real file of that format and asserts the spans round-trip.
+
+The structure the parsers must produce is fixed by `schemas/analysis.schema.json`.
 
 ### Add another art-direction profile
 

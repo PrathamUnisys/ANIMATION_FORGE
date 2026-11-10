@@ -18,9 +18,13 @@ future embedded UI/API integration needs a separate approved Change Request.
 
 1. **Approved-script loader** (`approved_script.py`) — resolves a script id, verifies
    `approval_status == APPROVED` and `is_immutable`, copies the exact Markdown, hashes
-   it, and records database provenance.
+   it, and records database provenance. A separate `load_script_file()` reads a plain
+   file for exploration only and always records `approval_status = "NOT_APPROVED"`.
 2. **Analysis engine** (`analyzer.py`) — parses the screenplay structure into
-   episode -> sequence -> scene -> shot. Every beat carries an exact source excerpt and
+   episode -> sequence -> scene -> shot. The format is detected from the source:
+   `parse_screenplay_script()` handles act/scene-heading screenplays and
+   `parse_narrator_script()` handles `### MM:SS` narrated explainers with
+   `[NARRATION]` / `[VISUAL]` blocks. Every beat carries an exact source excerpt and
    character/byte span. Explicit source facts and inferred staging are separate fields.
    Missing scene headings produce an implicit scene plus an open question.
 3. **Art-direction engine** (`art_direction.py`) — combines story-derived facts with 8
