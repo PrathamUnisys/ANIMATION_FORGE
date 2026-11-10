@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/script-creation/retention_map.schema.json",
+  "title": "ScriptCreationRetentionMap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "script_sha256", "entries", "data_status"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "script_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "data_status": {"const": "EDITORIAL_HYPOTHESIS_NOT_MEASURED"},
+    "entries": {"type": "array", "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timecode", "passage_ref", "viewer_question", "new_information", "payoff_ref"],
+      "properties": {
+        "timecode": {"type": "string", "pattern": "^\\d{1,2}:\\d{2}$"},
+        "passage_ref": {"type": "string"},
+        "viewer_question": {"type": "string"},
+        "new_information": {"type": "string"},
+        "emotional_or_comprehension_change": {"type": "string"},
+        "payoff_ref": {"type": "string"}
+      }
+    }}
+  }
+}

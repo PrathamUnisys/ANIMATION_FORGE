@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/script-creation/project_manifest.schema.json",
+  "title": "ScriptCreationProjectManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "title", "created_at", "stage", "approval_status", "artifacts", "checks"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$"},
+    "title": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "stage": {"enum": ["IDEA_INTAKE", "RESEARCH", "CONCEPT", "ARCHITECTURE", "DRAFTING", "REVIEW", "REVISION", "QC", "HUMAN_REVIEW", "HANDOFF"]},
+    "approval_status": {"enum": ["NOT_SUBMITTED", "AWAITING_HUMAN_REVIEW", "APPROVED", "REJECTED"]},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "checks": {"type": "array", "items": {"$ref": "#/$defs/check"}}
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "path", "revision", "sha256", "created_at", "status"],
+      "properties": {
+        "artifact_type": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "status": {"enum": ["DRAFT", "IN_REVIEW", "REVISION_REQUIRED", "FACT_CHECK_REQUIRED", "READY_FOR_HUMAN_REVIEW", "APPROVED", "SUPERSEDED"]}
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "status", "input_sha256", "checked_at", "evidence"],
+      "properties": {
+        "name": {"type": "string"},
+        "status": {"enum": ["PASS", "FAIL", "NOT_EXECUTED", "NOT_AVAILABLE", "NOT_TESTED", "NOT_APPLICABLE"]},
+        "input_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "checked_at": {"type": "string", "format": "date-time"},
+        "evidence": {"type": "string"}
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/script-creation/claims.schema.json",
+  "title": "ScriptCreationClaimLedger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "claims"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "project_id": {"type": "string"},
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}}
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "claim_text", "script_passages", "source_ids", "scope", "verification_status", "uncertainty_note"],
+      "properties": {
+        "claim_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "claim_text": {"type": "string", "minLength": 1},
+        "script_passages": {"type": "array", "items": {"type": "string"}},
+        "source_ids": {"type": "array", "items": {"type": "string"}},
+        "scope": {"type": "string"},
+        "verification_status": {"enum": ["UNVERIFIED", "VERIFIED", "QUALIFIED", "DISPUTED", "UNSUPPORTED", "NOT_APPLICABLE"]},
+        "uncertainty_note": {"type": "string"},
+        "verified_by": {"type": "string"},
+        "verified_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

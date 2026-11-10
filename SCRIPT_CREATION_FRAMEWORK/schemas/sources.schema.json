@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/script-creation/sources.schema.json",
+  "title": "ScriptCreationSourceLedger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "sources"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "project_id": {"type": "string"},
+    "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "title", "publisher", "url", "source_type", "accessed_at", "notes"],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "format": "uri"},
+        "source_type": {"enum": ["PRIMARY", "SECONDARY", "REFERENCE", "INTERVIEW", "DATASET", "OTHER"]},
+        "accessed_at": {"type": "string", "format": "date"},
+        "locator": {"type": "string"},
+        "notes": {"type": "string"},
+        "limitations": {"type": "string"}
+      }
+    }
+  }
+}

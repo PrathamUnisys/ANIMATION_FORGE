@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animation-forge.local/script-creation/review.schema.json",
+  "title": "ScriptCreationReview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "script_sha256", "review_type", "reviewer_provenance", "findings", "creative_approval"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "script_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "review_type": {"enum": ["CREATIVE", "FACT_CHECK", "SELF_REVIEW", "DETERMINISTIC_QC"]},
+    "reviewer_provenance": {"enum": ["SEPARATE_HUMAN", "SEPARATE_AGENT", "SEPARATE_MODEL_INVOCATION", "AUTHOR_SELF_REVIEW", "AUTOMATED_TOOL"]},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "unchecked_areas": {"type": "array", "items": {"type": "string"}},
+    "creative_approval": {"const": "NOT_GRANTED"}
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_id", "severity", "passage_ref", "evidence", "interpretation", "recommendation"],
+      "properties": {
+        "finding_id": {"type": "string"},
+        "severity": {"enum": ["BLOCKER", "MAJOR", "MINOR", "NOTE"]},
+        "passage_ref": {"type": "string"},
+        "evidence": {"type": "string"},
+        "interpretation": {"type": "string"},
+        "recommendation": {"type": "string"},
+        "confidence_or_limit": {"type": "string"}
+      }
+    }
+  }
+}

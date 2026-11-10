@@ -8,9 +8,9 @@
 
 ## 0. Snapshot (verify before trusting)
 
-- **Last source review:** 2026-11-09. Reviewed main base: 4809e4af38aff3d181e745ec3f4f8b64be14e716. CR_006 implemented under GovernanceEngine approval (ARCH_V1.3.0). Current work session HEAD: `0fa8b77b3b6f28e489093585481be80906859bee` on `ep10-revision-2`; working tree contains uncommitted EP10 and `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT` work. A separate experiment branch creation attempt failed with Git lock permission denied. Do not treat this tree as clean.
-- **Git:** default branch is main. Verify HEAD and branch before any push. No commit or push has been made for current EP10/YouTube experiment work.
-- **Tests:** 45 passed (18 animation_forge_suite + 13 instruction_repository + 8 cr006_story_screenplay + 6 cr006_hardening) run locally 2026-11-09.
+- **Last source review:** 2026-11-10. Reviewed main base: `8469d6e7c1d67fb337962c53f1efbe6dbd2e2b88` on dedicated `script-creation-framework` branch. Current uncommitted work is isolated design documentation under `SCRIPT_CREATION_FRAMEWORK/` plus this map update; no code or protected framework files changed. Verify HEAD and status before any push.
+- **Git:** default branch is main. Current task branch is `script-creation-framework`; no commit or push has been made for this task.
+- **Tests:** Current prescribed command on 2026-11-10: 30 passed, 1 failed. Failure is the pre-existing CR_007 frontmatter/audit-inventory findings in `ContractTests.test_complete_instruction_repository_passes`; two pytest cache permission warnings. See §5 and current change-log entry.
 - **Instruction validator:** historical baseline was 130 files, 9 rules, 0 findings (2026-11-09). Current run (2026-11-10): 131 files, 9 rules, 2 findings for `DOCS/CHANGE_REQUESTS/CR_007_YOUTUBE_SCREENWRITING_AUDIENCE_EXPERIENCE.md` (missing opening YAML delimiter; missing audit inventory entry). These findings were not changed in this writing experiment.
 - **Frontend:** `npm run build` passed (vite 5.4.21); Story Workspace tabs A–G implemented.
 - **DB:** animation_forge.db tracked; CR_006 hardening added migration v3 (source/context columns), total 44 tables, ARCH_V1.3.0 active, CR_006 APPROVED. Pre-hardening backup at `C:\Users\sb291\AppData\Local\Temp\opencode\animation_forge_backup_20261109_181757_469325.db` (integrity ok). Migration tested on disposable copy before tracked DB.
@@ -57,6 +57,7 @@ Core principle: **agents propose, humans approve**. Never mark creative work app
 | Bake-off spec + machine scorecard | `PIPELINE/BAKEOFF.md`, `PIPELINE/BAKEOFF/scorecard.json` |
 | Pipeline scaffolding (shot manifest, env gate) | `scripts/pipeline/shot_manifest.py`, `scripts/pipeline/env_guard.ps1` |
 | Verified capability matrix (disk truth) | `P0_GAP_MATRIX.md` (+ Corrections table) |
+| Script Creation Framework proposal, audit and implementation plan | `SCRIPT_CREATION_FRAMEWORK/README.md`; status and limits in `IMPLEMENTATION_PROGRESS.md` |
 
 Do **not** read the full repo by default. Read this file, then only the rows above that match the task.
 
@@ -127,6 +128,11 @@ Current verification (2026-11-09, CR_006 hardening):
 - `.\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py TESTS/test_instruction_repository.py TESTS/test_cr006_story_screenplay.py TESTS/test_cr006_hardening.py` → 45 passed
 - `.\.venv\Scripts\python scripts\validate_instruction_repository.py` → 130 files, 9 rules, 0 findings
 - `npm run build` (frontend) → passed (vite 5.4.21)
+
+Current prescribed verification (2026-11-10, Script Creation Framework documentation batch):
+- `\.venv\Scripts\python -m pytest -q TESTS/test_animation_forge_suite.py TESTS/test_instruction_repository.py` → **30 passed, 1 failed**. The sole failure is `ContractTests.test_complete_instruction_repository_passes`, which reports the pre-existing CR_007 missing YAML opening delimiter and missing audit-inventory entry. Two pytest-cache permission warnings were emitted.
+- `\.venv\Scripts\python scripts/validate_instruction_repository.py` → **131 files, 9 rules, 2 findings**, both the same pre-existing CR_007 findings.
+- Test noise modified nine tracked files under `PROJECTS/` and `CORE/GLOBAL_WORKFLOW.md`; the exact files were restored after the sandbox initially denied `.git/index.lock` creation. Current `git status` was checked and contains only the intended framework documentation and this map update.
 
 **Side effect:** the app suite runs the demo runner against the repo root and rewrites
 tracked files under `PROJECTS/` **and `CORE/GLOBAL_WORKFLOW.md`** (timestamps, research dates,
@@ -203,6 +209,7 @@ If you cannot update this file, stop and say why.
 
 | Date | Change | Files | Verification |
 |---|---|---|---|
+| 2026-11-10 | **Script Creation Framework design phase**: audited existing script pipeline and all ten YouTube experiment scripts/reviews; researched platform, journalism, documentary and science-communication guidance; created methodology, isolated architecture proposal and implementation backlog. No runtime or protected framework changes. | `SCRIPT_CREATION_FRAMEWORK/` (design and guide documents), `AGENTS.md` | Narration counter executed on all originals/revisions; revised counts match headers; YS04 original header discrepancy (873 vs 860) and stale historical change-report counts recorded. Prescribed pytest: 30 passed, 1 failed on existing CR_007 findings; validator: 131 files, 9 rules, 2 same CR_007 findings. Known test noise was restored from nine exact paths plus `CORE/GLOBAL_WORKFLOW.md`; status was checked. |
 | 2026-11-10 | Reconciled YouTube experiment counts after the narration-only counter showed YS04 original has 860 spoken words (its preserved header says 873); corrected progress/report references without editing the original draft | `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/PROGRESS.md`, `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/REPORTS/10_SCRIPT_EXPERIMENT_REPORT.md`, `AGENTS.md` | Recount confirmed YS04 860. Prescribed pytest: 30 passed, 1 failed on the existing CR_007 frontmatter/audit-inventory findings; validator: 131 files, 9 rules, same 2 findings. Nine test-noise files restored. `git diff --check` still reports four existing EP10 Markdown hard-break trailing-space lines; EP10 left untouched. |
 | 2026-11-10 | **YouTube Script Experiment — 10 scripts completed editorially**: ten concepts, complete original/revised single-narrator scripts, source notes, independent reviews, change reports, cross-script experiment report, and framework recommendation only; no protected framework/runtime/schema changes, no approval or audience-performance claims | `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/`, `AGENTS.md` | Narration/package/timecode audit PASS 10/10. Prescribed pytest: 30 passed, 1 failed due existing CR_007 frontmatter/audit inventory findings; validator: 131 files, 9 rules, 2 findings (same CR_007 findings). `git diff --check` reports four existing EP10 Markdown hard-break trailing-space lines; left untouched. Test noise in nine previously clean project/workflow files was restored; EP10 and experiment work preserved. |
 | 2026-11-10 | Created first two batches (YS01–YS04) of the single-voice YouTube script experiment: original and revised scripts, concept packages, separate reviews, research notes, progress tracker, and narration counter. No runtime, protected schema, agent instruction, or framework behavior changed. | `PROJECTS/YOUTUBE_SCRIPT_EXPERIMENT/` | Counts: originals YS01–YS04 958/1,012/835/873; revisions YS01–YS04 821/848/763/885. Independent first reviews complete for all four; second reviews complete for YS01–YS02 and pending for YS03–YS04. Validator: 131 files, 9 rules, 2 CR_007 findings. Prescribed pytest: 30 passed, 1 failed on the validator-backed repository-cleanliness assertion; 9 demo files and `CORE/GLOBAL_WORKFLOW.md` rewritten by tests were restored. No audience measurement. |
