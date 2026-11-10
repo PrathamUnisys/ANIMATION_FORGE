@@ -512,3 +512,44 @@ def test_handoff_markdown_does_not_promise_3d_geometry(analysis: dict[str, Any])
     markdown = render_handoff_markdown(package)
     assert "not a 3D scene" in markdown
     assert "No images are approved yet" in markdown
+
+
+def test_committed_pilot_artifacts_are_internally_consistent() -> None:
+    """Every committed generation manifest must match its image byte for byte."""
+    import hashlib
+
+    root = ROOT / "PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1"
+    if not root.is_dir():
+        pytest.skip("Pilot project is not present in this checkout.")
+    checked = 0
+    for manifest_path in sorted(root.rglob("GEN_*.json")):
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        image = root / manifest["image_path"]
+        assert image.is_file(), f"missing image {manifest['image_path']}"
+        assert hashlib.sha256(image.read_bytes()).hexdigest() == manifest["image_sha256"], (
+            f"hash mismatch for {manifest['image_path']}"
+        )
+        checked += 1
+    assert checked == 26, f"expected 26 committed generations, found {checked}"
+
+
+def test_committed_pilot_review_events_reference_existing_generations() -> None:
+    root = ROOT / "PROJECTS/VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1"
+    if not root.is_dir():
+        pytest.skip("Pilot project is not present in this checkout.")
+    generations = {
+        json.loads(path.read_text(encoding="utf-8"))["generation_id"]
+        for path in root.rglob("GEN_*.json")
+    }
+    events = [
+        json.loads(line)
+        for line in (root / "reviews/review_events.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip()
+    ]
+    assert events, "the pilot must record review events"
+    for event in events:
+        generation_id = (event.get("metadata") or {}).get("generation_id")
+        if generation_id:
+            assert generation_id in generations, f"event points at missing {generation_id}"
