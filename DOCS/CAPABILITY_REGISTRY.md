@@ -72,6 +72,7 @@ operating systems.
 | `GET /api/production/{project_id}/script` | The script the package was built from, with its approval status and hash. | Read-only; requires IPC token; the text is the stored source, which is hashed and provenance recorded. |
 | `POST /api/production/{project_id}/style-bible/approve` | Approve the current Style Bible. | Requires IPC token; a human decision recorded in the package's own event log, because the Style Bible itself is immutable. |
 | `POST /api/production/{project_id}/workflow/validate` | Check a user supplied ComfyUI API-format workflow against the live server: every node class and required input, and whether the graph can take a prompt. | Requires IPC token; validation only, nothing is submitted and nothing is written. |
+| `POST /api/production/{project_id}/workflow/import` | Validate a user supplied ComfyUI API-format workflow and store it in the package. | Requires IPC token; nothing is stored unless the server accepts every node class and the graph can take a prompt. |
 | `POST /api/change-requests` | Create an architecture change request in ARCHITECTURE_MODE (AWAITING_HUMAN_REVIEW). | Requires IPC token; duplicate ID rejected; approval only via trusted Windows reviewer path. |
 | `GET /api/story-bibles/{series_id}` | Read head revision of a Series Bible. | Requires IPC token; 404 if none. |
 | `GET /api/story-bibles/{series_id}/revisions` | List Bible revisions with hashes. | Read-only. |

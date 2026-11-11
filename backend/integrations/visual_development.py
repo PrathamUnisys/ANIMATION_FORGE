@@ -545,6 +545,37 @@ class VisualDevelopmentBridge:
             "sha256": manifest.get("sha256", ""),
         }
 
+    def import_workflow(
+        self, project_id: str, workflow: dict[str, Any], workflow_id: str = ""
+    ) -> dict[str, Any]:
+        """Validate a user workflow against the live server and store it.
+
+        The workflow is only stored when the server accepts every node class
+        and the graph can take a prompt, so a workflow that would silently
+        write the prompt into the wrong node is refused.
+        """
+        from VISUAL_DEVELOPMENT.common import new_id
+        from VISUAL_DEVELOPMENT.service import validate_workflow_report
+
+        report = validate_workflow_report(workflow)
+        if report["status"] != "PASS":
+            return {"status": "FAIL", "stored": False, "report": report}
+        identifier = workflow_id or new_id("WF")
+        self._write_workflow(project_id, identifier, workflow)
+        return {
+            "status": "PASS",
+            "stored": True,
+            "workflow_id": identifier,
+            "path": f"PROMPTS/workflows/{identifier}.json",
+            "report": report,
+        }
+
+    def _write_workflow(self, project_id: str, workflow_id: str, workflow: dict[str, Any]) -> None:
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        store.write_json(f"PROMPTS/workflows/{workflow_id}.json", workflow)
+
     def plan(self, project_id: str, target_id: str) -> dict[str, Any]:
         """What would be sent to the image service for one target.
 

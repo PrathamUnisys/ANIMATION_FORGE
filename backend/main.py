@@ -860,6 +860,25 @@ def get_production_animatic(
 class VisualWorkflowPayload(BaseModel):
     model_config = ConfigDict(extra="allow")
     workflow: Dict[str, Any]
+    workflow_id: str = ""
+
+
+@app.post("/api/production/{project_id}/workflow/import")
+def post_production_workflow_import(
+    project_id: str,
+    payload: VisualWorkflowPayload,
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
+    """Validate a user supplied workflow and store it in the package."""
+    workflow = payload.workflow
+    if not isinstance(workflow, dict) or not workflow:
+        raise HTTPException(status_code=400, detail="The workflow must be a non-empty object.")
+    try:
+        return visual_development.import_workflow(
+            project_id, workflow, str(payload.workflow_id or "")
+        )
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.post("/api/production/{project_id}/workflow/validate")

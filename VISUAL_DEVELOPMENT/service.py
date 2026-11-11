@@ -370,6 +370,28 @@ def regenerate(
     return result
 
 
+def validate_workflow_report(workflow: dict[str, Any]) -> dict[str, Any]:
+    """Check a user supplied workflow against the live ComfyUI server.
+
+    A workflow that the server accepts, but whose text nodes cannot be
+    resolved, is refused: it would put the prompt into the wrong node.
+    """
+    from .comfyui_client import ComfyUIClient
+    from .workflows import validate_user_workflow
+
+    try:
+        return validate_user_workflow(ComfyUIClient(), workflow)
+    except Exception as exc:  # noqa: BLE001 - the report has to explain the failure
+        return {
+            "status": "FAIL",
+            "missing_nodes": [],
+            "missing_inputs": [],
+            "unknown_inputs": [],
+            "can_take_prompt": False,
+            "errors": [str(exc)[:300]],
+        }
+
+
 def style_bible_status(store: ProjectStore) -> dict[str, Any]:
     """The Style Bible and whether a human has approved it.
 

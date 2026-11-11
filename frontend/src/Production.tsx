@@ -909,6 +909,9 @@ function PromptInspector({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [rendered, setRendered] = useState<string | null>(null);
+  const [workflowText, setWorkflowText] = useState('');
+  const [workflowReport, setWorkflowReport] = useState<any>(null);
+  const [showWorkflowEditor, setShowWorkflowEditor] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -981,6 +984,42 @@ function PromptInspector({
       setStatus('Saved. The next generation will use this.');
       await load();
       onSaved();
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // A workflow the user built can be pasted in. It is validated against the
+  // live server before it is stored, so a graph that would write the prompt
+  // into the wrong node is refused.
+  const attachWorkflow = async () => {
+    setBusy(true);
+    setError(null);
+    setWorkflowReport(null);
+    try {
+      let workflow: any;
+      try {
+        workflow = JSON.parse(workflowText);
+      } catch (parseError: any) {
+        throw new Error(`That is not valid JSON: ${parseError.message}`);
+      }
+      const response = await apiFetch(`/api/production/${projectId}/workflow/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflow }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.detail || `import -> ${response.status}`);
+      setWorkflowReport(result.report);
+      if (result.stored) {
+        setWorkflowId(result.workflow_id);
+        setWorkflowText('');
+        setShowWorkflowEditor(false);
+        setStatus(`Workflow ${result.workflow_id} validated and attached.`);
+        await load();
+      }
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -1163,13 +1202,58 @@ function PromptInspector({
       <select
         value={workflowId}
         onChange={(e) => setWorkflowId(e.target.value)}
-        className="w-full bg-slate-800 rounded px-2 py-1 text-[11px] mb-3"
+        className="w-full bg-slate-800 rounded px-2 py-1 text-[11px] mb-1"
       >
         <option value="">use the built-in workflow</option>
         {workflows.map((w: any) => (
           <option key={w.workflow_id} value={w.workflow_id}>{w.workflow_id}</option>
         ))}
       </select>
+      <button
+        onClick={() => setShowWorkflowEditor(!showWorkflowEditor)}
+        className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-200 mb-2"
+      >
+        {showWorkflowEditor ? 'Close the workflow editor' : 'Attach a workflow of your own'}
+      </button>
+      {showWorkflowEditor && (
+        <div className="mb-3">
+          <textarea
+            value={workflowText}
+            onChange={(e) => setWorkflowText(e.target.value)}
+            rows={5}
+            placeholder='Paste the workflow JSON exported from ComfyUI with File -> Export Workflow (API).'
+            className="w-full text-[10px] bg-slate-800 rounded px-2 py-1 mb-1 font-mono"
+          />
+          <button
+            onClick={attachWorkflow}
+            disabled={busy || !workflowText.trim()}
+            className="text-[10px] px-2 py-0.5 rounded bg-amber-600 text-black disabled:opacity-50"
+          >
+            Validate and attach
+          </button>
+          {workflowReport && (
+            <div className="text-[10px] mt-1">
+              {workflowReport.status === 'PASS' ? (
+                <span className="text-emerald-300">
+                  Every node class is accepted and the graph can take a prompt.
+                </span>
+              ) : (
+                <span className="text-red-300">
+                  Refused:{' '}
+                  {[
+                    ...(workflowReport.missing_nodes || []),
+                    ...(workflowReport.missing_inputs || []),
+                    ...(workflowReport.unknown_inputs || []),
+                    ...(workflowReport.errors || []),
+                  ]
+                    .slice(0, 6)
+                    .join(', ')}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-2 flex-wrap">
         <button
