@@ -24,6 +24,35 @@ The module does **not** install, download or configure ComfyUI. It expects a Com
 server that a human has already installed and can start. The verified instance here is
 the Windows portable build.
 
+## Starting the whole local stack
+
+One command brings up ComfyUI, the API sidecar, the Vite frontend and the standalone
+review UI with a **shared IPC token**:
+
+```powershell
+.\scripts\start_local_stack.ps1
+```
+
+| Service | Default port | Notes |
+|---|---|---|
+| ComfyUI | 8188 | Left alone if already listening |
+| API sidecar | 8765 | Started from `.venv\Scripts\python.exe -m backend.main` |
+| Frontend (Vite) | 1420 | `npm run dev` in `frontend/` |
+| Visual Development review UI | 8790 | Optional; `-ReviewPort 0` to skip |
+
+The API sidecar and the frontend **must** share the same
+`ANIMATION_FORGE_IPC_TOKEN`, because the Vite proxy injects it as the `x-forge-token`
+header. The script keeps the token in a file and passes it to both, so they can never
+disagree:
+
+```powershell
+$env:ANIMATION_FORGE_IPC_TOKEN = (Get-Content "$env:TEMP\opencode\forge_token.txt" -Raw)
+```
+
+Use that line when restarting either side by hand. The script is idempotent: anything
+already listening is reported and left alone, so it is safe to re-run after a session
+or machine restart.
+
 ## Starting the server
 
 ```powershell
