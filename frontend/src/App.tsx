@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { useForgeStore } from './store/useForgeStore';
+import ProductionWorkspace from './Production';
 
 /* CR_004: Workflow Stepper, Output Viewer & Debug Explorer.
    Formatted views by default; raw source only inside the Debug toggle.
@@ -1166,6 +1167,7 @@ export default function App() {
   // #vdev opens the Visual Development panel directly, so the review surface
   // can be linked to and verified without hunting for the toggle.
   const [showVisual, setShowVisual] = useState(() => window.location.hash === '#vdev');
+  const [vdevDetail, setVdevDetail] = useState(false);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -1302,12 +1304,37 @@ export default function App() {
         )}
         {showVisual && (
           <div>
-            <h2 className="text-xl font-semibold text-amber-400 uppercase mb-1">Visual Development & Storyboard</h2>
-            <div className="text-xs text-slate-400 mb-3">
-              Art direction, Style Bible, storyboard and blocking references produced by the isolated
-              VISUAL_DEVELOPMENT module from an approved or draft screenplay. Images are the real generated files.
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-semibold text-amber-400 uppercase">Production workspace</h2>
+              <div className="ml-auto flex gap-1">
+                <button
+                  onClick={() => setVdevDetail(false)}
+                  className={`text-xs px-2 py-1 rounded ${!vdevDetail ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}
+                >
+                  Pipeline
+                </button>
+                <button
+                  onClick={() => setVdevDetail(true)}
+                  className={`text-xs px-2 py-1 rounded ${vdevDetail ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}
+                >
+                  Package detail
+                </button>
+              </div>
             </div>
-            <VisualDevelopmentPanel />
+            <div className="text-xs text-slate-400 mb-3">
+              {vdevDetail
+                ? 'Style Bible, generations, provenance and review events for the selected package.'
+                : 'One spine from the script to the handoff: script, breakdown, visual direction, boards, previz, continuity, package. The inspector on the right is where you take the prompt over for any direction or shot.'}
+            </div>
+            {vdevDetail ? (
+              <VisualDevelopmentPanel />
+            ) : (
+              <ProductionWorkspace
+                apiFetch={apiFetch}
+                apiJson={apiJson}
+                onOpenMedia={() => {}}
+              />
+            )}
           </div>
         )}
         {showProvenance && (

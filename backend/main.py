@@ -699,6 +699,113 @@ def record_visual_development_decision(
 
 
 # ---------------------------------------------------------------------------
+# Production workspace: one spine from script to handoff, and the user's own
+# prompt for every generated image.
+# ---------------------------------------------------------------------------
+
+
+class VisualPromptPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_id: str
+    kind: str = ""
+    prompt_extra: str = ""
+    prompt_replace: Optional[str] = None
+    negative_extra: str = ""
+    exclude_modules: List[str] = []
+    settings_override: Dict[str, Any] = {}
+    workflow_id: Optional[str] = None
+    note: str = ""
+    actor: str = "frontend"
+
+
+@app.get("/api/production/{project_id}/pipeline")
+def get_production_pipeline(
+    project_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """The whole production spine: stages, statuses, shots and overrides."""
+    try:
+        return visual_development.pipeline(project_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/production/{project_id}/breakdown")
+def get_production_breakdown(
+    project_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """The script breakdown: every scene reduced to its elements."""
+    try:
+        return visual_development.breakdown(project_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/production/{project_id}/prompts/{target_id}")
+def get_production_prompt(
+    project_id: str, target_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """The generated prompt, the user's override and the merged result."""
+    try:
+        return visual_development.effective_prompt(project_id, target_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.put("/api/production/{project_id}/prompts/{target_id}")
+def put_production_prompt(
+    project_id: str,
+    target_id: str,
+    payload: VisualPromptPayload,
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
+    """Store the user's own prompt and settings for a shot or a candidate."""
+    body = payload.model_dump()
+    body["target_id"] = target_id
+    try:
+        return visual_development.save_override(project_id, body)
+    except (VisualDevelopmentError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.delete("/api/production/{project_id}/prompts/{target_id}")
+def delete_production_prompt(
+    project_id: str, target_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """Remove the user's override and go back to the generated prompt."""
+    try:
+        return visual_development.clear_override(project_id, target_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/production/{project_id}/workflows")
+def get_production_workflows(
+    project_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """The workflows stored in the project."""
+    try:
+        workflows = visual_development.list_workflows(project_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    return {"workflows": workflows, "count": len(workflows)}
+
+
+@app.post("/api/production/{project_id}/workflow/validate")
+def post_production_workflow_validate(
+    project_id: str,
+    workflow: Dict[str, Any],
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
+    """Check a user supplied ComfyUI API-format workflow against the server."""
+    if not isinstance(workflow, dict) or not workflow:
+        raise HTTPException(status_code=400, detail="The workflow must be a non-empty object.")
+    try:
+        return visual_development.validate_workflow(project_id, workflow)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
 # CR_006: Story Bible, Episode Brief, staged screenplay, QC, provider
 # ---------------------------------------------------------------------------
 

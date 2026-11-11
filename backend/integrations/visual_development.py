@@ -239,6 +239,229 @@ class VisualDevelopmentBridge:
                     continue
         return events
 
+    # ------------------------------------------------------------- production
+
+    def pipeline(self, project_id: str) -> dict[str, Any]:
+        """The whole production spine for one project."""
+        from VISUAL_DEVELOPMENT.production import pipeline_status
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        status = pipeline_status(store)
+        detail = self.detail(project_id)
+        # The rollup counts the shots per status; the list is the shots.
+        counts = status.pop("shots", {})
+        status["shot_total"] = counts.get("total", 0)
+        status["shot_statuses"] = counts.get("statuses", {})
+        status["candidates"] = detail["candidates"]
+        status["shots"] = self._shots_with_status(project_id, detail)
+        status["overrides"] = self._overrides(project_id)
+        return status
+
+    def _overrides(self, project_id: str) -> list[dict[str, Any]]:
+        path = self.project_dir(project_id) / "PROMPTS" / "prompt_overrides_v001.json"
+        if not path.is_file():
+            return []
+        value = _read_json(path)
+        overrides = value.get("overrides", {}) if isinstance(value, dict) else {}
+        return [
+            {
+                "target_id": target_id,
+                "kind": override.get("kind", ""),
+                "prompt_extra": override.get("prompt_extra", ""),
+                "prompt_replace": override.get("prompt_replace"),
+                "negative_extra": override.get("negative_extra", ""),
+                "exclude_modules": override.get("exclude_modules", []),
+                "settings_override": override.get("settings_override", {}),
+                "workflow_id": override.get("workflow_id"),
+                "updated_at": override.get("updated_at", ""),
+                "actor": override.get("actor", ""),
+                "note": override.get("note", ""),
+            }
+            for target_id, override in sorted(overrides.items())
+        ]
+
+    def _shots_with_status(
+        self, project_id: str, detail: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        """Every shot with the status the pipeline has reached for it."""
+        from VISUAL_DEVELOPMENT.production import derive_shot_status
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        events = detail.get("review_events", [])
+        shots = []
+        for shot in detail.get("shots", []):
+            shot_id = shot.get("shot_id", "")
+            board = next(
+                (
+                    generation
+                    for generation in detail.get("generations", [])
+                    if generation.get("artifact_type") == "STORYBOARD"
+                    and generation.get("shot_id") == shot_id
+                ),
+                None,
+            )
+            blocking = next(
+                (
+                    generation
+                    for generation in detail.get("generations", [])
+                    if generation.get("artifact_type") == "BLOCKING"
+                    and generation.get("shot_id") == shot_id
+                ),
+                None,
+            )
+            shots.append(
+                {
+                    **shot,
+                    "status": derive_shot_status(store, shot_id),
+                    "board_image_path": (board or {}).get("image_path", ""),
+                    "board_review_status": (board or {}).get("review_status", ""),
+                    "blocking_image_path": (blocking or {}).get("image_path", ""),
+                    "blocking_review_status": (blocking or {}).get("review_status", ""),
+                }
+            )
+        return shots
+
+    def breakdown(self, project_id: str) -> dict[str, Any]:
+        """The script breakdown for one project."""
+        path = _latest_json(self.project_dir(project_id) / "breakdown", "breakdown")
+        if path is None:
+            return {"status": "NOT_RUN", "scenes": [], "summary": {}, "taxonomy": []}
+        return _read_json(path)
+
+    def effective_prompt(self, project_id: str, target_id: str) -> dict[str, Any]:
+        """The generated prompt, the user's override and the merged result."""
+        from VISUAL_DEVELOPMENT.prompt_builder import build_candidate_prompt, build_shot_prompt
+        from VISUAL_DEVELOPMENT.prompt_overrides import (
+            effective_prompt as merge_prompt,
+            effective_settings,
+            get_override,
+        )
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        project_dir = self.project_dir(project_id)
+        store = ProjectStore(project_dir)
+        detail = self.detail(project_id)
+        analysis_path = _latest_json(project_dir / "analysis", "analysis")
+        style_bible_path = _latest_json(project_dir / "style_bibles", "style_bible")
+        candidates_path = _latest_json(project_dir / "art_direction", "candidates")
+        analysis = _read_json(analysis_path) if analysis_path else {}
+        style_bible = _read_json(style_bible_path) if style_bible_path else {}
+        candidate_set = _read_json(candidates_path) if candidates_path else {}
+        override = get_override(store, target_id)
+
+        characters = {entry["name"]: entry for entry in analysis.get("characters", [])}
+        shot = None
+        scene = None
+        for sequence in analysis.get("sequences", []):
+            for candidate_scene in sequence.get("scenes", []):
+                for candidate_shot in candidate_scene.get("shots", []):
+                    if candidate_shot.get("shot_id") == target_id:
+                        shot = candidate_shot
+                        scene = candidate_scene
+
+        if shot is not None:
+            built = build_shot_prompt(style_bible, shot, scene, characters, mode="storyboard")
+            settings = dict(style_bible.get("global_rules", {}).get("generation_settings", {}))
+            kind = "SHOT"
+        else:
+            candidate = next(
+                (
+                    entry
+                    for entry in candidate_set.get("candidates", [])
+                    if entry.get("candidate_id") == target_id
+                ),
+                None,
+            )
+            if candidate is None:
+                raise VisualDevelopmentError(f"Unknown target: {target_id}")
+            comparison_scene = None
+            for sequence in analysis.get("sequences", []):
+                for candidate_scene in sequence.get("scenes", []):
+                    if (
+                        candidate_scene.get("scene_id")
+                        == candidate_set.get("comparison_scene_id")
+                    ):
+                        comparison_scene = candidate_scene
+            built = build_candidate_prompt(
+                candidate.get("style_prompt", ""), comparison_scene, characters
+            )
+            settings = {
+                "seed": candidate_set.get("comparison_seed"),
+                "model": "dreamshaper_8.safetensors",
+            }
+            kind = "ART_DIRECTION_CANDIDATE"
+
+        merged = merge_prompt(built, override)
+        resolved = effective_settings(settings, override)
+        return {
+            "target_id": target_id,
+            "kind": kind,
+            "generated_prompt": merged["generated_prompt"],
+            "effective_prompt": merged["prompt"],
+            "generated_negative_prompt": merged["generated_negative_prompt"],
+            "effective_negative_prompt": merged["negative_prompt"],
+            "modules": merged["modules"],
+            "excluded_modules": merged["excluded_modules"],
+            "applied_overrides": merged["applied_overrides"],
+            "changed": merged["changed"],
+            "settings": resolved["settings"],
+            "settings_overrides_applied": resolved["applied_overrides"],
+            "override": override,
+        }
+
+    def save_override(self, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """Store the user's own prompt and settings for a shot or a candidate."""
+        from VISUAL_DEVELOPMENT.prompt_overrides import build_override, save_override
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        target_id = str(payload.get("target_id", ""))
+        kind = str(payload.get("kind", ""))
+        if not target_id:
+            raise VisualDevelopmentError("target_id is required")
+        override = build_override(
+            target_id,
+            kind or ("SHOT" if target_id.startswith("SHT_") else "ART_DIRECTION_CANDIDATE"),
+            prompt_extra=str(payload.get("prompt_extra", "")),
+            prompt_replace=payload.get("prompt_replace") or None,
+            negative_extra=str(payload.get("negative_extra", "")),
+            exclude_modules=list(payload.get("exclude_modules") or []),
+            settings_override=dict(payload.get("settings_override") or {}),
+            workflow_id=payload.get("workflow_id") or None,
+            note=str(payload.get("note", "")),
+            actor=str(payload.get("actor", "frontend")),
+        )
+        save_override(store, override)
+        return {"status": "PASS", "override": override}
+
+    def clear_override(self, project_id: str, target_id: str) -> dict[str, Any]:
+        from VISUAL_DEVELOPMENT.prompt_overrides import clear_override
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        removed = clear_override(store, target_id)
+        return {"status": "PASS" if removed else "NOTHING_TO_RESET", "removed": removed}
+
+    def validate_workflow(self, project_id: str, workflow: dict[str, Any]) -> dict[str, Any]:
+        """Check a user supplied API-format workflow against the live server."""
+        from VISUAL_DEVELOPMENT.comfyui_client import ComfyUIClient
+        from VISUAL_DEVELOPMENT.workflows import validate_user_workflow
+
+        client = ComfyUIClient()
+        report = validate_user_workflow(client, workflow)
+        return report
+
+    def list_workflows(self, project_id: str) -> list[dict[str, Any]]:
+        folder = self.project_dir(project_id) / "PROMPTS" / "workflows"
+        if not folder.is_dir():
+            return []
+        return [
+            {"workflow_id": path.stem, "path": f"PROMPTS/workflows/{path.name}"}
+            for path in sorted(folder.glob("*.json"))
+        ]
+
     # ----------------------------------------------------------------- media
 
     def media(self, project_id: str, relative_path: str) -> Path:

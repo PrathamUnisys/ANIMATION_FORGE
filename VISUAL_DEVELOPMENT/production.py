@@ -245,6 +245,8 @@ def pipeline_status(store: Any) -> dict[str, Any]:
 
     return {
         "link": link,
+        "episode": analysis.get("episode", {}),
+        "open_questions": analysis.get("open_questions", []),
         "stages": [
             {
                 **entry,

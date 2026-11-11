@@ -130,3 +130,100 @@ def test_bridge_never_writes_to_the_animation_forge_database(workspace: Path) ->
     bridge = VisualDevelopmentBridge(workspace)
     bridge.list_projects()
     assert (ROOT / "animation_forge.db").stat().st_mtime == before
+
+
+# ------------------------------------------------------- production workspace
+
+
+def test_bridge_reports_the_production_spine(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    pipeline = bridge.pipeline(PILOT.name)
+    assert [stage["stage_id"] for stage in pipeline["stages"]] == [
+        "SCRIPT",
+        "BREAKDOWN",
+        "VISUAL_DIRECTION",
+        "BOARDS",
+        "PREVIZ",
+        "CONTINUITY",
+        "HANDOFF",
+    ]
+    assert pipeline["link"]["script_id"] == "YS01_REVISED"
+    assert pipeline["link"]["approval_status"] == "NOT_APPROVED"
+    assert pipeline["shot_statuses"]["NOT_STARTED"] == 8
+    assert len(pipeline["shots"]) == 8
+    assert pipeline["stages"][1]["stage_id"] == "BREAKDOWN"
+
+
+def test_bridge_reports_the_breakdown(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    breakdown = bridge.breakdown(PILOT.name)
+    assert breakdown["scenes"]
+    assert breakdown["summary"]["scene_count"] == 6
+    assert breakdown["summary"]["element_count"] > 0
+    for scene in breakdown["scenes"]:
+        for element in scene["elements"]:
+            assert element["source"] in {"SCRIPT", "INFERRED"}
+
+
+def test_bridge_returns_the_effective_prompt_for_a_candidate(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    result = bridge.effective_prompt(PILOT.name, "ART_03")
+    assert result["target_id"] == "ART_03"
+    assert result["kind"] == "ART_DIRECTION_CANDIDATE"
+    assert result["generated_prompt"]
+    assert result["effective_prompt"]
+    # The pilot carries an override for this candidate, so the merged prompt
+    # must differ from the generated one.
+    assert result["changed"] is True
+    assert "1920s archive photograph" in result["effective_prompt"]
+    assert "single continuous frame" not in result["effective_prompt"]
+    assert "exclude_modules" in result["applied_overrides"]
+
+
+def test_bridge_saves_and_clears_an_override(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    saved = bridge.save_override(
+        PILOT.name,
+        {
+            "target_id": "ART_05",
+            "kind": "ART_DIRECTION_CANDIDATE",
+            "prompt_extra": "a direction the user wrote",
+            "settings_override": {"seed": 12345},
+        },
+    )
+    assert saved["status"] == "PASS"
+    result = bridge.effective_prompt(PILOT.name, "ART_05")
+    assert "a direction the user wrote" in result["effective_prompt"]
+    assert result["settings"]["seed"] == 12345
+
+    cleared = bridge.clear_override(PILOT.name, "ART_05")
+    assert cleared["removed"] is True
+    result = bridge.effective_prompt(PILOT.name, "ART_05")
+    assert "a direction the user wrote" not in result["effective_prompt"]
+
+
+def test_bridge_refuses_settings_that_cannot_be_overridden(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    with pytest.raises(ValueError):
+        bridge.save_override(
+            PILOT.name,
+            {
+                "target_id": "ART_05",
+                "kind": "ART_DIRECTION_CANDIDATE",
+                "settings_override": {"not_a_setting": 1},
+            },
+        )
+
+
+def test_bridge_lists_the_stored_workflows(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    workflows = bridge.list_workflows(PILOT.name)
+    assert workflows
+    assert any(entry["workflow_id"] == "WF_USER_DEMO" for entry in workflows)
+
+
+def test_bridge_rejects_an_unknown_target(workspace: Path) -> None:
+    bridge = VisualDevelopmentBridge(workspace)
+    with pytest.raises(VisualDevelopmentError):
+        bridge.effective_prompt(PILOT.name, "ART_99")
+
