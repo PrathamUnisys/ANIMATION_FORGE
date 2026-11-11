@@ -227,3 +227,33 @@ def test_bridge_rejects_an_unknown_target(workspace: Path) -> None:
     with pytest.raises(VisualDevelopmentError):
         bridge.effective_prompt(PILOT.name, "ART_99")
 
+
+
+def test_the_two_surfaces_report_the_same_package(workspace: Path) -> None:
+    """The review page and the application must never disagree.
+
+    They used to build the state separately, which is how the review page
+    ended up serving a blank shell while the application showed the same data
+    correctly. Now both read the same service.
+    """
+    from VISUAL_DEVELOPMENT.review_server import _collect_state
+    from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+    bridge = VisualDevelopmentBridge(workspace)
+    detail = bridge.detail(PILOT.name)
+    state = _collect_state(ProjectStore(workspace / "PROJECTS" / PILOT.name))
+
+    assert [shot["shot_id"] for shot in detail["shots"]] == [
+        shot["shot_id"] for shot in state["shots"]
+    ]
+    assert [candidate["candidate_id"] for candidate in detail["candidates"]] == [
+        candidate["candidate_id"] for candidate in state["candidates"]["candidates"]
+    ]
+    for shot in detail["shots"]:
+        other = next(
+            entry for entry in state["shots"] if entry["shot_id"] == shot["shot_id"]
+        )
+        assert shot["status"] == other["status"]
+        assert shot["board_image_path"] == other["board_image_path"]
+        assert shot["blocking_image_path"] == other["blocking_image_path"]
+

@@ -85,8 +85,18 @@ def build_handoff(
     review_events: list[dict[str, Any]],
     source_script_ref: dict[str, Any],
     continuity_report: dict[str, Any] | None = None,
+    breakdown: dict[str, Any] | None = None,
+    prompt_overrides: dict[str, Any] | None = None,
+    animatic: dict[str, Any] | None = None,
+    shot_statuses: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Build the structured production handoff package."""
+    """Build the structured production handoff package.
+
+    The package answers three questions for whoever receives it: what was
+    asked for (the breakdown and the shot list), what was decided (the
+    selected direction and the prompt overrides), and what came out (the
+    approved images with their provenance and the status of every shot).
+    """
     approved_generations = [
         generation
         for generation in generations
@@ -202,6 +212,10 @@ def build_handoff(
         "unresolved_issues": unresolved,
         "review_events": review_events,
         "continuity_report": continuity_report,
+        "breakdown": breakdown or {},
+        "prompt_overrides": prompt_overrides or {},
+        "shot_statuses": shot_statuses or {},
+        "animatic": animatic or {},
         "engine_notes": {
             "coordinate_space": "NONE",
             "world_coordinates": False,
@@ -268,6 +282,82 @@ def render_handoff_markdown(handoff: dict[str, Any]) -> str:
     if not handoff["approved_storyboard_images"] and not handoff["approved_blocking_images"]:
         lines.append("- No images are approved yet. Every generated image is a draft until a human decides.")
     lines.append("")
+
+    breakdown = handoff.get("breakdown") or {}
+    if breakdown.get("scenes"):
+        lines.append("## Script breakdown")
+        lines.append("")
+        summary = breakdown.get("summary", {})
+        lines.append(
+            f"{summary.get('scene_count', 0)} scenes, {summary.get('element_count', 0)} elements, "
+            f"{summary.get('total_page_eighths', 0)} eighths of a page."
+        )
+        lines.append("")
+        for scene in breakdown["scenes"]:
+            lines.append(f"### {scene['scene_id']} - {scene['heading']}")
+            lines.append("")
+            if scene["elements"]:
+                lines.append("| Category | Element | Qty | Status | Source |")
+                lines.append("|---|---|---|---|---|")
+                for element in scene["elements"]:
+                    lines.append(
+                        f"| {element['category']} | {element['name']} | {element['quantity']} | "
+                        f"{element['status']} | {element['source']} |"
+                    )
+                lines.append("")
+            else:
+                lines.append("- No elements tagged in this scene.")
+                lines.append("")
+
+    overrides = handoff.get("prompt_overrides") or {}
+    if overrides:
+        lines.append("## Prompt overrides")
+        lines.append("")
+        lines.append("These targets were generated from a prompt the user wrote, not from the "
+                     "generated one alone.")
+        lines.append("")
+        for target_id, override in sorted(overrides.items()):
+            lines.append(f"### {target_id} ({override.get('kind', '')})")
+            lines.append("")
+            if override.get("prompt_extra"):
+                lines.append(f"- Added text: {override['prompt_extra']}")
+            if override.get("prompt_replace"):
+                lines.append(f"- Replaced the prompt with: {override['prompt_replace']}")
+            if override.get("negative_extra"):
+                lines.append(f"- Added negative text: {override['negative_extra']}")
+            if override.get("exclude_modules"):
+                lines.append(f"- Dropped modules: {', '.join(override['exclude_modules'])}")
+            if override.get("settings_override"):
+                lines.append(
+                    f"- Settings: "
+                    + ", ".join(f"{k}={v}" for k, v in override["settings_override"].items())
+                )
+            if override.get("workflow_id"):
+                lines.append(f"- ComfyUI workflow: `{override['workflow_id']}`")
+            lines.append(f"- By {override.get('actor', 'unknown')} on {override.get('updated_at', '')}")
+            lines.append("")
+
+    statuses = handoff.get("shot_statuses") or {}
+    if statuses:
+        lines.append("## Shot status")
+        lines.append("")
+        lines.append("| Shot | Status |")
+        lines.append("|---|---|")
+        for shot_id, status in sorted(statuses.items()):
+            lines.append(f"| {shot_id} | {status} |")
+        lines.append("")
+
+    animatic = handoff.get("animatic") or {}
+    if animatic:
+        lines.append("## Animatic")
+        lines.append("")
+        summary = animatic.get("summary", {})
+        lines.append(f"- Video: `{animatic.get('video_path') or 'not rendered'}`")
+        lines.append(f"- Shots: {summary.get('shot_count', 0)}")
+        lines.append(f"- Duration: {summary.get('total_duration_sec', 0)}s")
+        lines.append(f"- Voice lines: {summary.get('voice_line_count', 0)}")
+        lines.append("")
+
     lines.append("## Unresolved issues")
     lines.append("")
     if handoff["unresolved_issues"]:

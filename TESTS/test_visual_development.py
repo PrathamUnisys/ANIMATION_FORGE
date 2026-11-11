@@ -4,13 +4,17 @@ import contextlib
 import json
 import re
 import shutil
+import struct
 import subprocess
 import tempfile
 import threading
 import urllib.request
+import wave
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+
+from PIL import Image
 
 import jsonschema
 import pytest
@@ -374,6 +378,18 @@ class _MockComfyHandler(BaseHTTPRequestHandler):
                     },
                     "VAEDecode": {
                         "input": {"required": {"samples": ("LATENT",), "vae": ("VAE",)}}
+                    },
+                    "VAELoader": {
+                        "input": {
+                            "required": {
+                                "vae_name": (
+                                    [
+                                        "sdxl_vae_fp16_fix.safetensors",
+                                        "dreamshaper_8.safetensors",
+                                    ],
+                                )
+                            }
+                        }
                     },
                     "SaveImage": {
                         "input": {
@@ -1407,4 +1423,379 @@ def test_breakdown_command_writes_a_breakdown(store: ProjectStore) -> None:
     cmd_breakdown(argparse.Namespace(project_dir=store.root))
     assert store.path("breakdown/breakdown_v001.json").is_file()
     assert store.read("project.json")["stage"] == "BREAKDOWN_COMPLETE"
+
+
+
+# ------------------------------------------------------------------- animatic
+
+
+def test_animatic_timeline_follows_the_shots(analysis: dict[str, Any]) -> None:
+    """The timeline is the shots in order, held for the time the analysis gave."""
+    from VISUAL_DEVELOPMENT.animatic import build_animatic
+
+    timeline = build_animatic(analysis, [])
+    assert len(timeline["entries"]) == 9
+    assert timeline["summary"]["shot_count"] == 9
+    assert timeline["summary"]["picture_count"] == 0
+    # The first entry starts at zero and the rest follow on.
+    assert timeline["entries"][0]["start_sec"] == 0.0
+    for previous, entry in zip(timeline["entries"], timeline["entries"][1:]):
+        assert entry["start_sec"] == pytest.approx(
+            previous["start_sec"] + previous["duration_sec"], abs=0.01
+        )
+    assert timeline["summary"]["total_duration_sec"] > 0
+
+
+def test_animatic_uses_the_boards_that_exist() -> None:
+    """A shot with a storyboard generation points at that picture."""
+    from VISUAL_DEVELOPMENT.animatic import build_animatic
+
+    analysis = {
+        "source_format": "SCREENPLAY",
+        "sequences": [
+            {
+                "sequence_id": "SEQ_01",
+                "scenes": [
+                    {
+                        "scene_id": "SCN_01_01",
+                        "heading": "INT. ROOM - DAY",
+                        "shots": [
+                            {
+                                "shot_id": "SHT_01",
+                                "estimated_duration_sec": 3.0,
+                                "visual_description": "A thing happens",
+                                "characters": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    generations = [
+        {
+            "artifact_type": "STORYBOARD",
+            "shot_id": "SHT_01",
+            "image_path": "storyboard/SHT_01/GEN_A.png",
+        }
+    ]
+    timeline = build_animatic(analysis, generations)
+    assert timeline["entries"][0]["image_path"] == "storyboard/SHT_01/GEN_A.png"
+    assert timeline["entries"][0]["has_picture"] is True
+    assert timeline["summary"]["picture_count"] == 1
+    assert timeline["summary"]["missing_pictures"] == []
+
+
+def test_animatic_carries_the_words_from_the_script() -> None:
+    """Dialogue and narration are read from the script, never invented."""
+    from VISUAL_DEVELOPMENT.animatic import build_animatic
+
+    analysis = {
+        "source_format": "NARRATOR",
+        "sequences": [
+            {
+                "sequence_id": "SEQ_01",
+                "scenes": [
+                    {
+                        "scene_id": "SCN_01_01",
+                        "heading": "00:00 - Opening",
+                        "explicit_facts": ["Narration: The fog came first."],
+                        "shots": [
+                            {
+                                "shot_id": "SHT_01",
+                                "estimated_duration_sec": 4.0,
+                                "visual_description": "A street fades.",
+                                "characters": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    timeline = build_animatic(analysis, [])
+    assert timeline["voice_lines"]
+    line = timeline["voice_lines"][0]
+    assert line["kind"] == "NARRATION"
+    assert line["text"] == "The fog came first."
+    assert line["start_sec"] == 0.0
+
+
+def test_animatic_survives_a_missing_voice_model(tmp_path: Path) -> None:
+    """No voice model is not an error: the line is recorded as silent."""
+    from VISUAL_DEVELOPMENT.animatic import synthesize_voice
+
+    result = synthesize_voice(
+        "hello", tmp_path / "line.wav", venv_python=tmp_path / "no-such-python.exe"
+    )
+    assert result["status"] == "NO_VOICE_MODEL"
+    assert result["duration_sec"] == 0.0
+
+
+def test_animatic_mixes_the_voice_onto_one_track(tmp_path: Path) -> None:
+    """Each clip lands at its start time on a single track."""
+    from VISUAL_DEVELOPMENT.animatic import mix_voice_track
+
+    def write_wav(path: Path, seconds: float, value: int) -> None:
+        with wave.open(str(path), "wb") as handle:
+            handle.setnchannels(1)
+            handle.setsampwidth(2)
+            handle.setframerate(24000)
+            handle.writeframes(
+                struct.pack("<" + "h" * int(seconds * 24000), *([value] * int(seconds * 24000)))
+            )
+
+    first = tmp_path / "a.wav"
+    second = tmp_path / "b.wav"
+    write_wav(first, 0.5, 1000)
+    write_wav(second, 0.5, 2000)
+    out = tmp_path / "voice.wav"
+
+    result = mix_voice_track([(first, 0.0), (second, 2.0)], out, total_seconds=4.0)
+    assert result["status"] == "PASS"
+    assert result["clips_placed"] == 2
+    with wave.open(str(out), "rb") as handle:
+        assert handle.getnframes() == int(4.0 * 24000)
+        frames = handle.readframes(handle.getnframes())
+    samples = struct.unpack("<" + "h" * (len(frames) // 2), frames)
+    assert samples[0] == 1000
+    # The second clip starts two seconds in.
+    assert samples[int(2.0 * 24000)] == 2000
+    # And nothing is spoken between the two.
+    assert samples[int(1.0 * 24000)] == 0
+
+
+def test_animatic_refuses_to_render_without_pictures(tmp_path: Path) -> None:
+    from VISUAL_DEVELOPMENT.animatic import build_animatic, render_animatic
+
+    timeline = build_animatic({"sequences": []}, [])
+    result = render_animatic(timeline, tmp_path / "out.mp4")
+    assert result["status"] == "NO_PICTURES"
+
+
+def test_animatic_cuts_a_real_video(tmp_path: Path, analysis: dict[str, Any]) -> None:
+    """The boards are cut to a playable file with the right duration."""
+    import shutil
+
+    if shutil.which("ffmpeg") is None:
+        pytest.skip("ffmpeg is not installed")
+    from VISUAL_DEVELOPMENT.animatic import build_animatic, render_animatic
+
+    image = tmp_path / "board.png"
+    Image.new("RGB", (64, 64), (20, 90, 60)).save(image)
+    analysis = {
+        "sequences": [
+            {
+                "sequence_id": "SEQ_01",
+                "scenes": [
+                    {
+                        "scene_id": "SCN_01_01",
+                        "heading": "INT. ROOM - DAY",
+                        "shots": [
+                            {
+                                "shot_id": "SHT_01",
+                                "estimated_duration_sec": 2.0,
+                                "visual_description": "A thing",
+                                "characters": [],
+                            },
+                            {
+                                "shot_id": "SHT_02",
+                                "estimated_duration_sec": 1.5,
+                                "visual_description": "Another thing",
+                                "characters": [],
+                            },
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    generations = [
+        {"artifact_type": "STORYBOARD", "shot_id": "SHT_01", "image_path": "a.png"},
+        {"artifact_type": "STORYBOARD", "shot_id": "SHT_02", "image_path": "b.png"},
+    ]
+    timeline = build_animatic(analysis, generations)
+    # The pictures live next to the timeline for the test.
+    (tmp_path / "a.png").write_bytes(image.read_bytes())
+    (tmp_path / "b.png").write_bytes(image.read_bytes())
+    result = render_animatic(
+        timeline, tmp_path / "out.mp4", project_root=tmp_path, width=64
+    )
+    assert result["status"] == "PASS"
+    assert (tmp_path / "out.mp4").exists()
+    assert result["duration_sec"] == pytest.approx(3.5, abs=0.2)
+
+
+def test_handoff_carries_the_breakdown_prompts_and_status(
+    analysis: dict[str, Any]
+) -> None:
+    """The package says what was asked, what was decided and what came out."""
+    from VISUAL_DEVELOPMENT.handoff import build_handoff
+
+    style_bible = {
+        "style_bible_id": "STYLE_TEST",
+        "version": 1,
+        "status": "DRAFT",
+        "style_identity": "Test",
+        "global_rules": {"lighting": "soft", "atmosphere": "calm"},
+        "scene_variables": {},
+    }
+    package = build_handoff(
+        analysis,
+        style_bible,
+        [],
+        [],
+        {"script_id": "S", "approval_status": "APPROVED", "sha256": "0" * 64},
+        breakdown={"scenes": [{"scene_id": "SCN_01", "heading": "H", "elements": []}],
+                   "summary": {"scene_count": 1, "element_count": 0, "total_page_eighths": 1.0}},
+        prompt_overrides={"ART_01": {"kind": "ART_DIRECTION_CANDIDATE", "prompt_extra": "mine"}},
+        shot_statuses={"SHT_01": "BOARDED"},
+        animatic={"summary": {"shot_count": 1}, "video_path": "animatic/x.mp4"},
+    )
+    assert package["breakdown"]["summary"]["scene_count"] == 1
+    assert package["prompt_overrides"]["ART_01"]["prompt_extra"] == "mine"
+    assert package["shot_statuses"]["SHT_01"] == "BOARDED"
+    assert package["animatic"]["video_path"] == "animatic/x.mp4"
+
+
+def test_handoff_markdown_reports_the_new_sections(analysis: dict[str, Any]) -> None:
+    from VISUAL_DEVELOPMENT.handoff import build_handoff, render_handoff_markdown
+
+    style_bible = {
+        "style_bible_id": "STYLE_TEST",
+        "version": 1,
+        "status": "DRAFT",
+        "style_identity": "Test",
+        "global_rules": {"lighting": "soft", "atmosphere": "calm"},
+        "scene_variables": {},
+    }
+    package = build_handoff(
+        analysis,
+        style_bible,
+        [],
+        [],
+        {"script_id": "S", "approval_status": "APPROVED", "sha256": "0" * 64},
+        breakdown={"scenes": [{"scene_id": "SCN_01", "heading": "H", "elements": []}],
+                   "summary": {"scene_count": 1, "element_count": 0, "total_page_eighths": 1.0}},
+        prompt_overrides={"ART_01": {"kind": "ART_DIRECTION_CANDIDATE", "prompt_extra": "mine"}},
+        shot_statuses={"SHT_01": "BOARDED"},
+        animatic={"summary": {"shot_count": 1}, "video_path": "animatic/x.mp4"},
+    )
+    markdown = render_handoff_markdown(package)
+    assert "## Script breakdown" in markdown
+    assert "## Prompt overrides" in markdown
+    assert "## Shot status" in markdown
+    assert "## Animatic" in markdown
+
+
+
+# -------------------------------------------------------------------- presets
+
+
+def test_presets_describe_pipelines_that_work_on_this_machine() -> None:
+    """A preset is a coherent set, not a loose bag of numbers."""
+    from VISUAL_DEVELOPMENT.presets import PRESETS_BY_ID, preset_settings
+
+    for preset_id, preset in PRESETS_BY_ID.items():
+        assert preset["model"]
+        assert preset["steps"] >= 1
+        assert preset["width"] >= 512
+        assert preset["measured"], f"{preset_id} must say what it costs"
+        settings = preset_settings(preset_id)
+        assert settings["model"] == preset["model"]
+        assert settings["preset"] == preset_id
+
+
+def test_the_sdxl_preset_carries_the_settings_its_pipeline_needs() -> None:
+    """Four steps, guidance one and the sgm_uniform scheduler go together."""
+    from VISUAL_DEVELOPMENT.presets import preset_settings
+
+    settings = preset_settings("sdxl_lightning_4step")
+    assert settings["steps"] == 4
+    assert settings["cfg"] == 1.0
+    assert settings["scheduler"] == "sgm_uniform"
+    assert settings["width"] == 1024
+    assert settings["vae"] == "sdxl_vae_fp16_fix.safetensors"
+    assert settings["model"] == "sd_xl_base_1.0.safetensors"
+
+
+def test_a_preset_is_applied_before_the_users_own_numbers() -> None:
+    """The preset sets the pipeline, the user may still change one value."""
+    from VISUAL_DEVELOPMENT.prompt_overrides import build_override, effective_settings
+
+    override = build_override(
+        "SHT_01",
+        "SHOT",
+        settings_override={"preset": "sdxl_lightning_4step", "steps": 6},
+    )
+    resolved = effective_settings(
+        {"model": "dreamshaper_8.safetensors", "steps": 25, "cfg": 8.0}, override
+    )
+    settings = resolved["settings"]
+    assert settings["model"] == "sd_xl_base_1.0.safetensors"
+    assert settings["cfg"] == 1.0
+    assert settings["steps"] == 6, "the user's own number wins over the preset"
+    assert "preset" in resolved["applied_overrides"]
+
+
+def test_the_sdxl_workflow_is_a_valid_graph() -> None:
+    """Every node reference points at a node that exists."""
+    from VISUAL_DEVELOPMENT.workflows import (
+        resolve_prompt_nodes,
+        txt2img_sdxl_lightning_canny_workflow,
+        txt2img_sdxl_lightning_workflow,
+    )
+
+    workflow = txt2img_sdxl_lightning_workflow(positive="a throne room")
+    for node_id, node in workflow.items():
+        for value in node["inputs"].values():
+            if isinstance(value, list) and len(value) == 2 and isinstance(value[0], str):
+                assert value[0] in workflow, f"{node_id} references missing node {value[0]}"
+    nodes = resolve_prompt_nodes(workflow)
+    assert nodes["positive"] is not None
+    assert nodes["negative"] is not None
+    assert nodes["latent"] is not None
+    assert workflow["7"]["class_type"] == "VAELoader"
+    assert workflow["7"]["inputs"]["vae_name"] == "sdxl_vae_fp16_fix.safetensors"
+
+    canny = txt2img_sdxl_lightning_canny_workflow(
+        positive="a throne room", control_image="layout.png"
+    )
+    assert canny["13"]["class_type"] == "ControlNetApplyAdvanced"
+    assert canny["6"]["inputs"]["positive"] == ["13", 0]
+
+
+def test_generation_uses_the_sdxl_template_when_the_preset_asks_for_it(
+    store: ProjectStore, mock_comfy: str
+) -> None:
+    """The submitted graph must be the SDXL one, with the fixed VAE."""
+    from VISUAL_DEVELOPMENT.generation import generate_image
+    from VISUAL_DEVELOPMENT.presets import preset_settings
+
+    client = ComfyUIClient(mock_comfy)
+    result = generate_image(
+        client,
+        store,
+        artifact_type="STORYBOARD",
+        relative_dir="storyboard/SHT_SDXL",
+        prompt="a throne room",
+        negative_prompt="text",
+        settings=preset_settings("sdxl_lightning_4step"),
+        workflow_id="txt2img_v1",
+        shot_id="SHT_SDXL",
+    )
+    assert result["status"] == "PASS"
+    submitted = _MockComfyHandler.submitted[-1]
+    classes = {node.get("class_type") for node in submitted.values()}
+    assert "VAELoader" in classes
+    vae = next(
+        node for node in submitted.values() if node.get("class_type") == "VAELoader"
+    )
+    assert vae["inputs"]["vae_name"] == "sdxl_vae_fp16_fix.safetensors"
+    sampler = next(
+        node for node in submitted.values() if node.get("class_type") == "KSampler"
+    )
+    assert sampler["inputs"]["steps"] == 4
+    assert sampler["inputs"]["cfg"] == 1.0
+    assert sampler["inputs"]["scheduler"] == "sgm_uniform"
 

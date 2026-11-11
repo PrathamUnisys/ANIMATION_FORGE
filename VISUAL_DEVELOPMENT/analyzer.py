@@ -732,7 +732,18 @@ def parse_screenplay_script(
                     current_block["props"].append(prop)
                 if prop not in current_scene["props"]:
                     current_scene["props"].append(prop)
-        current_block["explicit_facts"] = ["Action text: " + content]
+        if current_block["block_type"] == "dialogue":
+            # A dialogue block is a line somebody says, not action. Keeping the
+            # speaker and the words separately is what lets an animatic put
+            # the right voice on the right board.
+            current_block["dialogue"] = content
+            current_block["explicit_facts"] = [
+                fact
+                for fact in current_block["explicit_facts"]
+                if fact.startswith("Character speaks")
+            ] + [f"Dialogue: {content}"]
+        else:
+            current_block["explicit_facts"] = ["Action text: " + content]
 
     flush_block()
 

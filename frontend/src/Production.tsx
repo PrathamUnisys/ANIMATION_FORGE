@@ -119,6 +119,7 @@ export default function ProductionWorkspace({
   const [projectId, setProjectId] = useState('');
   const [pipeline, setPipeline] = useState<any>(null);
   const [breakdown, setBreakdown] = useState<any>(null);
+  const [animatic, setAnimatic] = useState<any>(null);
   // A stage can be linked to directly: ?stage=BOARDS opens the boards.
   const [stage, setStage] = useState<string>(() => {
     const requested = new URLSearchParams(window.location.search).get('stage');
@@ -144,12 +145,14 @@ export default function ProductionWorkspace({
     if (!projectId) return;
     try {
       setError(null);
-      const [pipe, brk] = await Promise.all([
+      const [pipe, brk, anim] = await Promise.all([
         apiJson(`/api/production/${projectId}/pipeline`),
         apiJson(`/api/production/${projectId}/breakdown`),
+        apiJson(`/api/production/${projectId}/animatic`),
       ]);
       setPipeline(pipe);
       setBreakdown(brk);
+      setAnimatic(anim);
     } catch (e: any) {
       setError(e.message || String(e));
     }
@@ -267,6 +270,7 @@ export default function ProductionWorkspace({
             projectId={projectId}
             onOpenMedia={onOpenMedia}
             showBlocking={stage === 'PREVIZ'}
+            animatic={animatic}
           />
         )}
         {stage === 'CONTINUITY' && <ContinuityStage pipeline={pipeline} />}
@@ -293,6 +297,48 @@ export default function ProductionWorkspace({
       </div>
     </div>
   );
+}
+
+/**
+ * The animatic video, fetched as a blob.
+ *
+ * The media route is token protected and a video tag cannot send a header,
+ * so the file is fetched with the credentialed request and played from a blob
+ * URL.
+ */
+function useAnimaticVideo(
+  apiFetch: (path: string, init?: RequestInit) => Promise<Response>,
+  projectId: string,
+  relPath: string
+) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    let objectUrl = '';
+    if (!relPath || !projectId) {
+      setUrl(null);
+      return;
+    }
+    apiFetch(
+      `/api/visual-development/${projectId}/media?path=${encodeURIComponent(relPath)}`
+    )
+      .then(async (response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        if (alive) setUrl(objectUrl);
+      })
+      .catch(() => {
+        if (alive) setUrl(null);
+      });
+    return () => {
+      alive = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [apiFetch, projectId, relPath]);
+
+  return url;
 }
 
 /* ------------------------------------------------------------------ stages */
@@ -472,6 +518,7 @@ function BoardsStage({
   onSelect,
   projectId,
   showBlocking,
+  animatic,
 }: {
   apiFetch: (path: string, init?: RequestInit) => Promise<Response>;
   shots: any[];
@@ -480,7 +527,11 @@ function BoardsStage({
   projectId: string;
   onOpenMedia: (projectId: string, relPath: string) => void;
   showBlocking: boolean;
+  animatic: any;
 }) {
+  const entries: any[] = animatic?.entries || [];
+  const videoUrl = useAnimaticVideo(apiFetch, projectId, animatic?.video_relative_path || '');
+
   return (
     <div>
       <h3 className="text-lg font-semibold text-amber-300 mb-1">
@@ -489,6 +540,35 @@ function BoardsStage({
       <div className="text-xs text-slate-400 mb-3">
         One frame per shot, in shot order. Each shot carries its own prompt and its own status.
       </div>
+
+      {showBlocking && (
+        <div className="bg-[#111827] border border-slate-800 rounded p-3 mb-4">
+          <div className="flex items-baseline justify-between gap-2 mb-2">
+            <span className="text-xs font-semibold text-slate-200">Animatic</span>
+            <span className="text-[10px] text-slate-500">
+              {entries.length} shots
+              {animatic?.summary?.total_duration_sec
+                ? ` · ${animatic.summary.total_duration_sec}s`
+                : ''}
+              {animatic?.summary?.voice_line_count
+                ? ` · ${animatic.summary.voice_line_count} voice lines`
+                : ''}
+            </span>
+          </div>
+          {videoUrl ? (
+            <video
+              src={videoUrl}
+              controls
+              className="w-full max-w-md rounded border border-slate-700"
+            />
+          ) : (
+            <div className="text-[11px] text-slate-500">
+              No animatic has been rendered for this package yet. Run the{' '}
+              <code className="text-amber-300">animatic</code> command to cut the boards to time.
+            </div>
+          )}
+        </div>
+      )}
       <div className="space-y-2">
         {shots.map((shot: any) => (
           <button
@@ -603,6 +683,7 @@ function PromptInspector({
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [workflowId, setWorkflowId] = useState('');
   const [workflows, setWorkflows] = useState<any[]>([]);
+  const [presets, setPresets] = useState<any[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -610,12 +691,14 @@ function PromptInspector({
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [prompt, wf] = await Promise.all([
+      const [prompt, wf, ps] = await Promise.all([
         apiJson(`/api/production/${projectId}/prompts/${targetId}`),
         apiJson(`/api/production/${projectId}/workflows`),
+        apiJson('/api/production/presets'),
       ]);
       setState(prompt);
       setWorkflows(wf.workflows || []);
+      setPresets(ps.presets || []);
       const override = prompt.override || null;
       setExtra(override?.prompt_extra || '');
       setReplace(override?.prompt_replace || '');
@@ -759,6 +842,32 @@ function PromptInspector({
         placeholder="e.g. modern digital render, 3d render"
         className="w-full text-[11px] bg-slate-800 rounded px-2 py-1.5 mb-3 font-mono"
       />
+
+      <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+        Generation preset
+      </div>
+      <select
+        value={settings.preset || ''}
+        onChange={(e) => {
+          const next = { ...settings };
+          if (!e.target.value) delete next.preset;
+          else next.preset = e.target.value;
+          setSettings(next);
+        }}
+        className="w-full bg-slate-800 rounded px-2 py-1 text-[11px] mb-1"
+      >
+        <option value="">keep the current settings</option>
+        {presets.map((preset: any) => (
+          <option key={preset.preset_id} value={preset.preset_id}>
+            {preset.label} — {preset.measured}
+          </option>
+        ))}
+      </select>
+      {presets.length > 0 && (
+        <div className="text-[10px] text-slate-500 mb-3">
+          {presets.find((p: any) => p.preset_id === settings.preset)?.note || ''}
+        </div>
+      )}
 
       <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Generation settings</div>
       <div className="grid grid-cols-2 gap-1 mb-3">

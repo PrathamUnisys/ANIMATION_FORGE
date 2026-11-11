@@ -140,67 +140,31 @@ class VisualDevelopmentBridge:
         }
 
     def detail(self, project_id: str) -> dict[str, Any]:
+        """One package, in the shape the application consumes.
+
+        The facts come from the shared project service, which is the same
+        implementation the standalone review page uses, so the two can never
+        disagree about what a package holds.
+        """
+        from VISUAL_DEVELOPMENT.service import project_state
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
         project_dir = self.project_dir(project_id)
+        store = ProjectStore(project_dir)
+        state = project_state(store)
         summary = self.summarize(project_id)
-        analysis_path = _latest_json(project_dir / "analysis", "analysis")
-        candidates_path = _latest_json(project_dir / "art_direction", "candidates")
-        style_bible_path = _latest_json(project_dir / "style_bibles", "style_bible")
-
-        analysis = _read_json(analysis_path) if analysis_path else {}
-        candidate_set = _read_json(candidates_path) if candidates_path else {}
-        style_bible = _read_json(style_bible_path) if style_bible_path else {}
-
-        candidates = []
-        for candidate in candidate_set.get("candidates", []):
-            manifest = candidate.get("generation_manifest", {})
-            candidates.append(
-                {
-                    "candidate_id": candidate.get("candidate_id", ""),
-                    "style_name": candidate.get("style_name", ""),
-                    "description": candidate.get("description", ""),
-                    "palette": candidate.get("palette", ""),
-                    "lighting": candidate.get("lighting", ""),
-                    "camera": candidate.get("camera", ""),
-                    "storytelling": candidate.get("storytelling", ""),
-                    "feasibility": candidate.get("feasibility", ""),
-                    "strengths": candidate.get("strengths", []),
-                    "limitations": candidate.get("limitations", []),
-                    "selected": candidate.get("selected", False),
-                    "status": candidate.get("status", ""),
-                    "image_path": manifest.get("image_path", ""),
-                    "prompt_id": manifest.get("prompt_id", ""),
-                }
-            )
-
-        shots = []
-        for sequence in analysis.get("sequences", []):
-            for scene in sequence.get("scenes", []):
-                for shot in scene.get("shots", []):
-                    shots.append(
-                        {
-                            "shot_id": shot.get("shot_id", ""),
-                            "sequence_id": sequence.get("sequence_id", ""),
-                            "scene_id": scene.get("scene_id", ""),
-                            "scene_heading": scene.get("heading", ""),
-                            "shot_size": shot.get("camera_shot_type", ""),
-                            "purpose": shot.get("purpose", ""),
-                            "description": shot.get("visual_description", ""),
-                            "duration_sec": shot.get("estimated_duration_sec", 0.0),
-                            "production_complexity": shot.get("production_complexity", ""),
-                        }
-                    )
-
-        generations = self._generations(project_dir)
 
         return {
             **summary,
-            "comparison_scene_id": candidate_set.get("comparison_scene_id", ""),
-            "comparison_seed": candidate_set.get("comparison_seed"),
-            "candidates": candidates,
-            "shots": shots,
-            "style_bible": style_bible,
-            "generations": generations,
-            "review_events": self._events(project_dir),
+            "comparison_scene_id": state["candidates"].get("comparison_scene_id", ""),
+            "comparison_seed": state["candidates"].get("comparison_seed"),
+            "candidates": state["candidates"]["candidates"],
+            "shots": state["shots"],
+            "style_bible": state["style_bible"],
+            "generations": self._generations(project_dir),
+            "review_events": state["events"],
+            "breakdown": state["breakdown"],
+            "animatic": state["animatic"],
         }
 
     def _generations(self, project_dir: Path) -> list[dict[str, Any]]:
@@ -244,17 +208,18 @@ class VisualDevelopmentBridge:
     def pipeline(self, project_id: str) -> dict[str, Any]:
         """The whole production spine for one project."""
         from VISUAL_DEVELOPMENT.production import pipeline_status
+        from VISUAL_DEVELOPMENT.service import project_state
         from VISUAL_DEVELOPMENT.storage import ProjectStore
 
         store = ProjectStore(self.project_dir(project_id))
         status = pipeline_status(store)
-        detail = self.detail(project_id)
+        state = project_state(store)
         # The rollup counts the shots per status; the list is the shots.
         counts = status.pop("shots", {})
         status["shot_total"] = counts.get("total", 0)
         status["shot_statuses"] = counts.get("statuses", {})
-        status["candidates"] = detail["candidates"]
-        status["shots"] = self._shots_with_status(project_id, detail)
+        status["candidates"] = state["candidates"]["candidates"]
+        status["shots"] = state["shots"]
         status["overrides"] = self._overrides(project_id)
         return status
 
@@ -280,48 +245,6 @@ class VisualDevelopmentBridge:
             }
             for target_id, override in sorted(overrides.items())
         ]
-
-    def _shots_with_status(
-        self, project_id: str, detail: dict[str, Any]
-    ) -> list[dict[str, Any]]:
-        """Every shot with the status the pipeline has reached for it."""
-        from VISUAL_DEVELOPMENT.production import derive_shot_status
-        from VISUAL_DEVELOPMENT.storage import ProjectStore
-
-        store = ProjectStore(self.project_dir(project_id))
-        events = detail.get("review_events", [])
-        shots = []
-        for shot in detail.get("shots", []):
-            shot_id = shot.get("shot_id", "")
-            board = next(
-                (
-                    generation
-                    for generation in detail.get("generations", [])
-                    if generation.get("artifact_type") == "STORYBOARD"
-                    and generation.get("shot_id") == shot_id
-                ),
-                None,
-            )
-            blocking = next(
-                (
-                    generation
-                    for generation in detail.get("generations", [])
-                    if generation.get("artifact_type") == "BLOCKING"
-                    and generation.get("shot_id") == shot_id
-                ),
-                None,
-            )
-            shots.append(
-                {
-                    **shot,
-                    "status": derive_shot_status(store, shot_id),
-                    "board_image_path": (board or {}).get("image_path", ""),
-                    "board_review_status": (board or {}).get("review_status", ""),
-                    "blocking_image_path": (blocking or {}).get("image_path", ""),
-                    "blocking_review_status": (blocking or {}).get("review_status", ""),
-                }
-            )
-        return shots
 
     def breakdown(self, project_id: str) -> dict[str, Any]:
         """The script breakdown for one project."""
@@ -453,6 +376,12 @@ class VisualDevelopmentBridge:
         report = validate_user_workflow(client, workflow)
         return report
 
+    def presets(self) -> list[dict[str, Any]]:
+        """The generation presets a user can choose from."""
+        from VISUAL_DEVELOPMENT.presets import preset_summary
+
+        return preset_summary()
+
     def list_workflows(self, project_id: str) -> list[dict[str, Any]]:
         folder = self.project_dir(project_id) / "PROMPTS" / "workflows"
         if not folder.is_dir():
@@ -461,6 +390,27 @@ class VisualDevelopmentBridge:
             {"workflow_id": path.stem, "path": f"PROMPTS/workflows/{path.name}"}
             for path in sorted(folder.glob("*.json"))
         ]
+
+    def animatic(self, project_id: str) -> dict[str, Any]:
+        """The animatic timeline and, when it was rendered, the video."""
+        path = _latest_json(self.project_dir(project_id) / "animatic", "animatic")
+        if path is None:
+            return {"status": "NOT_RUN", "entries": [], "summary": {}}
+        manifest = _read_json(path)
+        video_path = manifest.get("video_path", "")
+        # The manifest holds an absolute path from the machine that rendered it.
+        # The package is what matters, so the path is reported relative to it.
+        relative = ""
+        if video_path:
+            try:
+                relative = (
+                    Path(video_path).resolve().relative_to(self.project_dir(project_id)).as_posix()
+                )
+            except ValueError:
+                relative = video_path
+        manifest["video_relative_path"] = relative
+        manifest["status"] = "PASS" if relative else "NOT_RENDERED"
+        return manifest
 
     # ----------------------------------------------------------------- media
 

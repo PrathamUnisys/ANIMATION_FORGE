@@ -778,6 +778,13 @@ def delete_production_prompt(
         raise HTTPException(status_code=404, detail=str(exc))
 
 
+@app.get("/api/production/presets")
+def get_production_presets(_: str = Depends(verify_local_ipc_token)) -> Dict[str, Any]:
+    """The generation presets a user can choose from, with what they cost."""
+    presets = visual_development.presets()
+    return {"presets": presets, "count": len(presets)}
+
+
 @app.get("/api/production/{project_id}/workflows")
 def get_production_workflows(
     project_id: str, _: str = Depends(verify_local_ipc_token)
@@ -788,6 +795,17 @@ def get_production_workflows(
     except VisualDevelopmentError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     return {"workflows": workflows, "count": len(workflows)}
+
+
+@app.get("/api/production/{project_id}/animatic")
+def get_production_animatic(
+    project_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """The animatic timeline and, when it was rendered, the video."""
+    try:
+        return visual_development.animatic(project_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
 @app.post("/api/production/{project_id}/workflow/validate")

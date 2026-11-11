@@ -12,6 +12,8 @@ from .storage import ProjectStore
 from .workflows import (
     apply_to_user_workflow,
     txt2img_canny_workflow,
+    txt2img_sdxl_lightning_canny_workflow,
+    txt2img_sdxl_lightning_workflow,
     txt2img_workflow,
     validate_workflow,
     workflow_settings,
@@ -92,6 +94,11 @@ def generate_image(
     reference_images: list[str] = []
     control_net = None
     workflow_source = "BUILT_IN"
+    from .presets import template_for
+
+    template = settings.get("workflow_template") or template_for(
+        settings.get("preset", ""), str(control_image_path) if control_image_path else None
+    )
     if user_workflow is not None:
         filled = apply_to_user_workflow(
             user_workflow,
@@ -102,6 +109,40 @@ def generate_image(
         workflow = filled["workflow"]
         workflow_source = "USER"
         override_applied = list(override_applied or []) + list(filled["applied"])
+    elif template in ("sdxl_lightning_4step_v1", "sdxl_lightning_4step_canny_v1"):
+        # The SDXL four step pipeline has its own VAE and its own settings, so
+        # it is built from its own template rather than the 1.5 one.
+        sdxl_settings = {
+            "model": common["model"],
+            "lora": settings.get("lora"),
+            "lora_strength": float(settings.get("lora_strength", 1.0)),
+            "vae": settings.get("vae") or "sdxl_vae_fp16_fix.safetensors",
+            "width": common["width"],
+            "height": common["height"],
+            "steps": common["steps"],
+            "cfg": common["cfg"],
+            "sampler": common["sampler"],
+            "scheduler": common["scheduler"],
+            "seed": common["seed"],
+            "filename_prefix": filename_prefix,
+        }
+        if control_image_path is not None:
+            upload = client.upload_image(control_image_path)
+            reference_images.append(upload.get("name", control_image_path.name))
+            workflow = txt2img_sdxl_lightning_canny_workflow(
+                positive=prompt,
+                negative=negative_prompt,
+                control_image=upload.get("name", control_image_path.name),
+                control_net=settings.get("control_net")
+                or "diffusers_xl_canny_mid_fp16.safetensors",
+                control_strength=control_net_strength,
+                **sdxl_settings,
+            )
+            control_net = settings.get("control_net") or "diffusers_xl_canny_mid_fp16.safetensors"
+        else:
+            workflow = txt2img_sdxl_lightning_workflow(
+                positive=prompt, negative=negative_prompt, **sdxl_settings
+            )
     elif control_image_path is not None:
         upload = client.upload_image(control_image_path)
         reference_images.append(upload.get("name", control_image_path.name))

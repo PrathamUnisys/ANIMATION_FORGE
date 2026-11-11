@@ -153,7 +153,7 @@ function render(){
   let sbhtml = "";
   Object.keys(groups).forEach(k => {
     sbhtml += "<h2>"+esc(k)+"</h2><div class='grid'>" + groups[k].map(s =>
-      "<figure><img loading='lazy' src='/media/"+encodeURI(s.image_path||"")+"' alt='"+escAttr(s.shot_id)+"'>"
+      "<figure><img loading='lazy' src='/media/"+encodeURI(s.board_image_path||"")+"' alt='"+escAttr(s.shot_id)+"'>"
       + "<figcaption><b>"+esc(s.shot_id)+" - "+esc(s.shot_size)+"</b>"+esc(s.description)
       + "<br><span class='pill "+esc(s.review_status)+"'>"+esc(s.review_status)+"</span>"
       + "<br><button class='act approve' data-act='APPROVE' data-type='STORYBOARD' data-id='"+s.shot_id+"'>Approve</button>"
@@ -166,7 +166,7 @@ function render(){
   let blhtml = "";
   Object.keys(groups).forEach(k => {
     blhtml += "<h2>"+esc(k)+"</h2>" + groups[k].map(s =>
-      "<div class='card row'><div><b>Storyboard "+esc(s.shot_id)+"</b><br><img style='max-width:100%;border:1px solid #2a3442' src='/media/"+encodeURI(s.image_path||"")+"'></div>"
+      "<div class='card row'><div><b>Storyboard "+esc(s.shot_id)+"</b><br><img style='max-width:100%;border:1px solid #2a3442' src='/media/"+encodeURI(s.board_image_path||"")+"'></div>"
       + "<div><b>Blocking "+esc(s.shot_id)+"</b><br><img style='max-width:100%;border:1px solid #2a3442' src='/media/"+encodeURI(s.blocking_image_path||"")+"'>"
       + "<br><span class='pill "+esc(s.blocking_review_status||"PENDING")+"'>"+esc(s.blocking_review_status||"PENDING")+"</span>"
       + "<br><button class='act approve' data-act='APPROVE' data-type='BLOCKING' data-id='"+s.shot_id+"'>Approve</button>"
@@ -189,85 +189,14 @@ render();
 
 
 def _collect_state(store: ProjectStore) -> dict[str, Any]:
-    from .cli import _analysis, _candidate_set, _character_index, _collect_generations, _latest, _style_bible
+    """The state of the package.
 
-    project = store.read("project.json")
-    analysis = _analysis(store) if _latest(store, "analysis", "analysis") else {}
-    candidates = _candidate_set(store) if _latest(store, "art_direction", "candidates") else {}
-    style_bible = _style_bible(store) if _latest(store, "style_bibles", "style_bible") else {}
-    generations = _collect_generations(store)
+    The state comes from the shared project service, so this page and the
+    application always report the same thing about the same package.
+    """
+    from .service import project_state
 
-    by_shot: dict[tuple[str, str], dict[str, Any]] = {}
-    for generation in generations:
-        key = (generation.get("artifact_type", ""), generation.get("shot_id", ""))
-        by_shot[key] = generation
-
-    shots = []
-    for sequence in analysis.get("sequences", []):
-        for scene in sequence.get("scenes", []):
-            for shot in scene.get("shots", []):
-                storyboard = by_shot.get(("STORYBOARD", shot["shot_id"]))
-                blocking = by_shot.get(("BLOCKING", shot["shot_id"]))
-                shots.append(
-                    {
-                        "shot_id": shot["shot_id"],
-                        "sequence_id": sequence["sequence_id"],
-                        "scene_id": scene["scene_id"],
-                        "scene_heading": scene.get("heading", ""),
-                        "shot_size": shot.get("camera_shot_type", ""),
-                        "description": shot.get("visual_description", ""),
-                        "purpose": shot.get("purpose", ""),
-                        "duration_sec": shot.get("estimated_duration_sec", 0.0),
-                        "image_path": (storyboard or {}).get("image_path", ""),
-                        "review_status": (storyboard or {}).get("review_status", "NOT_GENERATED"),
-                        "blocking_image_path": (blocking or {}).get("image_path", ""),
-                        "blocking_review_status": (blocking or {}).get("review_status", "NOT_GENERATED"),
-                    }
-                )
-
-    candidate_list = []
-    for candidate in candidates.get("candidates", []):
-        manifest = candidate.get("generation_manifest", {})
-        candidate_list.append(
-            {
-                "candidate_id": candidate["candidate_id"],
-                "style_name": candidate["style_name"],
-                "description": candidate["description"],
-                "selected": candidate.get("selected", False),
-                "image_path": manifest.get("image_path", ""),
-            }
-        )
-
-    comfyui: dict[str, Any] = {"status": "NOT_CHECKED"}
-    try:
-        from .comfyui_client import ComfyUIClient
-
-        client = ComfyUIClient()
-        stats = client.system_stats()
-        comfyui = {
-            "status": "CONNECTED",
-            "comfyui_version": stats["system"]["comfyui_version"],
-            "devices": [
-                {"name": d["name"], "vram_free": d["vram_free"]} for d in stats.get("devices", [])
-            ],
-        }
-    except Exception as exc:  # noqa: BLE001 - the UI must still load when ComfyUI is down
-        comfyui = {"status": "UNAVAILABLE", "error": str(exc)}
-
-    return {
-        "project": project,
-        "episode": analysis.get("episode", {}),
-        "open_questions": analysis.get("open_questions", []),
-        "candidates": {
-            "comparison_scene_id": candidates.get("comparison_scene_id", ""),
-            "candidates": candidate_list,
-        },
-        "style_bible": style_bible,
-        "shots": shots,
-        "events": store.events(),
-        "comfyui": comfyui,
-        "continuity": analysis.get("continuity", {}),
-    }
+    return project_state(store)
 
 
 def _handle_action(store: ProjectStore, body: dict[str, Any]) -> dict[str, Any]:

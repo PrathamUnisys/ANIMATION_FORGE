@@ -350,13 +350,17 @@ def cmd_style_bible(args: argparse.Namespace) -> int:
 
 def cmd_storyboard(args: argparse.Namespace) -> int:
     from .comfyui_client import ComfyUIClient
+    from .presets import preset_settings
 
     store = _load_store(args.project_dir)
     analysis = _analysis(store)
     style_bible = _style_bible(store)
     character_index = _character_index(analysis)
     client = ComfyUIClient(args.comfy_url)
-    settings = dict(style_bible["global_rules"]["generation_settings"])
+    base_settings = dict(style_bible["global_rules"]["generation_settings"])
+    if getattr(args, "preset", ""):
+        base_settings.update(preset_settings(args.preset))
+    settings = base_settings
     results = []
     for sequence, scene, shot in _iter_shots(analysis):
         if args.shot and shot["shot_id"] not in args.shot:
@@ -366,8 +370,8 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
         built = build_shot_prompt(style_bible, shot, scene, character_index, mode="storyboard")
         override = get_override(store, shot["shot_id"])
         merged = effective_prompt(built, override)
-        settings = effective_settings(
-            {**dict(style_bible["global_rules"]["generation_settings"]), "seed": _seed_for(shot, style_bible["global_rules"]["generation_settings"])},
+        shot_settings = effective_settings(
+            {**settings, "seed": _seed_for(shot, settings)},
             override,
         )["settings"]
         relative_dir = (
@@ -380,7 +384,7 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
             relative_dir=relative_dir,
             prompt=merged["prompt"],
             negative_prompt=merged["negative_prompt"],
-            settings=settings,
+            settings=shot_settings,
             workflow_id=(override or {}).get("workflow_id") or "txt2img_v1",
             shot_id=shot["shot_id"],
             sequence_id=sequence["sequence_id"],
@@ -399,13 +403,17 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
 
 def cmd_blocking(args: argparse.Namespace) -> int:
     from .comfyui_client import ComfyUIClient
+    from .presets import preset_settings
 
     store = _load_store(args.project_dir)
     analysis = _analysis(store)
     style_bible = _style_bible(store)
     character_index = _character_index(analysis)
     client = ComfyUIClient(args.comfy_url)
-    settings = dict(style_bible["global_rules"]["generation_settings"])
+    base_settings = dict(style_bible["global_rules"]["generation_settings"])
+    if getattr(args, "preset", ""):
+        base_settings.update(preset_settings(args.preset))
+    settings = base_settings
     results = []
     for sequence, scene, shot in _iter_shots(analysis):
         if args.shot and shot["shot_id"] not in args.shot:
@@ -494,6 +502,8 @@ def _collect_generations(store: ProjectStore) -> list[dict[str, Any]]:
 
 
 def cmd_handoff(args: argparse.Namespace) -> int:
+    from .production import derive_shot_status
+
     store = _load_store(args.project_dir)
     analysis = _analysis(store)
     style_bible = _style_bible(store)
@@ -501,6 +511,23 @@ def cmd_handoff(args: argparse.Namespace) -> int:
     events = store.events()
     report_path = _latest(store, "reports", "continuity")
     continuity = store.read(report_path.relative_to(store.root).as_posix()) if report_path else None
+
+    breakdown_path = _latest(store, "breakdown", "breakdown")
+    breakdown = (
+        store.read(breakdown_path.relative_to(store.root).as_posix()) if breakdown_path else None
+    )
+    overrides = load_overrides(store)
+    animatic_path = _latest(store, "animatic", "animatic")
+    animatic = (
+        store.read(animatic_path.relative_to(store.root).as_posix()) if animatic_path else None
+    )
+    shot_statuses = {
+        shot["shot_id"]: derive_shot_status(store, shot["shot_id"])
+        for sequence in analysis.get("sequences", [])
+        for scene in sequence.get("scenes", [])
+        for shot in scene.get("shots", [])
+    }
+
     package = build_handoff(
         analysis,
         style_bible,
@@ -508,6 +535,10 @@ def cmd_handoff(args: argparse.Namespace) -> int:
         events,
         store.read("source/script_manifest.json"),
         continuity,
+        breakdown=breakdown,
+        prompt_overrides=overrides,
+        animatic=animatic,
+        shot_statuses=shot_statuses,
     )
     version = store.latest_number("handoff", "handoff")
     store.write_json(f"handoff/handoff_v{version:03d}.json", package)
@@ -727,6 +758,74 @@ def cmd_validate_workflow(args: argparse.Namespace) -> int:
     return 0 if report["status"] == "PASS" else 1
 
 
+def cmd_animatic(args: argparse.Namespace) -> int:
+    """Cut the boards to an animatic: a timed cut with the voice on it."""
+    from .animatic import (
+        animatic_manifest,
+        build_animatic,
+        mix_voice_track,
+        render_animatic,
+        synthesize_voice,
+    )
+
+    store = _load_store(args.project_dir)
+    analysis = _analysis(store)
+    generations = _collect_generations(store)
+    timeline = build_animatic(analysis, generations)
+
+    audio_dir = store.path("animatic/audio")
+    clips: list[tuple[Path, float]] = []
+    voice_results = []
+    for index, line in enumerate(timeline["voice_lines"]):
+        if args.no_voice:
+            voice_results.append({**line, "status": "SKIPPED"})
+            continue
+        target = audio_dir / f"{line['line_id']}.wav"
+        result = synthesize_voice(line["text"], target, voice=args.voice)
+        voice_results.append({**line, **{k: v for k, v in result.items() if k != "path"}})
+        if result["status"] == "PASS":
+            clips.append((Path(result["path"]), line["start_sec"]))
+
+    audio_path: Path | None = None
+    if clips:
+        mixed = mix_voice_track(
+            clips,
+            store.path("animatic/voice.wav"),
+            timeline["summary"]["total_duration_sec"],
+        )
+        audio_path = Path(mixed["path"]) if mixed["status"] == "PASS" else None
+
+    version = store.latest_number("animatic", "animatic")
+    video = render_animatic(
+        timeline,
+        store.path(f"animatic/animatic_v{version:03d}.mp4"),
+        project_root=store.root,
+        audio_path=audio_path,
+        fps=args.fps,
+    )
+    manifest = animatic_manifest(timeline, video)
+    manifest["voice_lines"] = voice_results
+    store.write_json(f"animatic/animatic_v{version:03d}.json", manifest)
+
+    _set_stage(store, "ANIMATIC_EXPORTED")
+    _print(
+        {
+            "status": video["status"],
+            "animatic_id": timeline["animatic_id"],
+            "manifest_path": f"animatic/animatic_v{version:03d}.json",
+            "video_path": video.get("path", ""),
+            "video_error": video.get("error", ""),
+            "shots": timeline["summary"]["shot_count"],
+            "pictures": timeline["summary"]["picture_count"],
+            "missing_pictures": timeline["summary"]["missing_pictures"],
+            "voice_lines": len(timeline["voice_lines"]),
+            "voice_clips": len(clips),
+            "total_duration_sec": timeline["summary"]["total_duration_sec"],
+        }
+    )
+    return 0 if video["status"] == "PASS" else 1
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     store = _load_store(args.project_dir)
     project = store.read("project.json")
@@ -847,6 +946,11 @@ def build_parser() -> argparse.ArgumentParser:
     storyboard.add_argument("--comfy-url", default=DEFAULT_COMFY)
     storyboard.add_argument("--shot", nargs="*")
     storyboard.add_argument("--limit", type=int, default=0)
+    storyboard.add_argument(
+        "--preset",
+        default="",
+        help="Generation preset to use, e.g. sdxl_lightning_4step.",
+    )
 
     blocking = commands.add_parser("blocking", help="Generate blocking layouts and images.")
     blocking.add_argument("--project-dir", type=Path, required=True)
@@ -854,6 +958,11 @@ def build_parser() -> argparse.ArgumentParser:
     blocking.add_argument("--shot", nargs="*")
     blocking.add_argument("--limit", type=int, default=0)
     blocking.add_argument("--generate-images", action="store_true")
+    blocking.add_argument(
+        "--preset",
+        default="",
+        help="Generation preset to use, e.g. sdxl_lightning_4step.",
+    )
 
     check = commands.add_parser("check", help="Run deterministic continuity checks.")
     check.add_argument("--project-dir", type=Path, required=True)
@@ -922,6 +1031,14 @@ def build_parser() -> argparse.ArgumentParser:
     validate_wf.add_argument("--workflow-id", required=True)
     validate_wf.add_argument("--comfy-url", default=DEFAULT_COMFY)
 
+    animatic = commands.add_parser(
+        "animatic", help="Cut the boards to a timed animatic with the voice on it."
+    )
+    animatic.add_argument("--project-dir", type=Path, required=True)
+    animatic.add_argument("--voice", default="af_heart")
+    animatic.add_argument("--no-voice", action="store_true")
+    animatic.add_argument("--fps", type=int, default=24)
+
     comfy = commands.add_parser("comfy-check", help="Report live ComfyUI status and models.")
     comfy.add_argument("--comfy-url", default=DEFAULT_COMFY)
 
@@ -954,6 +1071,7 @@ def main(argv: list[str] | None = None) -> int:
         "reset-prompt": cmd_reset_prompt,
         "import-workflow": cmd_import_workflow,
         "validate-workflow": cmd_validate_workflow,
+        "animatic": cmd_animatic,
         "status": cmd_status,
         "comfy-check": cmd_comfy_check,
         "review": cmd_review,

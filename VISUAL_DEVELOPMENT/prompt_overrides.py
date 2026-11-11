@@ -39,6 +39,7 @@ OVERRIDABLE_SETTINGS = (
     "model",
     "lora",
     "lora_strength",
+    "vae",
     "width",
     "height",
     "steps",
@@ -47,6 +48,8 @@ OVERRIDABLE_SETTINGS = (
     "scheduler",
     "seed",
     "control_net",
+    "preset",
+    "workflow_template",
 )
 
 
@@ -195,12 +198,24 @@ def effective_settings(
     settings: dict[str, Any],
     override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Merge the generation settings with the user's override."""
+    """Merge the generation settings with the user's override.
+
+    A preset is applied first, because a preset is a coherent set: the
+    four-step SDXL pipeline needs its own model, steps, guidance and scheduler
+    and does not work with a mixture. Anything the user set by hand is applied
+    after it, so a single number can still be changed.
+    """
+    from .presets import preset_settings
+
     merged = dict(settings)
     applied: list[str] = []
     if override:
+        chosen = (override.get("settings_override") or {}).get("preset")
+        if chosen:
+            merged.update(preset_settings(chosen))
+            applied.append("preset")
         for key, value in (override.get("settings_override") or {}).items():
-            if value is None:
+            if key == "preset" or value is None:
                 continue
             merged[key] = value
             applied.append(key)
