@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
+import subprocess
+import tempfile
 import threading
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -676,58 +680,215 @@ def test_approved_script_gate_still_rejects_unapproved_database_rows(database: P
 # ------------------------------------------------------- review page script
 
 
+def _served_review_page(project_dir: Path) -> str:
+    """Fetch the review page from the real server over real HTTP.
+
+    The page must be checked in its *served* form. The template still contains
+    Python escape sequences that are resolved during rendering, and the browser
+    only ever sees the rendered bytes.
+    """
+    from VISUAL_DEVELOPMENT.review_server import make_handler
+
+    store = ProjectStore(project_dir)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(store))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with urllib.request.urlopen(
+            f"http://127.0.0.1:{server.server_address[1]}/", timeout=15
+        ) as response:
+            return response.read().decode("utf-8")
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def _unterminated_js_string(script: str) -> str | None:
     """Return the quote character of an unterminated JS string, or None.
 
     A single unbalanced quote in the served page silently blanks the whole
     review UI, because the browser refuses to run the script block at all.
+
+    The scanner tracks string, template, comment and regular-expression
+    literals, so a quote that sits inside one of them is not mistaken for the
+    start of another string.
     """
-    index = 0
     length = len(script)
+    index = 0
+    previous = ""  # last significant character seen in code position
     while index < length:
         char = script[index]
-        if char == "/" and index + 1 < length and script[index + 1] == "/":
+        following = script[index + 1] if index + 1 < length else ""
+        if char == "/" and following == "/":
             while index < length and script[index] != "\n":
                 index += 1
+            continue
+        if char == "/" and following == "*":
+            index += 2
+            while index < length and not (
+                script[index] == "*"
+                and index + 1 < length
+                and script[index + 1] == "/"
+            ):
+                index += 1
+            index += 2
+            continue
+        if char == "/" and (previous == "" or previous in "=(,:[!&|?{};+-*%~^"):
+            index += 1
+            in_class = False
+            while index < length:
+                current = script[index]
+                if current == "\\":
+                    index += 2
+                    continue
+                if current == "[":
+                    in_class = True
+                elif current == "]":
+                    in_class = False
+                elif current == "/" and not in_class:
+                    break
+                elif current == "\n":
+                    break
+                index += 1
+            index += 1
+            previous = "/"
             continue
         if char in "\"'`":
             quote = char
             index += 1
             while index < length:
-                if script[index] == "\\":
+                current = script[index]
+                if current == "\\":
                     index += 2
                     continue
-                if script[index] == quote:
+                if current == quote:
                     break
+                if quote == "`" and current == "$" and index + 1 < length and script[index + 1] == "{":
+                    depth = 1
+                    index += 2
+                    while index < length and depth:
+                        if script[index] == "{":
+                            depth += 1
+                        elif script[index] == "}":
+                            depth -= 1
+                        index += 1
+                    continue
                 index += 1
             if index >= length:
                 return quote
+            index += 1
+            previous = quote
+            continue
+        if not char.isspace():
+            previous = char
         index += 1
     return None
 
 
-def test_review_page_script_is_syntactically_balanced() -> None:
-    """Regression guard: the review page must never serve a blank shell."""
-    from VISUAL_DEVELOPMENT.review_server import PAGE_TEMPLATE
+@pytest.fixture
+def review_store(store: ProjectStore, analysis: dict[str, Any]) -> ProjectStore:
+    """A project with an analysis and an art-direction candidate set.
 
-    state = {
-        "project": {
-            "project_id": "P",
-            "source_script": {"script_id": "S", "approval_status": "APPROVED"},
-        },
-        "episode": {},
-        "open_questions": [],
-        "candidates": {"comparison_scene_id": "SCN_01", "candidates": []},
-        "style_bible": {},
-        "shots": [],
-        "events": [],
-        "comfyui": {},
-        "continuity": {},
-    }
-    html = PAGE_TEMPLATE.replace("__STATE__", json.dumps(state)).replace("__PROJECT__", "P")
+    The candidate set matters: the image markup only exists once there is
+    something to show, which is exactly where the page used to break.
+    """
+    candidate_set = build_candidates(analysis, "PROJECT_001")
+    for candidate in candidate_set["candidates"]:
+        candidate["generation_manifest"] = {
+            "image_path": f"art_direction/candidate_{candidate['candidate_id']}/GEN_TEST.png"
+        }
+    store.write_json("analysis/analysis_v001.json", analysis, "analysis.schema.json")
+    store.write_json("art_direction/candidates_v001.json", candidate_set, "candidate.schema.json")
+    return store
+
+
+def test_review_page_script_is_syntactically_balanced(review_store: ProjectStore) -> None:
+    """Regression guard: the review page must never serve a blank shell.
+
+    The check runs against the bytes the server actually sends, not the
+    template. Checking the template misses escaped quotes that Python
+    resolves during rendering, which is how a broken page passed review.
+    """
+    html = _served_review_page(review_store.root)
     assert "<script>" in html and "</script>" in html
     script = html.split("<script>", 1)[1].split("</script>", 1)[0]
     unterminated = _unterminated_js_string(script)
-    assert unterminated is None, f"unterminated {unterminated!r} quote in the review page script"
-    assert "onclick=" not in script, "use data attributes and a delegated handler, not inline onclick"
-    assert "data-act=" in script
+    assert unterminated is None, f"unterminated {unterminated!r} quote in the served review page script"
+
+
+def test_review_page_has_no_inline_event_handlers(review_store: ProjectStore) -> None:
+    """No inline event handler may appear anywhere in the served page.
+
+    An inline handler such as onerror="..." puts a raw double quote inside a
+    double-quoted JavaScript string and kills the whole script block.
+    """
+    html = _served_review_page(review_store.root)
+    handlers = sorted(set(re.findall(r"\son([a-z]+)\s*=", html, flags=re.IGNORECASE)))
+    assert not handlers, f"inline event handlers in the served page: {handlers}"
+    assert "data-act=" in html, "actions must use data attributes and a delegated handler"
+
+
+def test_review_page_script_passes_a_javascript_parser(review_store: ProjectStore) -> None:
+    """The served script block must parse as JavaScript.
+
+    A real parser is the only check that cannot be fooled by the quote
+    scanner: the historical defect had balanced quotes and was still a
+    syntax error. Node is a hard dependency of the frontend build, so it is
+    required here rather than skipped.
+    """
+    node = shutil.which("node")
+    if node is None:
+        pytest.fail(
+            "node is required to parse the review page script; the frontend build "
+            "needs it too, so install node instead of skipping this guard"
+        )
+    html = _served_review_page(review_store.root)
+    script = html.split("<script>", 1)[1].split("</script>", 1)[0]
+    with tempfile.TemporaryDirectory() as folder:
+        target = Path(folder) / "review_page.js"
+        target.write_text(script, encoding="utf-8")
+        result = subprocess.run(
+            [node, "--check", str(target)], capture_output=True, text=True, timeout=60
+        )
+    assert result.returncode == 0, f"served review page script does not parse:\n{result.stderr}"
+
+
+def test_the_guard_rejects_the_historical_defect() -> None:
+    """The guards must fail on the markup that actually broke the page.
+
+    This is the script block exactly as it was served before the fix. The
+    inline onerror attribute closes the JavaScript string early, so the
+    browser stops parsing the whole block and the page renders empty.
+
+    Note that the quotes in it are balanced: the defect is a syntax error,
+    not an unterminated string. A quote scanner cannot see it. The inline
+    handler rule catches it, and the real parser catches it.
+    """
+    broken = (
+        '"<figure><img loading=\'lazy\' src=\'/media/"+encodeURI(c.image_path||"")+'
+        '"\' onerror="this.style.background=\'#3a2020\';this.alt=\'no image\'">"'
+    )
+    assert re.findall(r"\son([a-z]+)\s*=", broken, flags=re.IGNORECASE) == ["error"]
+    assert _unterminated_js_string(broken) is None, (
+        "this defect is a syntax error, not an unbalanced quote; the quote scanner "
+        "alone cannot catch it, which is why a real parser is required"
+    )
+    node = shutil.which("node")
+    if node is None:
+        pytest.fail("node is required to parse the review page script")
+    with tempfile.TemporaryDirectory() as folder:
+        target = Path(folder) / "broken.js"
+        target.write_text(broken, encoding="utf-8")
+        result = subprocess.run(
+            [node, "--check", str(target)], capture_output=True, text=True, timeout=60
+        )
+    assert result.returncode != 0, "the historical defect must not parse"
+
+
+def test_review_page_renders_images_and_controls(review_store: ProjectStore) -> None:
+    """The served page must carry the gallery, not an empty shell."""
+    html = _served_review_page(review_store.root)
+    assert "<figure><img" in html, "the served page must build image figures"
+    assert "art_direction/candidate_ART_01/GEN_TEST.png" in html, "image paths must reach the client"
+    assert "data-act='SELECT'" in html, "the candidate selection control must be present"
+    assert "Art Direction" in html and "Style Bible" in html

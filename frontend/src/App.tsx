@@ -917,7 +917,16 @@ function StoryContextPanel({ projectId }: { projectId: string }) {
  *  the module's own append-only review event log. */
 async function vdevBlobUrl(projectId: string, relPath: string): Promise<string> {
   const r = await apiFetch(`/api/visual-development/${projectId}/media?path=${encodeURIComponent(relPath)}`);
-  if (!r.ok) throw new Error(`${relPath} -> ${r.status}`);
+  if (!r.ok) {
+    // Surface the server's reason. An <img> tag would swallow the body, so a
+    // truncated or renamed path would otherwise just look like a broken image.
+    let detail = `${relPath} -> ${r.status}`;
+    try {
+      const body = await r.json();
+      if (body && body.detail) detail = `${body.detail} (${relPath})`;
+    } catch { /* keep the status-only message */ }
+    throw new Error(detail);
+  }
   const blob = await r.blob();
   return URL.createObjectURL(blob);
 }
@@ -1247,6 +1256,13 @@ export default function App() {
             </div>
           )}
         </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); setShowStory(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
+          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); setShowStory(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
+          <button onClick={() => { setShowStory(!showStory); setShowFiles(false); setShowProvenance(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showStory ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Story Context (CR_006)</button>
+          <button onClick={() => { setShowVisual(!showVisual); setShowFiles(false); setShowProvenance(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showVisual ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Visual Development</button>
+          <button onClick={() => { loadProjects(); loadProject(); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700">Refresh</button>
+        </div>
         <nav className="mt-4 flex flex-col gap-1">
           {(stepsData?.steps || []).map((s: Step) => (
             <button
@@ -1264,13 +1280,6 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={() => { setShowFiles(!showFiles); setShowProvenance(false); setShowStory(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showFiles ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Files</button>
-          <button onClick={() => { setShowProvenance(!showProvenance); setShowFiles(false); setShowStory(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showProvenance ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Provenance / Debug</button>
-          <button onClick={() => { setShowStory(!showStory); setShowFiles(false); setShowProvenance(false); setShowVisual(false); }} className={`text-xs px-2 py-1 rounded ${showStory ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Story Context (CR_006)</button>
-          <button onClick={() => { setShowVisual(!showVisual); setShowFiles(false); setShowProvenance(false); setShowStory(false); }} className={`text-xs px-2 py-1 rounded ${showVisual ? 'bg-amber-600 text-black' : 'bg-slate-700'}`}>Visual Development</button>
-          <button onClick={() => { loadProjects(); loadProject(); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700">Refresh</button>
-        </div>
         <div className="mt-auto pt-4 text-xs text-slate-500">
           {health ? <>API: <span className={health.status === 'healthy' ? 'text-green-400' : 'text-red-400'}>{health.status}</span> · {health.architecture_version} · DB {health.database_integrity?.table_count} tbl</> : 'API: …'}
         </div>

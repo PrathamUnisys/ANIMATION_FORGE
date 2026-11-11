@@ -70,6 +70,24 @@ def test_bridge_refuses_path_traversal(workspace: Path) -> None:
             bridge.media(PILOT.name, bad)
 
 
+def test_bridge_refuses_dot_only_path_components(workspace: Path) -> None:
+    """A '...' component is not a real directory and Windows collapses it."""
+    bridge = VisualDevelopmentBridge(workspace)
+    for bad in (
+        "storyboard\\SEQ_02\\...\\GEN.png",
+        "storyboard/SEQ_02/../GEN.png",
+        "storyboard/SEQ_02/..../GEN.png",
+    ):
+        with pytest.raises(VisualDevelopmentError):
+            bridge.media(PILOT.name, bad)
+
+
+def test_bridge_accepts_a_plain_relative_reference(workspace: Path) -> None:
+    """'./project.json' is a legitimate relative reference and must resolve."""
+    bridge = VisualDevelopmentBridge(workspace)
+    assert bridge.media(PILOT.name, "./project.json").is_file()
+
+
 def test_bridge_refuses_an_unknown_project(workspace: Path) -> None:
     bridge = VisualDevelopmentBridge(workspace)
     with pytest.raises(VisualDevelopmentError):

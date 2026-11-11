@@ -34,8 +34,16 @@ def slug(value: str, max_length: int = 52) -> str:
 
 def safe_relative_path(value: str) -> PurePosixPath:
     path = PurePosixPath(value.replace("\\", "/"))
-    if path.is_absolute() or not path.parts or any(part in {".", ".."} for part in path.parts):
+    if path.is_absolute() or not path.parts:
         raise ValueError(f"Expected a safe project-relative path, got {value!r}")
+    for part in path.parts:
+        # Reject '.', '..' and any longer run of dots. A component made only of
+        # dots is never a real directory here, and Windows path resolution
+        # collapses it, which would silently change which file is opened.
+        if part and not part.strip("."):
+            raise ValueError(
+                f"Path component {part!r} is not allowed in {value!r}"
+            )
     return path
 
 
@@ -46,7 +54,7 @@ def contained_path(root: Path, relative: str) -> Path:
     try:
         resolved.relative_to(resolved_root)
     except ValueError as exc:
-        raise ValueError("Path escapes the project directory") from exc
+        raise ValueError(f"Path {relative!r} escapes the project directory") from exc
     return resolved
 
 

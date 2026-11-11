@@ -39,6 +39,7 @@ h2 { font-size:16px; margin:22px 0 10px; color:#9fd3ef; border-bottom:1px solid 
 .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
 figure { margin:0; background:#11161d; border:1px solid #27313d; border-radius:6px; overflow:hidden; }
 figure img { width:100%; display:block; background:#000; }
+figure img.broken { background:#3a2020; min-height:120px; }
 figcaption { padding:9px 11px; font-size:12px; color:#a9bcd2; }
 figcaption b { color:#e8f0f8; display:block; margin-bottom:3px; }
 button.act { background:#2f6f8f; color:#fff; border:none; border-radius:5px; padding:6px 11px; cursor:pointer; font-size:12px; margin-top:7px; }
@@ -79,9 +80,11 @@ th { color:#8fa1b8; font-weight:600; }
 <script>
 const STATE = __STATE__;
 const TABS = [["overview","Overview"],["artdirection","Art Direction"],["stylebible","Style Bible"],["storyboard","Storyboard"],["blocking","Blocking"],["jobs","Generation Monitor"]];
-let active = "overview";
+let active = (location.hash || "").replace("#", "");
+if (!TABS.some(t => t[0] === active)) active = "overview";
 
 function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c])); }
+function escAttr(s){ return esc(s).replace(/'/g, "&#39;"); }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",3200); }
 
 async function act(action, target_type, target_id, extra){
@@ -100,6 +103,17 @@ document.addEventListener("click", (e) => {
   act(button.dataset.act, button.dataset.type, button.dataset.id);
 });
 
+// Delegated image-error handler. Image error events do not bubble, so this
+// listens in the capture phase. An inline onerror attribute would put a raw
+// double quote inside a double-quoted JavaScript string and kill the whole
+// script block, which silently blanks this page.
+document.addEventListener("error", (e) => {
+  const el = e.target;
+  if (!el || el.tagName !== "IMG") return;
+  el.classList.add("broken");
+  el.alt = el.alt || "image unavailable";
+}, true);
+
 function render(){
   document.getElementById("subtitle").textContent = STATE.project.project_id + " - source " + STATE.project.source_script.script_id + " (" + STATE.project.source_script.approval_status + ")";
   const approved = STATE.project.source_script.approval_status === "APPROVED";
@@ -109,7 +123,11 @@ function render(){
     banner.textContent = "EXPLORATION ONLY - the source script is '" + STATE.project.source_script.approval_status + "', not APPROVED. Nothing here is a production-ready package and no decision in this UI is a governance approval.";
   }
   document.getElementById("tabs").innerHTML = TABS.map(([k,l]) => '<button data-tab="'+k+'" class="'+(k===active?"active":"")+'">'+l+'</button>').join("");
-  document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { active=b.dataset.tab; render(); });
+  document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { active=b.dataset.tab; if (location.hash !== "#"+active) location.hash = active; render(); });
+  // Only the selected section is visible. Without this the page renders the
+  // content but keeps every section hidden, because the stylesheet hides all
+  // sections and shows only the ones carrying the active class.
+  document.querySelectorAll("main section").forEach(s => s.classList.toggle("active", s.id === "tab-" + active));
 
   const ov = document.getElementById("tab-overview");
   ov.innerHTML = "<h2>Episode</h2><div class='card'><pre>"+esc(JSON.stringify(STATE.episode,null,2))+"</pre></div>"
@@ -119,7 +137,7 @@ function render(){
   const ad = document.getElementById("tab-artdirection");
   ad.innerHTML = "<h2>Comparison scene: "+esc(STATE.candidates.comparison_scene_id)+" (shared by every candidate)</h2>"
     + "<div class='grid'>" + STATE.candidates.candidates.map(c =>
-        "<figure><img loading='lazy' src='/media/"+encodeURI(c.image_path||"")+"' onerror=\"this.style.background='#3a2020';this.alt='no image'\">"
+        "<figure><img loading='lazy' src='/media/"+encodeURI(c.image_path||"")+"' alt='"+escAttr(c.style_name||c.candidate_id)+"'>"
         + "<figcaption><b>"+esc(c.candidate_id)+" - "+esc(c.style_name)+"</b>"+esc(c.description)
         + "<br><span class='pill "+ (c.selected?"APPROVED":"DRAFT")+"'>"+(c.selected?"SELECTED":"DRAFT")+"</span>"
         + "<br><button class='act' data-act='SELECT' data-type='ART_DIRECTION_CANDIDATE' data-id='"+c.candidate_id+"'>Select this direction</button>"
@@ -135,7 +153,7 @@ function render(){
   let sbhtml = "";
   Object.keys(groups).forEach(k => {
     sbhtml += "<h2>"+esc(k)+"</h2><div class='grid'>" + groups[k].map(s =>
-      "<figure><img loading='lazy' src='/media/"+encodeURI(s.image_path||"")+"' onerror=\"this.style.background='#3a2020'\">"
+      "<figure><img loading='lazy' src='/media/"+encodeURI(s.image_path||"")+"' alt='"+escAttr(s.shot_id)+"'>"
       + "<figcaption><b>"+esc(s.shot_id)+" - "+esc(s.shot_size)+"</b>"+esc(s.description)
       + "<br><span class='pill "+esc(s.review_status)+"'>"+esc(s.review_status)+"</span>"
       + "<br><button class='act approve' data-act='APPROVE' data-type='STORYBOARD' data-id='"+s.shot_id+"'>Approve</button>"
