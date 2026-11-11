@@ -11,14 +11,25 @@ from typing import Any
 from .analyzer import parse_script
 from .approved_script import ApprovedScriptError, load_approved_script, load_script_file
 from .art_direction import build_candidates, select_candidate
+from .breakdown import build_breakdown
 from .common import new_id, sha256_bytes, utc_now
 from .continuity import validate_continuity
 from .generation import blocking_png_path, generate_image, write_blocking_layout
 from .handoff import build_handoff, render_handoff_markdown
+from .production import pipeline_status
 from .prompt_builder import build_candidate_prompt, build_shot_prompt
+from .prompt_overrides import (
+    build_override,
+    clear_override,
+    effective_prompt,
+    effective_settings,
+    get_override,
+    load_overrides,
+    save_override,
+)
 from .style_bible import build_style_bible, style_bible_hash
 from .storage import ProjectStore
-from .workflows import validate_workflow
+from .workflows import validate_user_workflow, validate_workflow
 
 DEFAULT_DB = "animation_forge.db"
 DEFAULT_COMFY = "http://127.0.0.1:8188"
@@ -65,6 +76,17 @@ def _character_index(analysis: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {entry["name"]: entry for entry in analysis.get("characters", [])}
 
 
+def _user_workflow_for(store: ProjectStore, override: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Load the workflow a user attached to an override, if there is one."""
+    if not override or not override.get("workflow_id"):
+        return None
+    relative = f"PROMPTS/workflows/{override['workflow_id']}.json"
+    path = store.path(relative)
+    if not path.is_file():
+        raise SystemExit(f"The attached workflow {relative} is missing from the project.")
+    return store.read(relative)
+
+
 def _iter_shots(analysis: dict[str, Any]):
     for sequence in analysis["sequences"]:
         for scene in sequence["scenes"]:
@@ -80,9 +102,16 @@ def _set_stage(store: ProjectStore, stage: str) -> None:
 
     The stage is working state, so it is updated in place. Without this the
     manifest kept reporting SOURCE_IMPORTED long after the pipeline had run.
+    The stage never moves backwards: re-running an earlier command must not
+    un-finish a later one.
     """
+    from .production import stage_rank
+
     project = store.read("project.json")
-    if project.get("stage") == stage:
+    current = project.get("stage", "")
+    if current == stage:
+        return
+    if current and stage_rank(stage) <= stage_rank(current):
         return
     project["stage"] = stage
     store.update_json("project.json", project, "project.schema.json")
@@ -209,27 +238,31 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
         built = build_candidate_prompt(
             candidate["style_prompt"], comparison_scene, character_index
         )
+        override = get_override(store, candidate["candidate_id"])
+        merged = effective_prompt(built, override)
+        base_settings = {
+            "model": "dreamshaper_8.safetensors",
+            "lora": "arcane_offset.safetensors",
+            "lora_strength": 0.65,
+            "width": 768,
+            "height": 768,
+            "steps": 25,
+            "cfg": 8.0,
+            "sampler": "euler",
+            "scheduler": "simple",
+            "seed": candidate_set["comparison_seed"],
+        }
+        settings = effective_settings(base_settings, override)["settings"]
         result = generate_image(
             client,
             store,
             artifact_type="ART_DIRECTION",
             relative_dir=f"art_direction/candidate_{candidate['candidate_id']}",
-            prompt=built["prompt"],
-            negative_prompt=candidate.get("comparison_negative_prompt")
+            prompt=merged["prompt"],
+            negative_prompt=merged["negative_prompt"]
             or "extra characters, inconsistent character design, watermark, text, blurry, low resolution",
-            settings={
-                "model": "dreamshaper_8.safetensors",
-                "lora": "arcane_offset.safetensors",
-                "lora_strength": 0.65,
-                "width": 768,
-                "height": 768,
-                "steps": 25,
-                "cfg": 8.0,
-                "sampler": "euler",
-                "scheduler": "simple",
-                "seed": candidate_set["comparison_seed"],
-            },
-            workflow_id="txt2img_v1",
+            settings=settings,
+            workflow_id=(override or {}).get("workflow_id") or "txt2img_v1",
             scene_id=comparison_scene["scene_id"],
             sequence_id=next(
                 sequence["sequence_id"]
@@ -238,11 +271,13 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
             ),
             source_script_sha256=analysis["source_script_sha256"],
             filename_prefix=f"ARTDIR_{candidate['candidate_id']}",
+            user_workflow=_user_workflow_for(store, override),
+            override_applied=merged["applied_overrides"],
         )
         candidate["generation_manifest"] = {
             "generation_id": result["generation_id"],
             "image_path": result["image_path"],
-            "prompt": built["prompt"],
+            "prompt": merged["prompt"],
             "prompt_id": result["prompt_id"],
         }
         results.append({"candidate_id": candidate["candidate_id"], **result})
@@ -329,6 +364,12 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
         if args.limit and len(results) >= args.limit:
             break
         built = build_shot_prompt(style_bible, shot, scene, character_index, mode="storyboard")
+        override = get_override(store, shot["shot_id"])
+        merged = effective_prompt(built, override)
+        settings = effective_settings(
+            {**dict(style_bible["global_rules"]["generation_settings"]), "seed": _seed_for(shot, style_bible["global_rules"]["generation_settings"])},
+            override,
+        )["settings"]
         relative_dir = (
             f"storyboard/{sequence['sequence_id']}/{scene['scene_id']}/{shot['shot_id']}"
         )
@@ -337,16 +378,18 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
             store,
             artifact_type="STORYBOARD",
             relative_dir=relative_dir,
-            prompt=built["prompt"],
-            negative_prompt=built["negative_prompt"],
-            settings={**settings, "seed": _seed_for(shot, settings)},
-            workflow_id="txt2img_v1",
+            prompt=merged["prompt"],
+            negative_prompt=merged["negative_prompt"],
+            settings=settings,
+            workflow_id=(override or {}).get("workflow_id") or "txt2img_v1",
             shot_id=shot["shot_id"],
             sequence_id=sequence["sequence_id"],
             scene_id=scene["scene_id"],
             style_bible_sha256=style_bible_hash(style_bible),
             source_script_sha256=analysis["source_script_sha256"],
             filename_prefix=f"SB_{shot['shot_id']}",
+            user_workflow=_user_workflow_for(store, override),
+            override_applied=merged["applied_overrides"],
         )
         results.append({"shot_id": shot["shot_id"], **result})
     _set_stage(store, "STORYBOARD_GENERATED")
@@ -486,6 +529,204 @@ def cmd_handoff(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_breakdown(args: argparse.Namespace) -> int:
+    """Break the script down into the elements each department needs."""
+    store = _load_store(args.project_dir)
+    analysis = _analysis(store)
+    project_id = store.read("project.json")["project_id"]
+    breakdown = build_breakdown(analysis, project_id)
+    version = store.latest_number("breakdown", "breakdown")
+    path = store.write_json(f"breakdown/breakdown_v{version:03d}.json", breakdown)
+    _set_stage(store, "BREAKDOWN_COMPLETE")
+    _print(
+        {
+            "status": "PASS",
+            "breakdown_path": path.relative_to(store.root).as_posix(),
+            "breakdown_id": breakdown["breakdown_id"],
+            "scene_count": breakdown["summary"]["scene_count"],
+            "element_count": breakdown["summary"]["element_count"],
+            "by_category": breakdown["summary"]["by_category"],
+            "by_department": breakdown["summary"]["by_department"],
+            "needs_reference": breakdown["summary"]["needs_reference"],
+        }
+    )
+    return 0
+
+
+def cmd_production(args: argparse.Namespace) -> int:
+    """Report the whole production spine for one project."""
+    store = _load_store(args.project_dir)
+    _print(pipeline_status(store))
+    return 0
+
+
+def cmd_set_prompt(args: argparse.Namespace) -> int:
+    """Attach the user's own prompt and settings to a shot or a candidate."""
+    store = _load_store(args.project_dir)
+    override = build_override(
+        args.target_id,
+        args.kind,
+        prompt_extra=args.prompt_extra or "",
+        prompt_replace=args.prompt_replace,
+        negative_extra=args.negative_extra or "",
+        exclude_modules=args.exclude_module or [],
+        settings_override=_parse_settings(args.setting or []),
+        workflow_id=args.workflow_id,
+        note=args.note or "",
+        actor=args.actor,
+    )
+    save_override(store, override)
+    _print(
+        {
+            "status": "PASS",
+            "target_id": override["target_id"],
+            "kind": override["kind"],
+            "override_id": override["override_id"],
+            "settings_override": override["settings_override"],
+            "excluded_modules": override["exclude_modules"],
+        }
+    )
+    return 0
+
+
+def _parse_settings(pairs: list[str]) -> dict[str, Any]:
+    """Parse ``key=value`` settings arguments into typed values."""
+    values: dict[str, Any] = {}
+    for pair in pairs:
+        if "=" not in pair:
+            raise SystemExit(f"Settings must be given as key=value, got {pair!r}")
+        key, _, raw = pair.partition("=")
+        if raw.lower() in {"true", "false"}:
+            value: Any = raw.lower() == "true"
+        else:
+            try:
+                value = int(raw)
+            except ValueError:
+                try:
+                    value = float(raw)
+                except ValueError:
+                    value = raw
+        values[key.strip()] = value
+    return values
+
+
+def cmd_show_prompt(args: argparse.Namespace) -> int:
+    """Show the effective prompt for a shot or a candidate, and where it came from."""
+    store = _load_store(args.project_dir)
+    override = get_override(store, args.target_id)
+    if args.target_id.startswith("SHT_"):
+        analysis = _analysis(store)
+        style_bible = _style_bible(store)
+        character_index = _character_index(analysis)
+        shot = None
+        scene = None
+        for sequence in analysis["sequences"]:
+            for candidate_scene in sequence["scenes"]:
+                for candidate_shot in candidate_scene["shots"]:
+                    if candidate_shot["shot_id"] == args.target_id:
+                        shot = candidate_shot
+                        scene = candidate_scene
+        if shot is None:
+            raise SystemExit(f"Unknown shot: {args.target_id}")
+        built = build_shot_prompt(
+            style_bible, shot, scene, character_index, mode="storyboard"
+        )
+        settings = dict(style_bible["global_rules"]["generation_settings"])
+    else:
+        analysis = _analysis(store)
+        candidate_set = _candidate_set(store)
+        candidate = next(
+            (
+                entry
+                for entry in candidate_set["candidates"]
+                if entry["candidate_id"] == args.target_id
+            ),
+            None,
+        )
+        if candidate is None:
+            raise SystemExit(f"Unknown candidate: {args.target_id}")
+        comparison_scene = None
+        for sequence in analysis["sequences"]:
+            for candidate_scene in sequence["scenes"]:
+                if candidate_scene["scene_id"] == candidate_set["comparison_scene_id"]:
+                    comparison_scene = candidate_scene
+        built = build_candidate_prompt(
+            candidate["style_prompt"], comparison_scene, _character_index(analysis)
+        )
+        settings = {"seed": candidate_set["comparison_seed"], "model": "dreamshaper_8.safetensors"}
+
+    merged = effective_prompt(built, override)
+    resolved = effective_settings(settings, override)
+    _print(
+        {
+            "target_id": args.target_id,
+            "generated_prompt": merged["generated_prompt"],
+            "effective_prompt": merged["prompt"],
+            "generated_negative_prompt": merged["generated_negative_prompt"],
+            "effective_negative_prompt": merged["negative_prompt"],
+            "modules": merged["modules"],
+            "excluded_modules": merged["excluded_modules"],
+            "applied_overrides": merged["applied_overrides"],
+            "changed": merged["changed"],
+            "settings": resolved["settings"],
+            "settings_overrides_applied": resolved["applied_overrides"],
+            "has_override": override is not None,
+        }
+    )
+    return 0
+
+
+def cmd_reset_prompt(args: argparse.Namespace) -> int:
+    """Remove the override on a shot or a candidate."""
+    store = _load_store(args.project_dir)
+    removed = clear_override(store, args.target_id)
+    _print(
+        {
+            "status": "PASS" if removed else "NOTHING_TO_RESET",
+            "target_id": args.target_id,
+            "removed": removed,
+        }
+    )
+    return 0
+
+
+def cmd_import_workflow(args: argparse.Namespace) -> int:
+    """Store a user supplied ComfyUI API-format workflow in the project."""
+    store = _load_store(args.project_dir)
+    source = Path(args.file) if args.file else None
+    if source is None or not source.is_file():
+        raise SystemExit("Provide a readable --file with the workflow JSON.")
+    try:
+        workflow = json.loads(source.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"The workflow file is not valid JSON: {exc}") from exc
+    if not isinstance(workflow, dict) or not workflow:
+        raise SystemExit("The workflow must be a non-empty JSON object of nodes.")
+    workflow_id = args.workflow_id or new_id("WF")
+    store.write_json(f"PROMPTS/workflows/{workflow_id}.json", workflow)
+    _print(
+        {
+            "status": "PASS",
+            "workflow_id": workflow_id,
+            "path": f"PROMPTS/workflows/{workflow_id}.json",
+            "node_count": len(workflow),
+        }
+    )
+    return 0
+
+
+def cmd_validate_workflow(args: argparse.Namespace) -> int:
+    """Check a user supplied workflow against the live ComfyUI server."""
+    from .comfyui_client import ComfyUIClient
+
+    store = _load_store(args.project_dir)
+    workflow = store.read(f"PROMPTS/workflows/{args.workflow_id}.json")
+    client = ComfyUIClient(args.comfy_url)
+    report = validate_user_workflow(client, workflow)
+    _print({"workflow_id": args.workflow_id, **report})
+    return 0 if report["status"] == "PASS" else 1
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     store = _load_store(args.project_dir)
     project = store.read("project.json")
@@ -623,6 +864,64 @@ def build_parser() -> argparse.ArgumentParser:
     status = commands.add_parser("status", help="Show project status.")
     status.add_argument("--project-dir", type=Path, required=True)
 
+    production = commands.add_parser(
+        "production", help="Report the whole production spine for a project."
+    )
+    production.add_argument("--project-dir", type=Path, required=True)
+
+    breakdown = commands.add_parser(
+        "breakdown", help="Break the script down into the elements each department needs."
+    )
+    breakdown.add_argument("--project-dir", type=Path, required=True)
+
+    set_prompt = commands.add_parser(
+        "set-prompt", help="Attach your own prompt and settings to a shot or a candidate."
+    )
+    set_prompt.add_argument("--project-dir", type=Path, required=True)
+    set_prompt.add_argument("--target-id", required=True)
+    set_prompt.add_argument(
+        "--kind", required=True, choices=["SHOT", "ART_DIRECTION_CANDIDATE"]
+    )
+    set_prompt.add_argument("--prompt-extra", default="")
+    set_prompt.add_argument("--prompt-replace", default=None)
+    set_prompt.add_argument("--negative-extra", default="")
+    set_prompt.add_argument("--exclude-module", action="append", default=[])
+    set_prompt.add_argument(
+        "--setting",
+        action="append",
+        default=[],
+        help="Override a generation setting, as key=value. Repeatable.",
+    )
+    set_prompt.add_argument("--workflow-id", default=None)
+    set_prompt.add_argument("--note", default="")
+    set_prompt.add_argument("--actor", default="operator")
+
+    show_prompt = commands.add_parser(
+        "show-prompt", help="Show the effective prompt for a shot or a candidate."
+    )
+    show_prompt.add_argument("--project-dir", type=Path, required=True)
+    show_prompt.add_argument("--target-id", required=True)
+
+    reset_prompt = commands.add_parser(
+        "reset-prompt", help="Remove the override on a shot or a candidate."
+    )
+    reset_prompt.add_argument("--project-dir", type=Path, required=True)
+    reset_prompt.add_argument("--target-id", required=True)
+
+    import_workflow = commands.add_parser(
+        "import-workflow", help="Store a ComfyUI API-format workflow in the project."
+    )
+    import_workflow.add_argument("--project-dir", type=Path, required=True)
+    import_workflow.add_argument("--file", default=None)
+    import_workflow.add_argument("--workflow-id", default=None)
+
+    validate_wf = commands.add_parser(
+        "validate-workflow", help="Check a stored workflow against the live ComfyUI server."
+    )
+    validate_wf.add_argument("--project-dir", type=Path, required=True)
+    validate_wf.add_argument("--workflow-id", required=True)
+    validate_wf.add_argument("--comfy-url", default=DEFAULT_COMFY)
+
     comfy = commands.add_parser("comfy-check", help="Report live ComfyUI status and models.")
     comfy.add_argument("--comfy-url", default=DEFAULT_COMFY)
 
@@ -648,6 +947,13 @@ def main(argv: list[str] | None = None) -> int:
         "blocking": cmd_blocking,
         "check": cmd_check,
         "handoff": cmd_handoff,
+        "breakdown": cmd_breakdown,
+        "production": cmd_production,
+        "set-prompt": cmd_set_prompt,
+        "show-prompt": cmd_show_prompt,
+        "reset-prompt": cmd_reset_prompt,
+        "import-workflow": cmd_import_workflow,
+        "validate-workflow": cmd_validate_workflow,
         "status": cmd_status,
         "comfy-check": cmd_comfy_check,
         "review": cmd_review,

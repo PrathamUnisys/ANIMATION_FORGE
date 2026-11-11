@@ -106,10 +106,10 @@
       "comparison_subject": "A London street gradually fades behind fog, London street at street level",
       "comparison_negative_prompt": "split panel, multiple panels, comic layout, collage, diptych, triptych, storyboard sheet, grid of images, multiple views, collage, border, frame, extra characters, watermark, text, logo, blurry, low resolution, poor anatomy",
       "generation_manifest": {
-        "generation_id": "GEN_B7602441EA81",
-        "image_path": "art_direction/candidate_ART_03/GEN_B7602441EA81.png",
-        "prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, single continuous frame, one shot only, full-bleed image, no split panels, no collage, no grid, no borders",
-        "prompt_id": "153a6fc4-8c6d-4d11-9f3a-e355f4a2c907"
+        "generation_id": "GEN_348BD1385573",
+        "image_path": "art_direction/candidate_ART_03/GEN_348BD1385573.png",
+        "prompt": "miniature diorama, tabletop model photography, tilt-shift lens, practical miniature, hand-painted textures, forced perspective, soft studio light, 00:00 - The city disappears, London street at street level, A London street gradually fades behind fog, London street at street level, wide establishing composition, readable foreground, middle ground and background separation, motivated cinematic key light, storybook production concept art, 1920s archive photograph, heavy grain, high contrast, printed halftone texture",
+        "prompt_id": "2f2de25c-3cd5-48a8-8afc-ccc2fa2d08fc"
       }
     },
     {

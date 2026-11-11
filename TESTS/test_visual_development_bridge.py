@@ -36,7 +36,11 @@ def test_bridge_lists_the_copied_project(workspace: Path) -> None:
     assert summary["source_format"] == "NARRATOR"
     assert summary["counts"]["sequences"] == 6
     assert summary["counts"]["shots"] == 8
-    assert summary["counts"]["art_direction_images"] == 8
+    # Eight style directions. Nine images, because one direction was
+    # regenerated with the user's own prompt and workflow, and the artifact
+    # store keeps every image it produced.
+    assert summary["counts"]["art_direction_candidates"] == 8
+    assert summary["counts"]["art_direction_images"] == 9
 
 
 def test_bridge_detail_exposes_candidates_and_shots(workspace: Path) -> None:

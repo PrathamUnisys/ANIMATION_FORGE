@@ -101,6 +101,7 @@ class VisualDevelopmentBridge:
 
         analysis = _read_json(analysis_path) if analysis_path else {}
         continuity = _read_json(continuity_path) if continuity_path else {}
+        candidates = _read_json(candidates_path) if candidates_path else {}
 
         return {
             "project_id": project_id,
@@ -123,6 +124,9 @@ class VisualDevelopmentBridge:
                     for sequence in analysis.get("sequences", [])
                     for scene in sequence.get("scenes", [])
                 ),
+                # Candidates and images are different numbers once a direction
+                # has been regenerated: the artifact store keeps every image.
+                "art_direction_candidates": len(candidates.get("candidates", [])),
                 "art_direction_images": _count_files(project_dir / "art_direction", ".png"),
                 "storyboard_images": _count_files(project_dir / "storyboard", ".png"),
                 "blocking_images": _count_files(project_dir / "blocking", ".png"),

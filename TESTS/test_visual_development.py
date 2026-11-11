@@ -28,6 +28,7 @@ from VISUAL_DEVELOPMENT.common import sha256_text
 from VISUAL_DEVELOPMENT.continuity import validate_continuity
 from VISUAL_DEVELOPMENT.handoff import build_handoff, render_handoff_markdown
 from VISUAL_DEVELOPMENT.prompt_builder import build_candidate_prompt, build_shot_prompt
+from VISUAL_DEVELOPMENT.prompt_overrides import build_override
 from VISUAL_DEVELOPMENT.storage import ProjectStore
 from VISUAL_DEVELOPMENT.style_bible import build_style_bible, revise_style_bible
 from VISUAL_DEVELOPMENT.workflows import (
@@ -318,6 +319,9 @@ def test_approved_script_gate_rejects_unapproved_records(database: Path) -> None
 
 
 class _MockComfyHandler(BaseHTTPRequestHandler):
+    # Every graph submitted to /prompt, so a test can assert what was sent.
+    submitted: list[dict[str, Any]] = []
+
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
         return
 
@@ -338,8 +342,54 @@ class _MockComfyHandler(BaseHTTPRequestHandler):
                     "CheckpointLoaderSimple": {
                         "input": {"required": {"ckpt_name": [["dreamshaper_8.safetensors"]]}}
                     },
+                    "LoraLoader": {
+                        "input": {
+                            "required": {
+                                "lora_name": (["arcane_offset.safetensors"],),
+                                "strength_model": ("FLOAT",),
+                                "strength_clip": ("FLOAT",),
+                                "model": ("MODEL",),
+                                "clip": ("CLIP",),
+                            }
+                        }
+                    },
                     "CLIPTextEncode": {
                         "input": {"required": {"text": ("STRING",), "clip": ("CLIP",)}}
+                    },
+                    "KSampler": {
+                        "input": {
+                            "required": {
+                                "seed": ("INT",),
+                                "steps": ("INT",),
+                                "cfg": ("FLOAT",),
+                                "sampler_name": (["euler"],),
+                                "scheduler": (["simple"],),
+                                "denoise": ("FLOAT",),
+                                "model": ("MODEL",),
+                                "positive": ("CONDITIONING",),
+                                "negative": ("CONDITIONING",),
+                                "latent_image": ("LATENT",),
+                            }
+                        }
+                    },
+                    "VAEDecode": {
+                        "input": {"required": {"samples": ("LATENT",), "vae": ("VAE",)}}
+                    },
+                    "SaveImage": {
+                        "input": {
+                            "required": {"filename_prefix": ("STRING",), "images": ("IMAGE",)}
+                        }
+                    },
+                    "ImageScale": {
+                        "input": {
+                            "required": {
+                                "upscale_method": (["bicubic"],),
+                                "width": ("INT",),
+                                "height": ("INT",),
+                                "crop": (["disabled"],),
+                                "image": ("IMAGE",),
+                            }
+                        }
                     },
                     "EmptyLatentImage": {
                         "input": {
@@ -386,6 +436,9 @@ class _MockComfyHandler(BaseHTTPRequestHandler):
             if "prompt" not in payload:
                 self._json({"error": "missing prompt"}, 400)
                 return
+            # Keep the submitted graph so a test can assert what was actually
+            # sent to ComfyUI, not what the caller believed it sent.
+            _MockComfyHandler.submitted.append(payload["prompt"])
             self._json({"prompt_id": "mock-prompt", "number": 1, "node_errors": {}})
         else:
             self._json({"error": "not found"}, 404)
@@ -393,6 +446,7 @@ class _MockComfyHandler(BaseHTTPRequestHandler):
 
 @pytest.fixture
 def mock_comfy():
+    _MockComfyHandler.submitted = []
     server = ThreadingHTTPServer(("127.0.0.1", 0), _MockComfyHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -983,3 +1037,374 @@ def test_review_page_renders_images_and_controls(review_store: ProjectStore) -> 
     assert "art_direction/candidate_ART_01/GEN_TEST.png" in html, "image paths must reach the client"
     assert "data-act='SELECT'" in html, "the candidate selection control must be present"
     assert "Art Direction" in html and "Style Bible" in html
+
+
+# --------------------------------------------- breakdown, spine and overrides
+
+
+def _user_workflow() -> dict[str, Any]:
+    """A user graph with an extra node the built-in templates never use."""
+    return {
+        "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "dreamshaper_8.safetensors"}},
+        "2": {
+            "class_type": "LoraLoader",
+            "inputs": {
+                "model": ["1", 0],
+                "clip": ["1", 1],
+                "lora_name": "arcane_offset.safetensors",
+                "strength_model": 0.65,
+                "strength_clip": 0.65,
+            },
+        },
+        "3": {"class_type": "CLIPTextEncode", "inputs": {"text": "PLACEHOLDER", "clip": ["2", 1]}},
+        "4": {"class_type": "CLIPTextEncode", "inputs": {"text": "PLACEHOLDER", "clip": ["2", 1]}},
+        "5": {"class_type": "EmptyLatentImage", "inputs": {"width": 512, "height": 512, "batch_size": 1}},
+        "6": {
+            "class_type": "KSampler",
+            "inputs": {
+                "model": ["2", 0],
+                "positive": ["3", 0],
+                "negative": ["4", 0],
+                "latent_image": ["5", 0],
+                "seed": 1,
+                "steps": 20,
+                "cfg": 7.0,
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "denoise": 1.0,
+            },
+        },
+        "7": {"class_type": "VAEDecode", "inputs": {"samples": ["6", 0], "vae": ["1", 2]}},
+        "8": {
+            "class_type": "ImageScale",
+            "inputs": {
+                "image": ["7", 0],
+                "upscale_method": "bicubic",
+                "width": 1024,
+                "height": 1024,
+                "crop": "disabled",
+            },
+        },
+        "9": {"class_type": "SaveImage", "inputs": {"images": ["8", 0], "filename_prefix": "UserWorkflow"}},
+    }
+
+
+def test_breakdown_derives_only_what_the_script_states(analysis: dict[str, Any]) -> None:
+    """Every element must be traceable to the script, never invented."""
+    from VISUAL_DEVELOPMENT.breakdown import build_breakdown
+
+    breakdown = build_breakdown(analysis, "PROJECT_001")
+    assert breakdown["scenes"]
+    known = {entry["name"].lower() for entry in analysis.get("characters", [])}
+    located_by_id = {scene["scene_id"]: scene for scene in breakdown["scenes"]}
+    for sequence in analysis["sequences"]:
+        for scene in sequence["scenes"]:
+            body = " ".join(
+                [scene.get("action") or ""]
+                + [str(fact) for fact in scene.get("explicit_facts", [])]
+            ).lower()
+            located = located_by_id[scene["scene_id"]]
+            for element in located["elements"]:
+                assert element["source"] in {"SCRIPT", "INFERRED"}
+                assert element["category"]
+                assert element["name"]
+                if element["category"] == "location":
+                    continue
+                assert (
+                    element["name"].lower() in body
+                    or element["name"].lower() in known
+                ), f"{element['name']} is not traceable to the script"
+    assert breakdown["summary"]["scene_count"] == len(breakdown["scenes"])
+    assert breakdown["summary"]["element_count"] > 0
+
+
+def test_breakdown_uses_the_industry_taxonomy(analysis: dict[str, Any]) -> None:
+    """The categories are the ones a breakdown sheet carries."""
+    from VISUAL_DEVELOPMENT.breakdown import CATEGORIES, build_breakdown
+
+    breakdown = build_breakdown(analysis, "PROJECT_001")
+    for expected in ("cast", "props", "set_dressing", "costume", "vfx", "sound", "music"):
+        assert expected in CATEGORIES
+    for scene in breakdown["scenes"]:
+        # Categories the script does not mention stay visible rather than vanish.
+        assert set(scene["untagged_categories"]).issubset(set(CATEGORIES))
+        assert scene["untagged_categories"]
+
+
+def test_breakdown_tags_cast_and_props_from_the_scene(analysis: dict[str, Any]) -> None:
+    from VISUAL_DEVELOPMENT.breakdown import build_breakdown
+
+    breakdown = build_breakdown(analysis, "PROJECT_001")
+    scene = breakdown["scenes"][0]
+    categories = {element["category"] for element in scene["elements"]}
+    assert "cast" in categories
+    assert "props" in categories
+    cast = [e for e in scene["elements"] if e["category"] == "cast"]
+    assert all(element["status"] == "NEEDS_REFERENCE" for element in cast)
+
+
+def test_production_spine_lists_the_stages_in_studio_order(store: ProjectStore) -> None:
+    from VISUAL_DEVELOPMENT.production import STAGE_IDS
+
+    assert STAGE_IDS == [
+        "SCRIPT",
+        "BREAKDOWN",
+        "VISUAL_DIRECTION",
+        "BOARDS",
+        "PREVIZ",
+        "CONTINUITY",
+        "HANDOFF",
+    ]
+
+
+def test_production_status_links_the_script_to_the_visuals(store: ProjectStore) -> None:
+    import argparse
+
+    from VISUAL_DEVELOPMENT.cli import cmd_analyze
+    from VISUAL_DEVELOPMENT.production import pipeline_status
+
+    cmd_analyze(argparse.Namespace(project_dir=store.root))
+    status = pipeline_status(store)
+    assert status["link"]["script_id"] == SCRIPT_ID
+    assert status["link"]["approval_status"] == "APPROVED"
+    assert status["shots"]["total"] == 9
+    assert status["shots"]["statuses"]["NOT_STARTED"] == 9
+    assert status["stages"][0]["stage_id"] == "SCRIPT"
+    assert status["stages"][0]["complete"] is True
+
+
+def test_shot_status_follows_the_work_that_was_done(
+    store: ProjectStore, analysis: dict[str, Any]
+) -> None:
+    import argparse
+
+    from VISUAL_DEVELOPMENT.cli import cmd_analyze
+    from VISUAL_DEVELOPMENT.production import derive_shot_status
+
+    cmd_analyze(argparse.Namespace(project_dir=store.root))
+    shot_id = analysis["sequences"][0]["scenes"][0]["shots"][0]["shot_id"]
+    assert derive_shot_status(store, shot_id) == "NOT_STARTED"
+
+    from VISUAL_DEVELOPMENT.common import new_id, utc_now
+
+    store.write_json(
+        f"storyboard/{shot_id}/GEN_TEST.json",
+        {
+            "generation_id": "GEN_TEST",
+            "artifact_type": "STORYBOARD",
+            "shot_id": shot_id,
+            "image_path": f"storyboard/{shot_id}/GEN_TEST.png",
+            "image_sha256": "0" * 64,
+            "prompt": "x",
+            "negative_prompt": "y",
+            "created_at": utc_now(),
+        },
+        "generation_manifest.schema.json",
+    )
+    assert derive_shot_status(store, shot_id) == "BOARDED"
+
+    store.append_event(
+        {
+            "event_id": new_id("EVT"),
+            "timestamp": utc_now(),
+            "actor": "operator",
+            "action": "APPROVE",
+            "target_type": "STORYBOARD",
+            "target_id": shot_id,
+            "note": "",
+            "metadata": {},
+        }
+    )
+    assert derive_shot_status(store, shot_id) == "APPROVED"
+
+
+def test_prompt_override_appends_the_users_text() -> None:
+    from VISUAL_DEVELOPMENT.prompt_overrides import effective_prompt
+
+    built = {"prompt": "s", "negative_prompt": "gen negative", "modules": {"style": "s"}}
+    override = build_override("SHT_1", "SHOT", prompt_extra="my own direction")
+    merged = effective_prompt(built, override)
+    assert merged["prompt"] == "s, my own direction"
+    assert merged["changed"] is True
+    assert "prompt_extra" in merged["applied_overrides"]
+
+
+def test_prompt_override_can_exclude_a_module() -> None:
+    from VISUAL_DEVELOPMENT.prompt_overrides import effective_prompt
+
+    built = {
+        "prompt": "style, camera, lighting",
+        "negative_prompt": "n",
+        "modules": {"style": "style", "camera": "camera", "lighting": "lighting"},
+    }
+    override = build_override("SHT_1", "SHOT", exclude_modules=["camera"])
+    merged = effective_prompt(built, override)
+    assert "camera" not in merged["modules"]
+    assert "camera" not in merged["prompt"]
+    assert "style" in merged["prompt"]
+
+
+def test_prompt_override_can_replace_the_prompt() -> None:
+    from VISUAL_DEVELOPMENT.prompt_overrides import effective_prompt
+
+    built = {"prompt": "generated", "negative_prompt": "n", "modules": {"style": "s"}}
+    override = build_override("SHT_1", "SHOT", prompt_replace="only my words")
+    merged = effective_prompt(built, override)
+    assert merged["prompt"] == "only my words"
+
+
+def test_prompt_override_settings_are_applied_and_bounded() -> None:
+    from VISUAL_DEVELOPMENT.prompt_overrides import effective_settings
+
+    override = build_override(
+        "SHT_1", "SHOT", settings_override={"seed": 42, "steps": 30}
+    )
+    resolved = effective_settings({"seed": 1, "steps": 25, "model": "m"}, override)
+    assert resolved["settings"]["seed"] == 42
+    assert resolved["settings"]["steps"] == 30
+    assert resolved["settings"]["model"] == "m"
+    assert sorted(resolved["applied_overrides"]) == ["seed", "steps"]
+
+    with pytest.raises(ValueError):
+        build_override("SHT_1", "SHOT", settings_override={"not_a_setting": 1})
+
+
+def test_prompt_override_persists_and_can_be_cleared(store: ProjectStore) -> None:
+    from VISUAL_DEVELOPMENT.prompt_overrides import (
+        clear_override,
+        get_override,
+        load_overrides,
+        save_override,
+    )
+
+    override = build_override("SHT_1", "SHOT", prompt_extra="keep me")
+    save_override(store, override)
+    assert get_override(store, "SHT_1")["prompt_extra"] == "keep me"
+    assert "SHT_1" in load_overrides(store)
+    assert clear_override(store, "SHT_1") is True
+    assert get_override(store, "SHT_1") is None
+    assert clear_override(store, "SHT_1") is False
+
+
+def test_user_workflow_prompt_nodes_are_found_by_following_the_graph() -> None:
+    from VISUAL_DEVELOPMENT.workflows import resolve_prompt_nodes
+
+    nodes = resolve_prompt_nodes(_user_workflow())
+    assert nodes["sampler"] == "6"
+    assert nodes["positive"] == "3"
+    assert nodes["negative"] == "4"
+    assert nodes["latent"] == "5"
+
+
+def test_user_workflow_keeps_the_nodes_the_user_built() -> None:
+    """Only the prompt text and the sampling inputs may change."""
+    from VISUAL_DEVELOPMENT.workflows import apply_to_user_workflow
+
+    original = _user_workflow()
+    filled = apply_to_user_workflow(
+        original,
+        positive="my prompt",
+        negative="my negative",
+        settings={"seed": 99, "steps": 30, "width": 768, "height": 768},
+    )
+    workflow = filled["workflow"]
+    assert workflow["3"]["inputs"]["text"] == "my prompt"
+    assert workflow["4"]["inputs"]["text"] == "my negative"
+    assert workflow["6"]["inputs"]["seed"] == 99
+    assert workflow["6"]["inputs"]["steps"] == 30
+    assert workflow["5"]["inputs"]["width"] == 768
+    # The user's own nodes and links are untouched.
+    assert workflow["8"]["class_type"] == "ImageScale"
+    assert workflow["8"]["inputs"]["width"] == 1024
+    assert workflow["9"]["inputs"]["images"] == ["8", 0]
+    assert workflow["6"]["inputs"]["model"] == ["2", 0]
+    # The original is not mutated.
+    assert original["3"]["inputs"]["text"] == "PLACEHOLDER"
+
+
+def test_user_workflow_is_validated_against_the_server(mock_comfy: str) -> None:
+    from VISUAL_DEVELOPMENT.workflows import validate_user_workflow
+
+    client = ComfyUIClient(mock_comfy)
+    report = validate_user_workflow(client, _user_workflow())
+    assert report["status"] == "PASS"
+    assert report["can_take_prompt"] is True
+
+    without_text = {
+        node_id: node
+        for node_id, node in _user_workflow().items()
+        if node.get("class_type") != "CLIPTextEncode"
+    }
+    report = validate_user_workflow(client, without_text)
+    assert report["status"] == "FAIL"
+    assert report["can_take_prompt"] is False
+
+
+def test_generation_sends_the_users_prompt_to_comfyui(
+    store: ProjectStore, mock_comfy: str
+) -> None:
+    """The end to end proof: what the user typed is what ComfyUI received."""
+    from VISUAL_DEVELOPMENT.generation import generate_image
+
+    client = ComfyUIClient(mock_comfy)
+    result = generate_image(
+        client,
+        store,
+        artifact_type="STORYBOARD",
+        relative_dir="storyboard/SHT_TEST",
+        prompt="generated text, my own direction",
+        negative_prompt="generated negative, my own negative",
+        settings={"model": "dreamshaper_8.safetensors", "seed": 42, "steps": 30},
+        workflow_id="txt2img_v1",
+        shot_id="SHT_TEST",
+        user_workflow=_user_workflow(),
+        override_applied=["prompt_extra"],
+    )
+    assert result["status"] == "PASS"
+    assert _MockComfyHandler.submitted, "nothing was submitted to ComfyUI"
+    submitted = _MockComfyHandler.submitted[-1]
+    texts = [
+        node["inputs"]["text"]
+        for node in submitted.values()
+        if node.get("class_type") == "CLIPTextEncode"
+    ]
+    assert "generated text, my own direction" in texts
+    assert "generated negative, my own negative" in texts
+    # The user's extra node survived the round trip.
+    assert any(node.get("class_type") == "ImageScale" for node in submitted.values())
+
+    manifest = store.read(result["manifest_path"])
+    assert manifest["workflow_source"] == "USER"
+    assert "prompt_extra" in manifest["prompt_overrides_applied"]
+    assert manifest["seed"] == 42
+
+
+def test_the_project_stage_never_goes_backwards(store: ProjectStore) -> None:
+    """Re-running an earlier command must not un-finish a later stage."""
+    import argparse
+
+    from VISUAL_DEVELOPMENT.cli import cmd_analyze, cmd_breakdown, cmd_handoff
+
+    cmd_analyze(argparse.Namespace(project_dir=store.root))
+    assert store.read("project.json")["stage"] == "ANALYZED"
+    cmd_breakdown(argparse.Namespace(project_dir=store.root))
+    assert store.read("project.json")["stage"] == "BREAKDOWN_COMPLETE"
+
+    # Pretend the handoff already ran, then run the breakdown again.
+    project = store.read("project.json")
+    project["stage"] = "HANDOFF_EXPORTED"
+    store.update_json("project.json", project, "project.schema.json")
+    cmd_breakdown(argparse.Namespace(project_dir=store.root))
+    assert store.read("project.json")["stage"] == "HANDOFF_EXPORTED"
+
+
+def test_breakdown_command_writes_a_breakdown(store: ProjectStore) -> None:
+    import argparse
+
+    from VISUAL_DEVELOPMENT.cli import cmd_analyze, cmd_breakdown
+
+    cmd_analyze(argparse.Namespace(project_dir=store.root))
+    cmd_breakdown(argparse.Namespace(project_dir=store.root))
+    assert store.path("breakdown/breakdown_v001.json").is_file()
+    assert store.read("project.json")["stage"] == "BREAKDOWN_COMPLETE"
+

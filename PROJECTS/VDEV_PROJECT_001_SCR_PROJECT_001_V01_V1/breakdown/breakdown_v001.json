@@ -1,0 +1,417 @@
+{
+  "schema_version": "1.0.0",
+  "breakdown_id": "BRK_DF6A93FB0094",
+  "project_id": "VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1",
+  "analysis_id": "ANALYSIS_4CC0DF9167F0",
+  "source_script_sha256": "ea80754c9b86849c61e9bd57552db5860edd2912db3f62747245a78517100e1a",
+  "source_format": "",
+  "created_at": "2026-11-11T04:48:19Z",
+  "taxonomy": [
+    {
+      "category": "cast",
+      "department": "animation",
+      "color": "#4a7fb5",
+      "label": "Cast / Characters"
+    },
+    {
+      "category": "extras",
+      "department": "animation",
+      "color": "#6f9ec4",
+      "label": "Extras / Crowd"
+    },
+    {
+      "category": "location",
+      "department": "art",
+      "color": "#8a6f4a",
+      "label": "Location / Environment"
+    },
+    {
+      "category": "props",
+      "department": "art",
+      "color": "#b08a3e",
+      "label": "Props"
+    },
+    {
+      "category": "set_dressing",
+      "department": "art",
+      "color": "#a3762f",
+      "label": "Set Dressing"
+    },
+    {
+      "category": "costume",
+      "department": "costume",
+      "color": "#9b4f9b",
+      "label": "Costume"
+    },
+    {
+      "category": "makeup",
+      "department": "costume",
+      "color": "#c26ba3",
+      "label": "Makeup / Hair"
+    },
+    {
+      "category": "vehicle",
+      "department": "art",
+      "color": "#7d6b4f",
+      "label": "Vehicles"
+    },
+    {
+      "category": "stunt",
+      "department": "action",
+      "color": "#b5453f",
+      "label": "Stunts"
+    },
+    {
+      "category": "vfx",
+      "department": "effects",
+      "color": "#3f9e8f",
+      "label": "VFX / Graphics"
+    },
+    {
+      "category": "livestock",
+      "department": "action",
+      "color": "#6f8f45",
+      "label": "Animals / Livestock"
+    },
+    {
+      "category": "sound",
+      "department": "sound",
+      "color": "#4f8fb5",
+      "label": "Sound / SFX"
+    },
+    {
+      "category": "music",
+      "department": "sound",
+      "color": "#7f7fb5",
+      "label": "Music"
+    },
+    {
+      "category": "special_equipment",
+      "department": "camera",
+      "color": "#7f7f7f",
+      "label": "Special Equipment"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "SCN_01_01",
+      "sequence_id": "SEQ_01",
+      "heading": "INT. FORGOTTEN CITADEL THRONE ROOM - MORNING",
+      "int_ext": "INT.",
+      "location": "FORGOTTEN CITADEL THRONE ROOM",
+      "time": "MORNING",
+      "page_eighths": 1.39,
+      "shot_count": 3,
+      "elements": [
+        {
+          "category": "cast",
+          "name": "Sir Pip",
+          "quantity": 1,
+          "detail": "20s, earnest squire in oversized dented pauldrons",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 565,
+            "end": 624,
+            "text": "SIR PIP (20s, earnest squire in oversized dented pauldrons)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "cast",
+          "name": "Gloop",
+          "quantity": 1,
+          "detail": "translucent emerald slime familiar wearing a tiny monocle",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 689,
+            "end": 754,
+            "text": "GLOOP (translucent emerald slime familiar wearing a tiny monocle)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "pauldrons",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "crown",
+          "quantity": 2,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "turnip cloth",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "monocle",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "location",
+          "name": "FORGOTTEN CITADEL THRONE ROOM",
+          "quantity": 1,
+          "detail": "INT. MORNING",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 472,
+            "end": 520,
+            "text": "**INT. FORGOTTEN CITADEL THRONE ROOM - MORNING**"
+          },
+          "source": "SCRIPT"
+        }
+      ],
+      "untagged_categories": [
+        "extras",
+        "set_dressing",
+        "costume",
+        "makeup",
+        "vehicle",
+        "stunt",
+        "vfx",
+        "livestock",
+        "sound",
+        "music",
+        "special_equipment"
+      ],
+      "source_spans": [
+        {
+          "start": 472,
+          "end": 520,
+          "text": "**INT. FORGOTTEN CITADEL THRONE ROOM - MORNING**"
+        }
+      ]
+    },
+    {
+      "scene_id": "SCN_02_01",
+      "sequence_id": "SEQ_02",
+      "heading": "INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS",
+      "int_ext": "INT.",
+      "location": "FORGOTTEN CITADEL THRONE ROOM",
+      "time": "CONTINUOUS",
+      "page_eighths": 1.08,
+      "shot_count": 3,
+      "elements": [
+        {
+          "category": "cast",
+          "name": "Sir Pip",
+          "quantity": 1,
+          "detail": "20s, earnest squire in oversized dented pauldrons",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 565,
+            "end": 624,
+            "text": "SIR PIP (20s, earnest squire in oversized dented pauldrons)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "cast",
+          "name": "Stone Golem",
+          "quantity": 1,
+          "detail": "3 meters tall, mossy basalt plates, glowing amber eyes",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 1285,
+            "end": 1361,
+            "text": "STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "rune",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "stone clipboard",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "location",
+          "name": "FORGOTTEN CITADEL THRONE ROOM",
+          "quantity": 1,
+          "detail": "INT. CONTINUOUS",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 1161,
+            "end": 1212,
+            "text": "**INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS**"
+          },
+          "source": "SCRIPT"
+        }
+      ],
+      "untagged_categories": [
+        "extras",
+        "set_dressing",
+        "costume",
+        "makeup",
+        "vehicle",
+        "stunt",
+        "vfx",
+        "livestock",
+        "sound",
+        "music",
+        "special_equipment"
+      ],
+      "source_spans": [
+        {
+          "start": 1161,
+          "end": 1212,
+          "text": "**INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS**"
+        }
+      ]
+    },
+    {
+      "scene_id": "SCN_03_01",
+      "sequence_id": "SEQ_03",
+      "heading": "",
+      "int_ext": "INT.",
+      "location": "",
+      "time": "",
+      "page_eighths": 0.82,
+      "shot_count": 3,
+      "elements": [
+        {
+          "category": "cast",
+          "name": "Sir Pip",
+          "quantity": 1,
+          "detail": "20s, earnest squire in oversized dented pauldrons",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 565,
+            "end": 624,
+            "text": "SIR PIP (20s, earnest squire in oversized dented pauldrons)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "cast",
+          "name": "Gloop",
+          "quantity": 1,
+          "detail": "translucent emerald slime familiar wearing a tiny monocle",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 689,
+            "end": 754,
+            "text": "GLOOP (translucent emerald slime familiar wearing a tiny monocle)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "cast",
+          "name": "Stone Golem",
+          "quantity": 1,
+          "detail": "3 meters tall, mossy basalt plates, glowing amber eyes",
+          "status": "NEEDS_REFERENCE",
+          "source_span": {
+            "start": 1285,
+            "end": 1361,
+            "text": "STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes)"
+          },
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "crown",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        },
+        {
+          "category": "props",
+          "name": "monocle",
+          "quantity": 1,
+          "detail": "",
+          "status": "NEEDS_REFERENCE",
+          "source_span": null,
+          "source": "SCRIPT"
+        }
+      ],
+      "untagged_categories": [
+        "extras",
+        "location",
+        "set_dressing",
+        "costume",
+        "makeup",
+        "vehicle",
+        "stunt",
+        "vfx",
+        "livestock",
+        "sound",
+        "music",
+        "special_equipment"
+      ],
+      "source_spans": []
+    }
+  ],
+  "summary": {
+    "scene_count": 3,
+    "element_count": 17,
+    "total_page_eighths": 3.29,
+    "by_category": {
+      "cast": 7,
+      "extras": 0,
+      "location": 2,
+      "props": 8,
+      "set_dressing": 0,
+      "costume": 0,
+      "makeup": 0,
+      "vehicle": 0,
+      "stunt": 0,
+      "vfx": 0,
+      "livestock": 0,
+      "sound": 0,
+      "music": 0,
+      "special_equipment": 0
+    },
+    "by_department": {
+      "animation": 7,
+      "art": 10
+    },
+    "needs_reference": [
+      "FORGOTTEN CITADEL THRONE ROOM",
+      "Gloop",
+      "Sir Pip",
+      "Stone Golem",
+      "crown",
+      "monocle",
+      "pauldrons",
+      "rune",
+      "stone clipboard",
+      "turnip cloth"
+    ]
+  },
+  "open_questions": [
+    "SEQ_03 has no scene heading; location and time are unknown."
+  ]
+}

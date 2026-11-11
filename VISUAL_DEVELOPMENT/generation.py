@@ -10,6 +10,7 @@ from .common import sha256_bytes, utc_now
 from .prompt_builder import build_shot_prompt
 from .storage import ProjectStore
 from .workflows import (
+    apply_to_user_workflow,
     txt2img_canny_workflow,
     txt2img_workflow,
     validate_workflow,
@@ -65,8 +66,15 @@ def generate_image(
     control_net_strength: float = 0.8,
     filename_prefix: str = "VisualDev",
     actor: str = "operator",
+    user_workflow: dict[str, Any] | None = None,
+    override_applied: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Submit one workflow to ComfyUI and store the image plus its provenance."""
+    """Submit one workflow to ComfyUI and store the image plus its provenance.
+
+    When a user workflow is supplied it is used as the graph, and only the
+    prompt text and the sampling inputs are filled in. Everything the user
+    built is preserved and the manifest says the graph was theirs.
+    """
     common = {
         "positive": prompt,
         "negative": negative_prompt,
@@ -83,7 +91,18 @@ def generate_image(
 
     reference_images: list[str] = []
     control_net = None
-    if control_image_path is not None:
+    workflow_source = "BUILT_IN"
+    if user_workflow is not None:
+        filled = apply_to_user_workflow(
+            user_workflow,
+            positive=prompt,
+            negative=negative_prompt,
+            settings=settings,
+        )
+        workflow = filled["workflow"]
+        workflow_source = "USER"
+        override_applied = list(override_applied or []) + list(filled["applied"])
+    elif control_image_path is not None:
         upload = client.upload_image(control_image_path)
         reference_images.append(upload.get("name", control_image_path.name))
         workflow = txt2img_canny_workflow(
@@ -126,6 +145,8 @@ def generate_image(
         "negative_prompt": negative_prompt,
         "workflow_id": workflow_id,
         "workflow_version": "1.0.0",
+        "workflow_source": workflow_source,
+        "prompt_overrides_applied": list(override_applied or []),
         "model": resolved.get("model"),
         "lora": resolved.get("lora"),
         "lora_strength": resolved.get("lora_strength"),

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-11-11T04:38:34Z",
+  "overrides": {
+    "ART_03": {
+      "override_id": "OVR_33A6F067AED2",
+      "target_id": "ART_03",
+      "kind": "ART_DIRECTION_CANDIDATE",
+      "prompt_extra": "1920s archive photograph, heavy grain, high contrast, printed halftone texture",
+      "prompt_replace": null,
+      "negative_extra": "modern digital render, 3d render",
+      "exclude_modules": [
+        "emphasis"
+      ],
+      "settings_override": {
+        "seed": 987654321,
+        "steps": 30
+      },
+      "workflow_id": "WF_USER_DEMO",
+      "updated_at": "2026-11-11T04:38:34Z",
+      "actor": "operator",
+      "note": "Hand-authored direction from the director"
+    }
+  }
+}
