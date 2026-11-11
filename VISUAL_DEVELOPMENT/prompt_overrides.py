@@ -222,6 +222,31 @@ def effective_settings(
     return {"settings": merged, "applied_overrides": applied}
 
 
+def apply_override(
+    built: dict[str, Any],
+    base_settings: dict[str, Any],
+    override: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Merge the generated prompt and the settings with the user's override.
+
+    One implementation, so the command line, the application and the review
+    page cannot drift apart and produce different pictures from the same
+    override.
+    """
+    merged = effective_prompt(built, override)
+    resolved = effective_settings(base_settings, override)
+    return {
+        "prompt": merged["prompt"],
+        "negative_prompt": merged["negative_prompt"],
+        "generated_prompt": merged["generated_prompt"],
+        "modules": merged["modules"],
+        "excluded_modules": merged["excluded_modules"],
+        "settings": resolved["settings"],
+        "applied_overrides": merged["applied_overrides"] + resolved["applied_overrides"],
+        "has_override": override is not None,
+    }
+
+
 def override_summary(store: Any) -> list[dict[str, Any]]:
     """Every override in the project, for the review UI and the handoff."""
     overrides = load_overrides(store)

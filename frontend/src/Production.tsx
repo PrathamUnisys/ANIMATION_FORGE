@@ -180,6 +180,63 @@ export default function ProductionWorkspace({
     else setSelected('');
   };
 
+  const approveStyleBible = async () => {
+    setBusy('approve style bible');
+    setError(null);
+    try {
+      const response = await apiFetch(
+        `/api/production/${projectId}/style-bible/approve`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+      );
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `approve -> ${response.status}`);
+      }
+      await load();
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // A human decision. The endpoint already exists; the workspace was simply
+  // never calling it, which left the status chips as decoration.
+  const decide = async (
+    action: string,
+    targetType: string,
+    targetId: string,
+    note = ''
+  ) => {
+    setBusy(`${action} ${targetId}`);
+    setError(null);
+    try {
+      const response = await apiFetch(
+        `/api/visual-development/${projectId}/decision`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action,
+            target_type: targetType,
+            target_id: targetId,
+            actor: 'frontend',
+            note,
+          }),
+        }
+      );
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `decision -> ${response.status}`);
+      }
+      await load();
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <div className="flex gap-4 min-h-[34rem]">
       {/* The pipeline rail. */}
@@ -196,8 +253,16 @@ export default function ProductionWorkspace({
             </option>
           ))}
         </select>
-        <div className="text-xs text-slate-400 mb-2">
-          Script &rarr; breakdown &rarr; direction &rarr; boards &rarr; previz &rarr; continuity &rarr; handoff
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="text-[10px] text-slate-500">
+            {pipeline?.stages?.length || 0} stages
+          </span>
+          <button
+            onClick={load}
+            className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-200"
+          >
+            Refresh
+          </button>
         </div>
         {STAGES.map((entry, index) => {
           const state = (pipeline?.stages || []).find((s: any) => s.stage_id === entry.id);
@@ -248,7 +313,12 @@ export default function ProductionWorkspace({
         {busy && <div className="p-2 rounded bg-amber-900/30 text-amber-200 text-xs mb-3">{busy}</div>}
 
         {stage === 'SCRIPT' && (
-          <ScriptStage pipeline={pipeline} projectId={projectId} onOpenMedia={onOpenMedia} />
+          <ScriptStage
+            pipeline={pipeline}
+            projectId={projectId}
+            apiJson={apiJson}
+            onOpenMedia={onOpenMedia}
+          />
         )}
         {stage === 'BREAKDOWN' && <BreakdownStage breakdown={breakdown} />}
         {stage === 'VISUAL_DIRECTION' && (
@@ -259,6 +329,10 @@ export default function ProductionWorkspace({
             onSelect={setSelected}
             projectId={projectId}
             onOpenMedia={onOpenMedia}
+            onDecide={decide}
+            busy={busy}
+            pipeline={pipeline}
+            onApproveStyleBible={approveStyleBible}
           />
         )}
         {(stage === 'BOARDS' || stage === 'PREVIZ') && (
@@ -271,6 +345,8 @@ export default function ProductionWorkspace({
             onOpenMedia={onOpenMedia}
             showBlocking={stage === 'PREVIZ'}
             animatic={animatic}
+            onDecide={decide}
+            busy={busy}
           />
         )}
         {stage === 'CONTINUITY' && <ContinuityStage pipeline={pipeline} />}
@@ -346,14 +422,26 @@ function useAnimaticVideo(
 function ScriptStage({
   pipeline,
   projectId,
+  apiJson,
   onOpenMedia,
 }: {
   pipeline: any;
   projectId: string;
+  apiJson: (path: string) => Promise<any>;
   onOpenMedia: (projectId: string, relPath: string) => void;
 }) {
   const link = pipeline?.link || {};
   const episode = pipeline?.episode || {};
+  const [script, setScript] = useState<any>(null);
+  const [showScript, setShowScript] = useState(false);
+
+  useEffect(() => {
+    if (!projectId) return;
+    apiJson(`/api/production/${projectId}/script`)
+      .then(setScript)
+      .catch(() => setScript(null));
+  }, [projectId, apiJson]);
+
   return (
     <div>
       <h3 className="text-lg font-semibold text-amber-300 mb-2">Script</h3>
@@ -372,6 +460,17 @@ function ScriptStage({
         <div><span className="text-slate-400">Runtime</span> {episode.target_runtime_sec || '-'} s</div>
         <div><span className="text-slate-400">Logline</span> {episode.logline || '-'}</div>
       </div>
+      <button
+        onClick={() => setShowScript(!showScript)}
+        className="text-xs px-2 py-1 rounded bg-slate-700 text-slate-200 mt-3"
+      >
+        {showScript ? 'Hide the script' : 'Read the script'}
+      </button>
+      {showScript && script?.text && (
+        <pre className="text-[11px] text-slate-300 bg-[#0b0f19] border border-slate-800 rounded p-3 mt-2 max-h-96 overflow-auto whitespace-pre-wrap">
+          {script.text}
+        </pre>
+      )}
       {pipeline?.open_questions?.length > 0 && (
         <div className="mt-3 text-xs text-amber-200 bg-amber-900/20 border border-amber-800 rounded p-2">
           <div className="font-semibold mb-1">Open questions &mdash; the script does not say this:</div>
@@ -457,6 +556,10 @@ function VisualDirectionStage({
   selected,
   onSelect,
   projectId,
+  onDecide,
+  busy,
+  pipeline,
+  onApproveStyleBible,
 }: {
   apiFetch: (path: string, init?: RequestInit) => Promise<Response>;
   candidates: any[];
@@ -464,13 +567,37 @@ function VisualDirectionStage({
   onSelect: (id: string) => void;
   projectId: string;
   onOpenMedia: (projectId: string, relPath: string) => void;
+  onDecide: (action: string, targetType: string, targetId: string, note?: string) => void;
+  busy: string | null;
+  pipeline: any;
+  onApproveStyleBible: () => void;
 }) {
+  const styleIdentity = pipeline?.art_direction?.style_identity || '';
+  const styleApproved = pipeline?.style_bible_approved === true;
   return (
     <div>
       <h3 className="text-lg font-semibold text-amber-300 mb-1">Visual direction</h3>
-      <div className="text-xs text-slate-400 mb-3">
+      <div className="text-xs text-slate-400 mb-1">
         Every candidate uses the same scene and the same seed, so the only difference is the direction.
       </div>
+      {styleIdentity && (
+        <div className="text-xs mb-3 flex items-center gap-2">
+          <span className="text-slate-300">Style Bible: {styleIdentity}</span>
+          {styleApproved ? (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-800 text-emerald-100">
+              Approved
+            </span>
+          ) : (
+            <button
+              onClick={onApproveStyleBible}
+              disabled={busy !== null}
+              className="text-[10px] px-2 py-0.5 rounded bg-amber-600 text-black disabled:opacity-50"
+            >
+              Approve the Style Bible
+            </button>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
         {candidates.map((candidate: any) => (
           <button
@@ -498,11 +625,27 @@ function VisualDirectionStage({
                 {candidate.candidate_id} &middot; {candidate.style_name}
               </div>
               <div className="text-[10px] text-slate-400 mt-0.5">{candidate.description}</div>
-              {candidate.selected && (
-                <span className="text-[10px] mt-1 inline-block px-1.5 rounded bg-emerald-800 text-emerald-100">
-                  Selected
-                </span>
-              )}
+              <div className="mt-1 flex items-center gap-1">
+                {candidate.selected ? (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-800 text-emerald-100">
+                    Selected
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => onDecide('SELECT', 'ART_DIRECTION_CANDIDATE', candidate.candidate_id)}
+                    disabled={busy !== null}
+                    className="text-[10px] px-2 py-0.5 rounded bg-amber-600 text-black disabled:opacity-50"
+                  >
+                    Select this direction
+                  </button>
+                )}
+                <button
+                  onClick={() => onSelect(candidate.candidate_id)}
+                  className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-200"
+                >
+                  Inspect prompt
+                </button>
+              </div>
             </div>
           </button>
         ))}
@@ -519,6 +662,8 @@ function BoardsStage({
   projectId,
   showBlocking,
   animatic,
+  onDecide,
+  busy,
 }: {
   apiFetch: (path: string, init?: RequestInit) => Promise<Response>;
   shots: any[];
@@ -528,6 +673,8 @@ function BoardsStage({
   onOpenMedia: (projectId: string, relPath: string) => void;
   showBlocking: boolean;
   animatic: any;
+  onDecide: (action: string, targetType: string, targetId: string, note?: string) => void;
+  busy: string | null;
 }) {
   const entries: any[] = animatic?.entries || [];
   const videoUrl = useAnimaticVideo(apiFetch, projectId, animatic?.video_relative_path || '');
@@ -613,6 +760,37 @@ function BoardsStage({
               </div>
               <div className="text-[11px] text-slate-400 mt-1">{shot.scene_heading}</div>
               <div className="text-[11px] text-slate-300 mt-0.5 line-clamp-2">{shot.description}</div>
+              <div className="mt-1 flex gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecide('APPROVE', 'STORYBOARD', shot.shot_id);
+                  }}
+                  disabled={busy !== null}
+                  className="text-[10px] px-2 py-0.5 rounded bg-emerald-800 text-emerald-100 disabled:opacity-50"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecide('REJECT', 'STORYBOARD', shot.shot_id);
+                  }}
+                  disabled={busy !== null}
+                  className="text-[10px] px-2 py-0.5 rounded bg-red-900 text-red-200 disabled:opacity-50"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(shot.shot_id);
+                  }}
+                  className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-200"
+                >
+                  Inspect prompt
+                </button>
+              </div>
             </div>
           </button>
         ))}
@@ -622,15 +800,47 @@ function BoardsStage({
 }
 
 function ContinuityStage({ pipeline }: { pipeline: any }) {
+  const checks: any[] = pipeline?.continuity_checks || [];
+  const tone: Record<string, string> = {
+    PASS: 'bg-emerald-800 text-emerald-100',
+    FAIL: 'bg-red-900 text-red-200',
+    REVIEW: 'bg-amber-900 text-amber-100',
+    NOT_CHECKED: 'bg-slate-700 text-slate-300',
+  };
   return (
     <div>
       <h3 className="text-lg font-semibold text-amber-300 mb-2">Continuity</h3>
-      <div className="text-xs text-slate-400">
-        Continuity status: <span className="text-slate-200">{pipeline?.continuity_status || 'NOT_RUN'}</span>
+      <div className="text-xs text-slate-400 mb-2">
+        Continuity status:{' '}
+        <span className="text-slate-200">{pipeline?.continuity_status || 'NOT_RUN'}</span>
       </div>
-      <p className="text-xs text-slate-500 mt-2">
-        The deterministic checks run over the shots that were produced. Image-to-image identity is
-        reported as NOT_CHECKED: there is no vision model in the local stack to judge it.
+      {checks.length === 0 ? (
+        <p className="text-xs text-slate-500">
+          No continuity report has been run for this package yet.
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {checks.map((check: any) => (
+            <div
+              key={check.check_id}
+              className="flex gap-2 items-start bg-[#111827] border border-slate-800 rounded p-2"
+            >
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${tone[check.status] || 'bg-slate-700 text-slate-300'}`}
+              >
+                {check.status}
+              </span>
+              <div className="min-w-0">
+                <div className="text-[11px] text-slate-200">{check.check_id}</div>
+                <div className="text-[11px] text-slate-400">{check.message}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-slate-500 mt-3">
+        Image-to-image identity is reported as NOT_CHECKED: there is no vision model in the local
+        stack to judge it.
       </p>
     </div>
   );
@@ -646,6 +856,17 @@ function HandoffStage({ pipeline, projectId }: { pipeline: any; projectId: strin
       </div>
       <div className="text-xs text-slate-400 space-y-1">
         <div>Script: {link.script_id || '-'} ({link.approval_status || '-'})</div>
+        {pipeline?.handoff_paths?.json && (
+          <div className="text-emerald-300">
+            Package: <code>{pipeline.handoff_paths.json}</code>
+            {pipeline?.handoff_paths?.markdown && (
+              <>
+                {' '}
+                and <code>{pipeline.handoff_paths.markdown}</code>
+              </>
+            )}
+          </div>
+        )}
         <div>Generations: {pipeline?.generations?.total ?? 0}</div>
         <div>
           Art direction {pipeline?.generations?.art_direction ?? 0} &middot; storyboard{' '}
@@ -687,30 +908,44 @@ function PromptInspector({
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [rendered, setRendered] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [prompt, wf, ps] = await Promise.all([
+      // One missing endpoint must never blank the inspector. Each panel is
+      // loaded on its own and reports its own failure.
+      const settled = await Promise.allSettled([
         apiJson(`/api/production/${projectId}/prompts/${targetId}`),
         apiJson(`/api/production/${projectId}/workflows`),
         apiJson('/api/production/presets'),
       ]);
-      setState(prompt);
-      setWorkflows(wf.workflows || []);
-      setPresets(ps.presets || []);
-      const override = prompt.override || null;
-      setExtra(override?.prompt_extra || '');
-      setReplace(override?.prompt_replace || '');
-      setUseReplace(Boolean(override?.prompt_replace));
-      setNegativeExtra(override?.negative_extra || '');
-      setExcluded(override?.exclude_modules || []);
-      setWorkflowId(override?.workflow_id || '');
-      const next: Record<string, string> = {};
-      for (const [key, value] of Object.entries(override?.settings_override || {})) {
-        next[key] = String(value);
+      const [promptResult, workflowResult, presetResult] = settled;
+      if (promptResult.status === 'fulfilled') {
+        setState(promptResult.value);
+      } else {
+        setError(`prompt -> ${promptResult.reason?.message || promptResult.reason}`);
       }
-      setSettings(next);
+      if (workflowResult.status === 'fulfilled') {
+        setWorkflows(workflowResult.value.workflows || []);
+      }
+      if (presetResult.status === 'fulfilled') {
+        setPresets(presetResult.value.presets || []);
+      }
+      if (promptResult.status === 'fulfilled') {
+        const override = promptResult.value.override || null;
+        setExtra(override?.prompt_extra || '');
+        setReplace(override?.prompt_replace || '');
+        setUseReplace(Boolean(override?.prompt_replace));
+        setNegativeExtra(override?.negative_extra || '');
+        setExcluded(override?.exclude_modules || []);
+        setWorkflowId(override?.workflow_id || '');
+        const next: Record<string, string> = {};
+        for (const [key, value] of Object.entries(override?.settings_override || {})) {
+          next[key] = String(value);
+        }
+        setSettings(next);
+      }
     } catch (e: any) {
       setError(e.message || String(e));
     }
@@ -744,6 +979,39 @@ function PromptInspector({
         throw new Error(text || `save -> ${response.status}`);
       }
       setStatus('Saved. The next generation will use this.');
+      await load();
+      onSaved();
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const render = async () => {
+    setBusy(true);
+    setError(null);
+    setStatus(null);
+    setRendered(null);
+    try {
+      const response = await apiFetch(`/api/production/${projectId}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_id: targetId,
+          kind,
+          artifact_type: kind === 'ART_DIRECTION_CANDIDATE' ? 'ART_DIRECTION' : 'STORYBOARD',
+        }),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `generate -> ${response.status}`);
+      }
+      const result = await response.json();
+      setRendered(result.image_path || '');
+      setStatus(
+        `Rendered in ${result.elapsed_sec ?? '?'} s. The image is a new revision; the previous one was kept.`
+      );
       await load();
       onSaved();
     } catch (e: any) {
@@ -788,23 +1056,25 @@ function PromptInspector({
         Modules you can drop
       </div>
       <div className="flex flex-wrap gap-1 mb-3">
-        {moduleNames.map((name) => {
-          const on = excluded.includes(name);
-          return (
-            <button
-              key={name}
-              onClick={() => setExcluded(on ? excluded.filter((n) => n !== name) : [...excluded, name])}
-              className={`text-[10px] px-2 py-0.5 rounded border ${
-                on
-                  ? 'bg-red-900/50 border-red-700 text-red-200 line-through'
-                  : 'bg-slate-800 border-slate-700 text-slate-300'
-              }`}
-              title={MODULE_LABELS[name] || name}
-            >
-              {name}
-            </button>
-          );
-        })}
+        {moduleNames
+          .filter((name) => (modules[name] || '').trim().length > 0)
+          .map((name) => {
+            const on = excluded.includes(name);
+            return (
+              <button
+                key={name}
+                onClick={() => setExcluded(on ? excluded.filter((n) => n !== name) : [...excluded, name])}
+                className={`text-[10px] px-2 py-0.5 rounded border ${
+                  on
+                    ? 'bg-red-900/50 border-red-700 text-red-200 line-through'
+                    : 'bg-slate-800 border-slate-700 text-slate-300'
+                }`}
+                title={`Drop the ${(MODULE_LABELS[name] || name).toLowerCase()} from the prompt`}
+              >
+                {MODULE_LABELS[name] || name}
+              </button>
+            );
+          })}
       </div>
 
       <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
@@ -901,7 +1171,14 @@ function PromptInspector({
         ))}
       </select>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={render}
+          disabled={busy}
+          className="text-xs px-3 py-1 rounded bg-emerald-600 text-black disabled:opacity-50"
+        >
+          {busy ? 'Rendering...' : kind === 'ART_DIRECTION_CANDIDATE' ? 'Render this direction' : 'Render this shot'}
+        </button>
         <button
           onClick={save}
           disabled={busy}
@@ -917,6 +1194,11 @@ function PromptInspector({
           Back to generated
         </button>
       </div>
+      {rendered && (
+        <div className="text-[10px] text-emerald-300 mt-2">
+          New revision: <code>{rendered}</code>
+        </div>
+      )}
 
       {state?.changed && (
         <div className="mt-3 text-[10px] uppercase tracking-wide text-slate-500 mb-1">

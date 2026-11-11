@@ -629,7 +629,9 @@ def test_committed_pilot_artifacts_are_internally_consistent() -> None:
             f"hash mismatch for {manifest['image_path']}"
         )
         checked += 1
-    assert checked == 26, f"expected 26 committed generations, found {checked}"
+    assert checked >= 26, f"expected the committed pilot to hold its generations, found {checked}"
+    # The count is derived from the manifests on disk, so it grows when a new
+    # revision is committed rather than failing a hard coded number.
 
 
 def test_committed_pilot_review_events_reference_existing_generations() -> None:
@@ -1231,7 +1233,38 @@ def test_shot_status_follows_the_work_that_was_done(
             "metadata": {},
         }
     )
+    # An approval on its own is not an approval of the frame on screen. The
+    # revision itself has to be marked approved.
+    assert derive_shot_status(store, shot_id) == "BOARDED"
+
+    manifest = store.read(f"storyboard/{shot_id}/GEN_TEST.json")
+    manifest["review_status"] = "APPROVED"
+    store.update_json(f"storyboard/{shot_id}/GEN_TEST.json", manifest)
     assert derive_shot_status(store, shot_id) == "APPROVED"
+
+    # A new revision is not approved, even though the shot was approved
+    # before. Nobody has looked at the new frame yet.
+    import datetime
+
+    later = (
+        datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    store.write_json(
+        f"storyboard/{shot_id}/GEN_NEWER.json",
+        {
+            "generation_id": "GEN_NEWER",
+            "artifact_type": "STORYBOARD",
+            "shot_id": shot_id,
+            "image_path": f"storyboard/{shot_id}/GEN_NEWER.png",
+            "image_sha256": "0" * 64,
+            "prompt": "x",
+            "negative_prompt": "y",
+            "review_status": "PENDING",
+            "created_at": later,
+        },
+        "generation_manifest.schema.json",
+    )
+    assert derive_shot_status(store, shot_id) == "BOARDED"
 
 
 def test_prompt_override_appends_the_users_text() -> None:

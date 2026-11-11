@@ -63,7 +63,29 @@ never claims that a 2D image contains exact 3D geometry or world coordinates.
 - **Continuity checks and handoff.** Deterministic metadata checks (explicitly
   `NOT_CHECKED` for visual identity) plus a JSON + Markdown production package that
   projects to the existing `SCHEMAS/SCENE.schema.json` and `SCHEMAS/SHOT.schema.json`
-  field names.
+  field names. The package also carries the script breakdown, the prompt overrides,
+  the status of every shot and the animatic.
+- **Script breakdown.** Every scene reduced to the elements a department needs, in the
+  standard breakdown taxonomy: cast, extras, location, props, set dressing, costume,
+  makeup, vehicle, stunt, vfx, livestock, sound, music and special equipment. It
+  derives only what the script states, and a category the script does not mention stays
+  visible for a human to tag.
+- **Your own prompt.** The prompt is three layers: the generated modules minus any the
+  user drops, an optional full replacement, and the user's own text. The negative
+  prompt and the generation settings (model, LoRA, steps, CFG, sampler, scheduler,
+  seed, size) are overridable per shot or per candidate. The user can also attach
+  their **own ComfyUI API-format workflow**: every node class is validated against the
+  live server and only the prompt text and the sampling inputs are substituted, so the
+  graph the user built is kept.
+- **Generation presets.** Named pipelines that are known to work on this machine, with
+  what each one costs. The SDXL four-step pipeline produces a 1024x1024 image in about
+  eight seconds using roughly 2.4 GB of extra video memory, which fits an 8 GB card.
+- **Animatic.** The boards cut to a timeline, with the voice on them. The timeline comes
+  from the analysis, the words come from the script, and the shots are held long enough
+  for the line that is spoken over them.
+- **One production spine.** Script, breakdown, visual direction, boards, previz,
+  continuity and handoff, in one place, with a shot inspector beside it. The application
+  shows it; the command line can run it.
 
 ## Requirements
 
@@ -188,11 +210,22 @@ images, Style Bible hash, source screenplay hash, ComfyUI prompt id and review s
 
 ## Governance
 
-This module is isolated from the protected Animation Forge instruction, schema, runtime
-and database structures. It does not add backend routes, does not modify
-`animation_forge.db` (read-only access only) and does not change the React app.
-Integrating it into the main application requires a separately approved Change Request
-per `CORE/CHANGE_CONTROL.md`.
+This module is isolated from the protected Animation Forge instruction, schema and
+database structures. It does not modify `animation_forge.db` (read-only access only),
+and it does not change the protected instruction files, the agent definitions or the
+database schema.
+
+It **is** reachable from the application. A read-mostly bridge
+(`backend/integrations/visual_development.py`) exposes the packages through token
+protected routes under `/api/visual-development/*` and `/api/production/*`, and the
+application shows them in the Production workspace. The bridge never writes to the
+database. It appends decisions to the module's own review event log and stores the
+user's prompt overrides inside the package.
+
+Adding a route, a panel or a table to the Animation Forge application is a change to
+the application and needs a Change Request per `CORE/CHANGE_CONTROL.md`. The routes
+that carry this module were added as additive, token protected routes and registered
+in `DOCS/CAPABILITY_REGISTRY.md`.
 
 A decision recorded in the local review UI is a **local creative decision**. It is not
 an Animation Forge GovernanceEngine approval and it does not approve the screenplay.

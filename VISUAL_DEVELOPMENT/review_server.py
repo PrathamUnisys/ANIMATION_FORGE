@@ -201,8 +201,7 @@ def _collect_state(store: ProjectStore) -> dict[str, Any]:
 
 def _handle_action(store: ProjectStore, body: dict[str, Any]) -> dict[str, Any]:
     from .cli import _analysis, _character_index, _latest, _style_bible
-    from .generation import generate_image
-    from .prompt_builder import build_shot_prompt
+    from .service import regenerate
 
     action = body.get("action", "")
     target_type = body.get("target_type", "")
@@ -227,39 +226,19 @@ def _handle_action(store: ProjectStore, body: dict[str, Any]) -> dict[str, Any]:
         _set_review_status(store, target_type, target_id, action)
         return {"status": "PASS", "message": f"{action} recorded for {target_id}", "reload": True}
     if action == "REGENERATE":
-        analysis = _analysis(store)
-        style_bible = _style_bible(store)
-        character_index = _character_index(analysis)
-        target = None
-        for sequence in analysis["sequences"]:
-            for scene in sequence["scenes"]:
-                for shot in scene["shots"]:
-                    if shot["shot_id"] == target_id:
-                        target = (sequence, scene, shot)
-        if target is None:
-            return {"status": "FAIL", "error": f"Unknown shot {target_id}"}
-        sequence, scene, shot = target
         from .comfyui_client import ComfyUIClient
+        from .service import regenerate
 
-        built = build_shot_prompt(style_bible, shot, scene, character_index, mode="storyboard")
-        settings = dict(style_bible["global_rules"]["generation_settings"])
-        settings["seed"] = (int(settings.get("seed", 1)) + 1) % (2**53)
-        result = generate_image(
-            ComfyUIClient(),
-            store,
-            artifact_type="STORYBOARD",
-            relative_dir=f"storyboard/{sequence['sequence_id']}/{scene['scene_id']}/{shot['shot_id']}",
-            prompt=built["prompt"],
-            negative_prompt=built["negative_prompt"],
-            settings=settings,
-            workflow_id="txt2img_v1",
-            shot_id=shot["shot_id"],
-            sequence_id=sequence["sequence_id"],
-            scene_id=scene["scene_id"],
-            source_script_sha256=analysis["source_script_sha256"],
-            filename_prefix=f"SB_{shot['shot_id']}",
-            actor=actor,
-        )
+        try:
+            result = regenerate(
+                store,
+                ComfyUIClient(),
+                target_id,
+                artifact_type="STORYBOARD",
+                actor=actor,
+            )
+        except KeyError:
+            return {"status": "FAIL", "error": f"Unknown shot {target_id}"}
         _append(store, "REGENERATE", target_type, target_id, actor, note or "Regenerated")
         return {
             "status": "PASS",

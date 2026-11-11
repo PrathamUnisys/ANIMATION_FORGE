@@ -69,6 +69,7 @@ def generate_image(
     filename_prefix: str = "VisualDev",
     actor: str = "operator",
     user_workflow: dict[str, Any] | None = None,
+    user_settings: dict[str, Any] | None = None,
     override_applied: list[str] | None = None,
 ) -> dict[str, Any]:
     """Submit one workflow to ComfyUI and store the image plus its provenance.
@@ -104,11 +105,16 @@ def generate_image(
             user_workflow,
             positive=prompt,
             negative=negative_prompt,
-            settings=settings,
+            # Only the settings the user set by hand go into their own graph.
+            settings=user_settings if user_settings is not None else settings,
         )
         workflow = filled["workflow"]
         workflow_source = "USER"
         override_applied = list(override_applied or []) + list(filled["applied"])
+        if filled.get("missing"):
+            override_applied = list(override_applied) + [
+                f"not-applied:{name}" for name in filled["missing"]
+            ]
     elif template in ("sdxl_lightning_4step_v1", "sdxl_lightning_4step_canny_v1"):
         # The SDXL four step pipeline has its own VAE and its own settings, so
         # it is built from its own template rather than the 1.5 one.
@@ -240,6 +246,8 @@ def generate_image(
         "seed": manifest.get("seed"),
         "model": manifest.get("model"),
         "elapsed_sec": elapsed,
+        "workflow_source": workflow_source,
+        "applied_overrides": list(override_applied or []),
     }
 
 

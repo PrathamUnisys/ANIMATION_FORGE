@@ -52,6 +52,26 @@ function Test-Port([int]$Port) {
     return $null -ne (Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue)
 }
 
+function Get-PortProcess([int]$Port) {
+    $connection = Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -eq $connection) { return $null }
+    return Get-Process -Id $connection.OwningProcess -ErrorAction SilentlyContinue
+}
+
+function Test-Stale([int]$Port, [string]$WatchPath) {
+    """True when the listening process is older than the code it serves.
+
+    A sidecar that is running yesterday's code answers 404 for a route the
+    frontend already calls, and the only symptom is a blank panel.
+    """
+    $process = Get-PortProcess $Port
+    if ($null -eq $process) { return $false }
+    if (-not (Test-Path $WatchPath)) { return $false }
+    $codeTime = (Get-Item $WatchPath).LastWriteTime
+    return $process.StartTime -lt $codeTime
+}
+
 function Wait-Port([int]$Port, [int]$Seconds = 60) {
     $deadline = (Get-Date).AddSeconds($Seconds)
     while ((Get-Date) -lt $deadline) {
@@ -92,6 +112,12 @@ if (-not $SkipComfyUI) {
 
 # --- 2. API sidecar --------------------------------------------------------
 if (Test-Port $ApiPort) {
+    $watched = Join-Path $repoRoot 'backend\main.py'
+    if (Test-Stale $ApiPort $watched) {
+        Write-Host "WARNING: the API sidecar on $ApiPort is running older code than backend\main.py." -ForegroundColor Yellow
+        Write-Host "         Restart it, or the workspace will ask for routes it does not have."
+        Write-Host "         Stop it with: Stop-Process -Id $((Get-PortProcess $ApiPort).Id)"
+    }
     Write-Host "API sidecar already listening on $ApiPort - left alone."
 } else {
     $env:ANIMATION_FORGE_IPC_TOKEN = $token

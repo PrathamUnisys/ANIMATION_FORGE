@@ -95,6 +95,7 @@ PROJECT_STAGE_ORDER: list[str] = [
     "BLOCKING_GENERATED",
     "CONTINUITY_CHECKED",
     "HANDOFF_EXPORTED",
+    "ANIMATIC_EXPORTED",
 ]
 
 
@@ -104,6 +105,17 @@ def stage_rank(stage: str) -> int:
         return PROJECT_STAGE_ORDER.index(stage)
     except ValueError:
         return -1
+
+
+def seed_for_shot(shot: dict[str, Any], settings: dict[str, Any]) -> int:
+    """A deterministic per-shot seed derived from the shot id and the base seed.
+
+    The same shot always starts from the same seed, so a regeneration only
+    differs where the prompt or the settings differ.
+    """
+    base = int(settings.get("seed", 536354036775427))
+    offset = sum(ord(character) for character in shot.get("shot_id", ""))
+    return (base + offset * 7919) % (2**53)
 
 
 def stage(stage_id: str) -> dict[str, str] | None:
@@ -129,45 +141,79 @@ ELEMENT_STATUSES: list[str] = ["DETECTED", "NEEDS_REFERENCE", "CONFIRMED", "NOT_
 
 
 def _generation_index(store: Any) -> dict[tuple[str, str], dict[str, Any]]:
-    """Index every generation manifest on disk by artifact type and shot id."""
+    """The newest generation for each artifact type and shot.
+
+    Newest means newest by creation time. Sorting by the random generation id
+    would pick an arbitrary revision, and the board a reviewer approves must
+    be the board they were looking at.
+    """
     from .cli import _collect_generations
 
     index: dict[tuple[str, str], dict[str, Any]] = {}
     for generation in _collect_generations(store):
         key = (generation.get("artifact_type", ""), generation.get("shot_id", ""))
-        index[key] = generation
+        current = index.get(key)
+        if current is None or str(generation.get("created_at", "")) >= str(
+            current.get("created_at", "")
+        ):
+            index[key] = generation
     return index
 
 
-def derive_shot_status(store: Any, shot_id: str) -> str:
-    """Derive the status of one shot from the artifacts and events on disk.
+def generation_counts(store: Any) -> dict[str, int]:
+    """How many generations of each kind the package holds.
 
-    The order matters: an approval wins over everything, an explicit block
-    wins over an approval only if it is newer, and a shot with no boards has
-    not started.
+    Counted from the manifests, not from the index: an index keyed by shot id
+    collapses every art direction candidate into one.
     """
-    events = [event for event in store.events() if event.get("target_id") == shot_id]
-    approved = False
-    blocked = False
-    for event in events:
-        action = event.get("action")
-        if action == "APPROVE":
-            approved = True
-        elif action == "BLOCK":
-            blocked = True
+    from .cli import _collect_generations
 
+    counts = {"total": 0, "art_direction": 0, "storyboard": 0, "blocking": 0}
+    for generation in _collect_generations(store):
+        counts["total"] += 1
+        kind = generation.get("artifact_type", "")
+        if kind == "ART_DIRECTION":
+            counts["art_direction"] += 1
+        elif kind == "STORYBOARD":
+            counts["storyboard"] += 1
+        elif kind == "BLOCKING":
+            counts["blocking"] += 1
+    return counts
+
+
+def derive_shot_status(store: Any, shot_id: str) -> str:
+    """The status of one shot, from the revision that is on screen.
+
+    A shot that was approved and then regenerated is not approved any more:
+    the new revision has not been looked at. The approval therefore follows the
+    current revision, and an explicit block wins when it is newer.
+    """
     generations = _generation_index(store)
-    boarded = ("STORYBOARD", shot_id) in generations
-    previz = ("BLOCKING", shot_id) in generations
+    board = generations.get(("STORYBOARD", shot_id))
+    blocking = generations.get(("BLOCKING", shot_id))
 
-    if blocked:
+    blocked_at = ""
+    approved_at = ""
+    for event in store.events():
+        if event.get("target_id") != shot_id:
+            continue
+        if event.get("action") == "BLOCK":
+            blocked_at = max(blocked_at, str(event.get("timestamp", "")))
+        elif event.get("action") == "APPROVE":
+            approved_at = max(approved_at, str(event.get("timestamp", "")))
+
+    if blocked_at and blocked_at > approved_at:
         return BLOCKED
-    if approved and boarded:
-        return "APPROVED"
-    if previz:
-        return "PREVIZ"
-    if boarded:
+
+    if board is not None:
+        if str(board.get("review_status", "")).upper() == "APPROVED":
+            return "APPROVED"
+        if blocking is not None:
+            return "PREVIZ"
         return "BOARDED"
+
+    if blocking is not None:
+        return "PREVIZ"
     return "NOT_STARTED"
 
 
@@ -231,10 +277,10 @@ def pipeline_status(store: Any) -> dict[str, Any]:
     has_breakdown = _latest(store, "breakdown", "breakdown") is not None
     has_continuity = _latest(store, "reports", "continuity") is not None
     has_handoff = _latest(store, "handoff", "handoff") is not None
+    has_animatic = _latest(store, "animatic", "animatic") is not None
 
     stage_state = {
-        "SCRIPT": link["approval_status"] in {"APPROVED", "NOT_APPROVED"}
-        and bool(link["script_id"]),
+        "SCRIPT": link["approval_status"] == "APPROVED",
         "BREAKDOWN": has_breakdown,
         "VISUAL_DIRECTION": bool(style_bible),
         "BOARDS": rollup["BOARDED"] + rollup["PREVIZ"] + rollup["APPROVED"] > 0,
@@ -243,10 +289,44 @@ def pipeline_status(store: Any) -> dict[str, Any]:
         "HANDOFF": has_handoff,
     }
 
+    continuity_path = _latest(store, "reports", "continuity")
+    continuity = (
+        store.read(continuity_path.relative_to(store.root).as_posix())
+        if continuity_path
+        else {}
+    )
+    animatic_path = _latest(store, "animatic", "animatic")
+    animatic = (
+        store.read(animatic_path.relative_to(store.root).as_posix())
+        if animatic_path
+        else {}
+    )
+
     return {
         "link": link,
         "episode": analysis.get("episode", {}),
         "open_questions": analysis.get("open_questions", []),
+        "style_bible_approved": bool(
+            style_bible
+            and any(
+                event.get("action") == "APPROVE"
+                and event.get("target_type") == "STYLE_BIBLE"
+                and event.get("target_id") == style_bible.get("style_bible_id")
+                for event in store.events()
+            )
+        ),
+        "continuity_status": continuity.get("status", "NOT_RUN"),
+        "continuity_checks": continuity.get("checks", []),
+        "handoff_paths": {
+            "json": f"handoff/handoff_v{_version_of(store, 'handoff', 'handoff'):03d}.json"
+            if has_handoff
+            else "",
+            "markdown": f"handoff/handoff_v{_version_of(store, 'handoff', 'handoff'):03d}.md"
+            if has_handoff
+            else "",
+        },
+        "animatic_status": animatic.get("video_status", "NOT_RENDERED") if animatic else "NOT_RUN",
+        "animatic_has_animatic": has_animatic,
         "stages": [
             {
                 **entry,
@@ -264,10 +344,15 @@ def pipeline_status(store: Any) -> dict[str, Any]:
             "style_identity": style_bible.get("style_identity", ""),
             "style_bible_version": style_bible.get("version"),
         },
-        "generations": {
-            "total": len(generations),
-            "art_direction": sum(1 for key in generations if key[0] == "ART_DIRECTION"),
-            "storyboard": sum(1 for key in generations if key[0] == "STORYBOARD"),
-            "blocking": sum(1 for key in generations if key[0] == "BLOCKING"),
-        },
+        "generations": generation_counts(store),
     }
+
+
+def _version_of(store: Any, directory: str, prefix: str) -> int:
+    """The version number of the newest artifact in a directory."""
+    from .cli import _latest
+
+    path = _latest(store, directory, prefix)
+    if path is None:
+        return 0
+    return store.latest_number(directory, prefix) - 1

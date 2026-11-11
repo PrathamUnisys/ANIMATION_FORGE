@@ -146,3 +146,280 @@ def project_state(store: ProjectStore) -> dict[str, Any]:
         "animatic": animatic,
         "overrides": load_overrides(store),
     }
+
+
+# ------------------------------------------------------------ generation plan
+
+
+def resolve_plan(store: ProjectStore, target_id: str, kind: str = "") -> dict[str, Any]:
+    """What would be sent to the image service for one target.
+
+    This is the single answer to that question. The command line, the
+    application and the review page all ask it here, so a user cannot get a
+    different picture from the same override depending on where they clicked.
+
+    The plan carries the effective prompt, the effective negative prompt, the
+    effective settings, the workflow the user attached, what was applied, and
+    anything that could not be applied.
+    """
+    from .prompt_builder import build_candidate_prompt, build_shot_prompt
+    from .prompt_overrides import (
+        effective_prompt,
+        effective_settings,
+        get_override,
+    )
+    from .production import seed_for_shot
+
+    analysis = _latest_json(store, "analysis", "analysis")
+    style_bible = _latest_json(store, "style_bibles", "style_bible")
+    candidate_set = _latest_json(store, "art_direction", "candidates")
+    characters = {entry["name"]: entry for entry in analysis.get("characters", [])}
+
+    shot = None
+    scene = None
+    sequence = None
+    for candidate_sequence in analysis.get("sequences", []):
+        for candidate_scene in candidate_sequence.get("scenes", []):
+            for candidate_shot in candidate_scene.get("shots", []):
+                if candidate_shot.get("shot_id") == target_id:
+                    shot = candidate_shot
+                    scene = candidate_scene
+                    sequence = candidate_sequence
+
+    if shot is not None:
+        built = build_shot_prompt(style_bible, shot, scene, characters, mode="storyboard")
+        base_settings = dict(style_bible.get("global_rules", {}).get("generation_settings", {}))
+        base_settings["seed"] = seed_for_shot(shot, base_settings)
+        resolved_kind = "SHOT"
+        context = {
+            "sequence_id": sequence.get("sequence_id", ""),
+            "scene_id": scene.get("scene_id", ""),
+            "shot": shot,
+            "scene": scene,
+        }
+    else:
+        candidate = next(
+            (
+                entry
+                for entry in candidate_set.get("candidates", [])
+                if entry.get("candidate_id") == target_id
+            ),
+            None,
+        )
+        if candidate is None:
+            raise KeyError(f"Unknown target: {target_id}")
+        comparison_scene = None
+        for candidate_sequence in analysis.get("sequences", []):
+            for candidate_scene in candidate_sequence.get("scenes", []):
+                if (
+                    candidate_scene.get("scene_id")
+                    == candidate_set.get("comparison_scene_id")
+                ):
+                    comparison_scene = candidate_scene
+        built = build_candidate_prompt(
+            candidate.get("style_prompt", ""), comparison_scene, characters
+        )
+        base_settings = {
+            "model": "dreamshaper_8.safetensors",
+            "lora": "arcane_offset.safetensors",
+            "lora_strength": 0.65,
+            "width": 768,
+            "height": 768,
+            "steps": 25,
+            "cfg": 8.0,
+            "sampler": "euler",
+            "scheduler": "simple",
+            "seed": candidate_set.get("comparison_seed", 536354036775427),
+        }
+        resolved_kind = "ART_DIRECTION_CANDIDATE"
+        context = {
+            "sequence_id": "",
+            "scene_id": comparison_scene.get("scene_id", "") if comparison_scene else "",
+            "shot": None,
+            "scene": comparison_scene,
+            "candidate": candidate,
+        }
+
+    override = get_override(store, target_id)
+    merged = effective_prompt(built, override)
+    resolved = effective_settings(base_settings, override)
+    settings = resolved["settings"]
+
+    # The settings the user set by hand, as opposed to the ones that came
+    # from the Style Bible. Only these are written into a workflow of the
+    # user's own: a graph the user built keeps its own values unless the
+    # user changed them.
+    explicit_settings = dict((override or {}).get("settings_override") or {})
+    if explicit_settings.get("preset"):
+        from .presets import preset_settings
+
+        explicit_settings = {
+            **preset_settings(explicit_settings["preset"]),
+            **explicit_settings,
+        }
+    explicit_settings.pop("preset", None)
+    explicit_settings.pop("workflow_template", None)
+
+    warnings: list[str] = []
+
+    user_workflow = None
+    workflow_id = (override or {}).get("workflow_id")
+    if workflow_id:
+        relative = f"PROMPTS/workflows/{workflow_id}.json"
+        if store.path(relative).is_file():
+            user_workflow = store.read(relative)
+        else:
+            warnings.append(f"The attached workflow {relative} is missing from the project.")
+
+    if user_workflow is not None:
+        # A user graph is the user's own. The preset cannot be forced onto it,
+        # but the settings that the graph does have are still applied.
+        if settings.get("preset"):
+            warnings.append(
+                "The generation preset sets the model, the sampler and the size, "
+                "but a workflow of your own keeps its own nodes. The preset is not "
+                "applied to it."
+            )
+        if "vae" in settings and settings.get("vae"):
+            warnings.append(
+                "A workflow of your own loads its own VAE; the preset's VAE is not forced onto it."
+            )
+
+    return {
+        "target_id": target_id,
+        "kind": resolved_kind,
+        "prompt": merged["prompt"],
+        "negative_prompt": merged["negative_prompt"],
+        "generated_prompt": merged["generated_prompt"],
+        "modules": merged["modules"],
+        "excluded_modules": merged["excluded_modules"],
+        "applied_overrides": merged["applied_overrides"]
+        + resolved["applied_overrides"],
+        "settings": settings,
+        "explicit_settings": explicit_settings,
+        "user_workflow": user_workflow,
+        "workflow_id": workflow_id or "",
+        "has_override": override is not None,
+        "warnings": warnings,
+        **context,
+    }
+
+
+def regenerate(
+    store: ProjectStore,
+    client: Any,
+    target_id: str,
+    *,
+    artifact_type: str = "STORYBOARD",
+    actor: str = "frontend",
+    mode: str = "storyboard",
+) -> dict[str, Any]:
+    """Generate one image for a target, using the plan.
+
+    The plan is what the user configured. An approved image is never
+    overwritten: the module always writes a new revision next to it.
+    """
+    from .generation import generate_image
+    from .style_bible import style_bible_hash
+
+    plan = resolve_plan(store, target_id)
+    style_bible = _latest_json(store, "style_bibles", "style_bible")
+    analysis = _latest_json(store, "analysis", "analysis")
+    shot = plan.get("shot") or {}
+    scene = plan.get("scene") or {}
+
+    if artifact_type == "ART_DIRECTION":
+        candidate = plan.get("candidate") or {}
+        relative_dir = f"art_direction/candidate_{target_id}"
+        filename_prefix = f"ARTDIR_{target_id}"
+    else:
+        relative_dir = (
+            f"storyboard/{plan.get('sequence_id', '')}/{plan.get('scene_id', '')}/{target_id}"
+        )
+        filename_prefix = f"SB_{target_id}"
+
+    result = generate_image(
+        client,
+        store,
+        artifact_type=artifact_type,
+        relative_dir=relative_dir,
+        prompt=plan["prompt"],
+        negative_prompt=plan["negative_prompt"],
+        settings=plan["settings"],
+        workflow_id=plan["workflow_id"] or "txt2img_v1",
+        shot_id=target_id if artifact_type != "ART_DIRECTION" else "",
+        sequence_id=plan.get("sequence_id", ""),
+        scene_id=plan.get("scene_id", ""),
+        style_bible_sha256=style_bible_hash(style_bible) if style_bible else "",
+        source_script_sha256=analysis.get("source_script_sha256", ""),
+        filename_prefix=filename_prefix,
+        actor=actor,
+        user_workflow=plan["user_workflow"],
+        user_settings=plan["explicit_settings"],
+        override_applied=plan["applied_overrides"],
+    )
+    result["plan"] = {
+        "applied_overrides": list(
+            dict.fromkeys(list(plan["applied_overrides"]) + list(result.get("applied_overrides", [])))
+        ),
+        "warnings": plan["warnings"],
+        "has_override": plan["has_override"],
+        "settings": plan["settings"],
+        "workflow_source": result.get("workflow_source", "BUILT_IN"),
+    }
+    return result
+
+
+def style_bible_status(store: ProjectStore) -> dict[str, Any]:
+    """The Style Bible and whether a human has approved it.
+
+    The Style Bible is an immutable artifact, so an approval is recorded as an
+    event rather than by rewriting the file. The status that is reported is
+    the approval when there is one, and the file's own draft status otherwise.
+    """
+    style_bible = _latest_json(store, "style_bibles", "style_bible")
+    if not style_bible:
+        return {"status": "NOT_FOUND", "style_bible": {}, "approved": False}
+    bible_id = style_bible.get("style_bible_id", "")
+    approved = any(
+        event.get("action") == "APPROVE"
+        and event.get("target_type") == "STYLE_BIBLE"
+        and event.get("target_id") == bible_id
+        for event in store.events()
+    )
+    return {
+        "status": "APPROVED" if approved else style_bible.get("status", "DRAFT"),
+        "style_bible": style_bible,
+        "approved": approved,
+        "style_bible_id": bible_id,
+    }
+
+
+def record_decision(
+    store: ProjectStore,
+    action: str,
+    target_type: str,
+    target_id: str,
+    *,
+    actor: str = "operator",
+    note: str = "",
+) -> dict[str, Any]:
+    """Record a human decision in the append-only event log.
+
+    The decision applies to the revision that is on screen, so approving one
+    revision does not silently approve the next one that is generated.
+    """
+    from .common import new_id, utc_now
+
+    event = {
+        "event_id": new_id("EVT"),
+        "timestamp": utc_now(),
+        "actor": actor,
+        "action": action,
+        "target_type": target_type,
+        "target_id": target_id,
+        "note": note,
+        "metadata": {},
+    }
+    store.append_event(event)
+    return event

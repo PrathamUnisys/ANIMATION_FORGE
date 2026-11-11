@@ -19,6 +19,7 @@ from .handoff import build_handoff, render_handoff_markdown
 from .production import pipeline_status
 from .prompt_builder import build_candidate_prompt, build_shot_prompt
 from .prompt_overrides import (
+    apply_override,
     build_override,
     clear_override,
     effective_prompt,
@@ -217,6 +218,7 @@ def cmd_art_direction(args: argparse.Namespace) -> int:
 
 def cmd_generate_candidates(args: argparse.Namespace) -> int:
     from .comfyui_client import ComfyUIClient
+    from .presets import preset_settings
 
     store = _load_store(args.project_dir)
     analysis = _analysis(store)
@@ -239,7 +241,6 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
             candidate["style_prompt"], comparison_scene, character_index
         )
         override = get_override(store, candidate["candidate_id"])
-        merged = effective_prompt(built, override)
         base_settings = {
             "model": "dreamshaper_8.safetensors",
             "lora": "arcane_offset.safetensors",
@@ -252,7 +253,9 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
             "scheduler": "simple",
             "seed": candidate_set["comparison_seed"],
         }
-        settings = effective_settings(base_settings, override)["settings"]
+        if getattr(args, "preset", ""):
+            base_settings.update(preset_settings(args.preset))
+        merged = apply_override(built, base_settings, override)
         result = generate_image(
             client,
             store,
@@ -261,7 +264,7 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
             prompt=merged["prompt"],
             negative_prompt=merged["negative_prompt"]
             or "extra characters, inconsistent character design, watermark, text, blurry, low resolution",
-            settings=settings,
+            settings=merged["settings"],
             workflow_id=(override or {}).get("workflow_id") or "txt2img_v1",
             scene_id=comparison_scene["scene_id"],
             sequence_id=next(
@@ -369,11 +372,9 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
             break
         built = build_shot_prompt(style_bible, shot, scene, character_index, mode="storyboard")
         override = get_override(store, shot["shot_id"])
-        merged = effective_prompt(built, override)
-        shot_settings = effective_settings(
-            {**settings, "seed": _seed_for(shot, settings)},
-            override,
-        )["settings"]
+        merged = apply_override(
+            built, {**settings, "seed": _seed_for(shot, settings)}, override
+        )
         relative_dir = (
             f"storyboard/{sequence['sequence_id']}/{scene['scene_id']}/{shot['shot_id']}"
         )
@@ -384,8 +385,7 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
             relative_dir=relative_dir,
             prompt=merged["prompt"],
             negative_prompt=merged["negative_prompt"],
-            settings=shot_settings,
-            workflow_id=(override or {}).get("workflow_id") or "txt2img_v1",
+            settings=merged["settings"],            workflow_id=(override or {}).get("workflow_id") or "txt2img_v1",
             shot_id=shot["shot_id"],
             sequence_id=sequence["sequence_id"],
             scene_id=scene["scene_id"],
@@ -424,6 +424,10 @@ def cmd_blocking(args: argparse.Namespace) -> int:
         layout_result = write_blocking_layout(store, shot, scene, sequence, relative_dir)
         png_path = layout_result["png_path"]
         built = build_shot_prompt(style_bible, shot, scene, character_index, mode="blocking")
+        override = get_override(store, shot["shot_id"])
+        merged = apply_override(
+            built, {**settings, "seed": _seed_for(shot, settings)}, override
+        )
         entry: dict[str, Any] = {
             "shot_id": shot["shot_id"],
             "layout_path": layout_result["layout_path"],
@@ -436,9 +440,9 @@ def cmd_blocking(args: argparse.Namespace) -> int:
                 store,
                 artifact_type="BLOCKING",
                 relative_dir=relative_dir,
-                prompt=built["prompt"],
-                negative_prompt=built["negative_prompt"],
-                settings={**settings, "seed": _seed_for(shot, settings)},
+                prompt=merged["prompt"],
+                negative_prompt=merged["negative_prompt"],
+                settings=merged["settings"],
                 workflow_id="txt2img_canny_v1",
                 shot_id=shot["shot_id"],
                 sequence_id=sequence["sequence_id"],
@@ -447,6 +451,8 @@ def cmd_blocking(args: argparse.Namespace) -> int:
                 source_script_sha256=analysis["source_script_sha256"],
                 control_image_path=store.path(png_path),
                 filename_prefix=f"BL_{shot['shot_id']}",
+                user_workflow=_user_workflow_for(store, override),
+                override_applied=merged["applied_overrides"],
             )
             entry.update(result)
         results.append(entry)
@@ -763,6 +769,8 @@ def cmd_animatic(args: argparse.Namespace) -> int:
     from .animatic import (
         animatic_manifest,
         build_animatic,
+        animatic_staleness,
+        fit_timeline_to_voice,
         mix_voice_track,
         render_animatic,
         synthesize_voice,
@@ -775,25 +783,47 @@ def cmd_animatic(args: argparse.Namespace) -> int:
 
     audio_dir = store.path("animatic/audio")
     clips: list[tuple[Path, float]] = []
-    voice_results = []
-    for index, line in enumerate(timeline["voice_lines"]):
+    voice_status: dict[str, dict[str, Any]] = {}
+    measured: dict[str, float] = {}
+    for line in timeline["voice_lines"]:
         if args.no_voice:
-            voice_results.append({**line, "status": "SKIPPED"})
+            voice_status[line["line_id"]] = {"status": "SKIPPED"}
             continue
         target = audio_dir / f"{line['line_id']}.wav"
         result = synthesize_voice(line["text"], target, voice=args.voice)
-        voice_results.append({**line, **{k: v for k, v in result.items() if k != "path"}})
+        voice_status[line["line_id"]] = {
+            key: value for key, value in result.items() if key != "path"
+        }
         if result["status"] == "PASS":
+            measured[line["line_id"]] = result["duration_sec"]
             clips.append((Path(result["path"]), line["start_sec"]))
 
-    audio_path: Path | None = None
+    # The shots have to be long enough for the lines that are spoken over
+    # them, or the voice is cut off at the end of every shot.
+    fit_timeline_to_voice(timeline, measured)
+    voice_results = [
+        {**line, **voice_status.get(line["line_id"], {})} for line in timeline["voice_lines"]
+    ]
     if clips:
+        clips = [
+            (path, next(
+                (
+                    line["start_sec"]
+                    for line in timeline["voice_lines"]
+                    if line["line_id"] == path.stem
+                ),
+                start,
+            ))
+            for path, start in clips
+        ]
         mixed = mix_voice_track(
             clips,
             store.path("animatic/voice.wav"),
             timeline["summary"]["total_duration_sec"],
         )
         audio_path = Path(mixed["path"]) if mixed["status"] == "PASS" else None
+    else:
+        audio_path = None
 
     version = store.latest_number("animatic", "animatic")
     video = render_animatic(
@@ -805,6 +835,7 @@ def cmd_animatic(args: argparse.Namespace) -> int:
     )
     manifest = animatic_manifest(timeline, video)
     manifest["voice_lines"] = voice_results
+    manifest["staleness"] = animatic_staleness(timeline, generations)
     store.write_json(f"animatic/animatic_v{version:03d}.json", manifest)
 
     _set_stage(store, "ANIMATIC_EXPORTED")
@@ -820,10 +851,46 @@ def cmd_animatic(args: argparse.Namespace) -> int:
             "missing_pictures": timeline["summary"]["missing_pictures"],
             "voice_lines": len(timeline["voice_lines"]),
             "voice_clips": len(clips),
+            "voice_overruns": timeline["summary"].get("voice_overruns", []),
             "total_duration_sec": timeline["summary"]["total_duration_sec"],
         }
     )
     return 0 if video["status"] == "PASS" else 1
+
+
+def cmd_approve_style_bible(args: argparse.Namespace) -> int:
+    """Approve the current Style Bible.
+
+    The Style Bible is immutable, so the approval is an event in the
+    append-only log rather than an edit of the file.
+    """
+    from .service import record_decision, style_bible_status
+
+    store = _load_store(args.project_dir)
+    state = style_bible_status(store)
+    if state["status"] == "NOT_FOUND":
+        raise SystemExit("No Style Bible to approve. Run the 'style-bible' command first.")
+    if state["approved"]:
+        _print({"status": "PASS", "approved": True, "message": "Already approved."})
+        return 0
+    record_decision(
+        store,
+        "APPROVE",
+        "STYLE_BIBLE",
+        state["style_bible_id"],
+        actor=args.actor,
+        note=args.note or "Style Bible approved",
+    )
+    _print(
+        {
+            "status": "PASS",
+            "approved": True,
+            "style_bible_id": state["style_bible_id"],
+            "style_identity": state["style_bible"].get("style_identity", ""),
+            "message": "Style Bible approved by a human.",
+        }
+    )
+    return 0
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -930,6 +997,11 @@ def build_parser() -> argparse.ArgumentParser:
     gen_candidates.add_argument("--project-dir", type=Path, required=True)
     gen_candidates.add_argument("--comfy-url", default=DEFAULT_COMFY)
     gen_candidates.add_argument("--only", nargs="*")
+    gen_candidates.add_argument(
+        "--preset",
+        default="",
+        help="Generation preset to use, e.g. sdxl_lightning_4step.",
+    )
 
     select = commands.add_parser("select", help="Record the human selection of an art direction.")
     select.add_argument("--project-dir", type=Path, required=True)
@@ -940,6 +1012,13 @@ def build_parser() -> argparse.ArgumentParser:
     bible = commands.add_parser("style-bible", help="Create a versioned Style Bible from a selected candidate.")
     bible.add_argument("--project-dir", type=Path, required=True)
     bible.add_argument("--candidate-id", required=True)
+
+    approve_bible = commands.add_parser(
+        "approve-style-bible", help="Approve the current Style Bible."
+    )
+    approve_bible.add_argument("--project-dir", type=Path, required=True)
+    approve_bible.add_argument("--note", default="")
+    approve_bible.add_argument("--actor", default="operator")
 
     storyboard = commands.add_parser("storyboard", help="Generate storyboard images.")
     storyboard.add_argument("--project-dir", type=Path, required=True)
@@ -1060,6 +1139,7 @@ def main(argv: list[str] | None = None) -> int:
         "generate-candidates": cmd_generate_candidates,
         "select": cmd_select,
         "style-bible": cmd_style_bible,
+        "approve-style-bible": cmd_approve_style_bible,
         "storyboard": cmd_storyboard,
         "blocking": cmd_blocking,
         "check": cmd_check,

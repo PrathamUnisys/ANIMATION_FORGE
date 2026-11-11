@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from VISUAL_DEVELOPMENT.storage import ProjectStore
+
 VISUAL_DEVELOPMENT_PREFIX = "VDEV_"
 
 
@@ -498,61 +500,112 @@ class VisualDevelopmentBridge:
 
     # --------------------------------------------------------- regeneration
 
+    def approve_style_bible(self, project_id: str, actor: str = "frontend") -> dict[str, Any]:
+        """Approve the current Style Bible.
+
+        The Style Bible is immutable, so the approval is an event in the
+        append-only log rather than an edit of the file.
+        """
+        from VISUAL_DEVELOPMENT.service import record_decision, style_bible_status
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        state = style_bible_status(store)
+        if state["status"] == "NOT_FOUND":
+            raise VisualDevelopmentError("This project has no Style Bible to approve.")
+        if state["approved"]:
+            return {"status": "PASS", "approved": True, "message": "Already approved."}
+        record_decision(
+            store,
+            "APPROVE",
+            "STYLE_BIBLE",
+            state["style_bible_id"],
+            actor=actor,
+            note="Style Bible approved",
+        )
+        return {"status": "PASS", "approved": True, "style_bible_id": state["style_bible_id"]}
+
+    def script(self, project_id: str) -> dict[str, Any]:
+        """The script the package was built from.
+
+        You cannot judge the boards of a script you cannot read, so the text
+        is part of the workspace.
+        """
+        path = self.project_dir(project_id) / "source" / "approved_script.md"
+        if not path.is_file():
+            return {"status": "NOT_FOUND", "text": "", "source_format": ""}
+        manifest = _read_json(
+            self.project_dir(project_id) / "source" / "script_manifest.json"
+        )
+        return {
+            "status": "PASS",
+            "text": path.read_text(encoding="utf-8"),
+            "script_id": manifest.get("script_id", ""),
+            "approval_status": manifest.get("approval_status", "UNKNOWN"),
+            "sha256": manifest.get("sha256", ""),
+        }
+
+    def plan(self, project_id: str, target_id: str) -> dict[str, Any]:
+        """What would be sent to the image service for one target.
+
+        The same plan the command line uses, so the user can see exactly what
+        their override produces before spending a generation on it.
+        """
+        from VISUAL_DEVELOPMENT.service import resolve_plan
+        from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+        store = ProjectStore(self.project_dir(project_id))
+        try:
+            plan = resolve_plan(store, target_id)
+        except KeyError as exc:
+            raise VisualDevelopmentError(str(exc)) from exc
+        plan.pop("user_workflow", None)
+        plan.pop("shot", None)
+        plan.pop("scene", None)
+        plan.pop("candidate", None)
+        return plan
+
+    def generate(self, project_id: str, target_id: str, artifact_type: str = "STORYBOARD") -> dict[str, Any]:
+        """Generate one image for a target, with the user's prompt and settings.
+
+        This is the path the workspace uses, and it is the same path the command
+        line uses, so a picture made in the browser is the picture the command
+        line would make.
+        """
+        from VISUAL_DEVELOPMENT.comfyui_client import ComfyUIClient
+        from VISUAL_DEVELOPMENT.service import regenerate
+
+        store = ProjectStore(self.project_dir(project_id))
+        try:
+            return regenerate(
+                store,
+                ComfyUIClient(),
+                target_id,
+                artifact_type=artifact_type,
+                actor="frontend",
+            )
+        except KeyError as exc:
+            raise VisualDevelopmentError(str(exc)) from exc
+
     def _regenerate(self, project_id: str, shot_id: str) -> dict[str, Any]:
         """Regenerate one storyboard image through the module's ComfyUI client.
 
-        The approved image is never overwritten: the module always writes a new
-        revision next to it.
+        The plan comes from the shared project service, so the image is made
+        with the prompt, the settings and the workflow the user configured,
+        exactly as the command line would make it. The approved image is never
+        overwritten: the module always writes a new revision next to it.
         """
-        from VISUAL_DEVELOPMENT.approved_script import ApprovedScriptError
-        from VISUAL_DEVELOPMENT.cli import _latest
         from VISUAL_DEVELOPMENT.comfyui_client import ComfyUIClient
-        from VISUAL_DEVELOPMENT.generation import generate_image
-        from VISUAL_DEVELOPMENT.prompt_builder import build_shot_prompt
-        from VISUAL_DEVELOPMENT.style_bible import style_bible_hash
+        from VISUAL_DEVELOPMENT.service import regenerate
 
-        project_dir = self.project_dir(project_id)
-        store = ProjectStore(project_dir)
-
-        analysis_path = _latest(store, "analysis", "analysis")
-        style_path = _latest(store, "style_bibles", "style_bible")
-        if analysis_path is None or style_path is None:
-            raise VisualDevelopmentError("This project has no analysis or Style Bible yet.")
-        analysis = store.read(analysis_path.relative_to(store.root).as_posix())
-        style_bible = store.read(style_path.relative_to(store.root).as_posix())
-
-        target = None
-        for sequence in analysis.get("sequences", []):
-            for scene in sequence.get("scenes", []):
-                for shot in scene.get("shots", []):
-                    if shot.get("shot_id") == shot_id:
-                        target = (sequence, scene, shot)
-        if target is None:
-            raise VisualDevelopmentError(f"Unknown shot: {shot_id}")
-        sequence, scene, shot = target
-
-        character_index = {entry["name"]: entry for entry in analysis.get("characters", [])}
-        built = build_shot_prompt(style_bible, shot, scene, character_index, mode="storyboard")
-        settings = dict(style_bible.get("global_rules", {}).get("generation_settings", {}))
-        settings["seed"] = int(settings.get("seed", 1)) + 1
-
-        result = generate_image(
-            ComfyUIClient(),
-            store,
-            artifact_type="STORYBOARD",
-            relative_dir=(
-                f"storyboard/{sequence['sequence_id']}/{scene['scene_id']}/{shot['shot_id']}"
-            ),
-            prompt=built["prompt"],
-            negative_prompt=built["negative_prompt"],
-            settings=settings,
-            workflow_id="txt2img_v1",
-            shot_id=shot["shot_id"],
-            sequence_id=sequence["sequence_id"],
-            scene_id=scene["scene_id"],
-            style_bible_sha256=style_bible_hash(style_bible),
-            source_script_sha256=analysis.get("source_script_sha256", ""),
-            filename_prefix=f"SB_{shot['shot_id']}",
-            actor="frontend",
-        )
-        return result
+        store = ProjectStore(self.project_dir(project_id))
+        try:
+            return regenerate(
+                store,
+                ComfyUIClient(),
+                shot_id,
+                artifact_type="STORYBOARD",
+                actor="frontend",
+            )
+        except KeyError as exc:
+            raise VisualDevelopmentError(str(exc)) from exc

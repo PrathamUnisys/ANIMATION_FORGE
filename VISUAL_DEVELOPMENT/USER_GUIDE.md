@@ -139,12 +139,76 @@ The Style Bible separates:
 The Style Bible is created as `DRAFT`. Editing global rules produces a new version;
 the previous version file is preserved.
 
+Approving it is a human decision, and it is recorded as an event rather than by
+editing the immutable file:
+
+```powershell
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli approve-style-bible --project-dir $proj `
+    --actor "your-name" --note "the direction the director signed off"
+```
+
+## 6b. Take the prompt over
+
+The generated prompt is a good default, not the only one. Every direction and every
+shot can carry your own text.
+
+```powershell
+# add your own words on top of the generated prompt
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli set-prompt --project-dir $proj `
+    --target-id ART_03 --kind ART_DIRECTION_CANDIDATE `
+    --prompt-extra "1920s archive photograph, heavy grain, high contrast" `
+    --negative-extra "modern digital render" `
+    --exclude-module emphasis `
+    --setting seed=987654321 --setting steps=30 `
+    --actor "your-name" --note "the director's own direction"
+
+# look at what would be sent, without spending a generation
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli show-prompt --project-dir $proj --target-id ART_03
+
+# back to the generated prompt
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli reset-prompt --project-dir $proj --target-id ART_03
+```
+
+A preset sets a whole pipeline at once (model, LoRA, steps, guidance, scheduler and
+size). The preset is applied first and your own numbers are applied after it, so a
+single value can still be changed by hand:
+
+```powershell
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli set-prompt --project-dir $proj `
+    --target-id SHT_SCN_01_01_001 --kind SHOT --setting preset=sdxl_lightning_4step
+```
+
+### Bring your own ComfyUI workflow
+
+A workflow you built in the ComfyUI canvas can be used as it is. The node classes
+are validated against the live server, and only the prompt text and the sampling
+inputs are substituted, so your graph is kept:
+
+```powershell
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli import-workflow --project-dir $proj `
+    --file C:\path\to\my_workflow_api.json --workflow-id MY_WORKFLOW
+
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli validate-workflow --project-dir $proj `
+    --workflow-id MY_WORKFLOW
+
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli set-prompt --project-dir $proj `
+    --target-id ART_03 --kind ART_DIRECTION_CANDIDATE --workflow-id MY_WORKFLOW
+```
+
+The workflow must be in **API format** (`File -> Export Workflow (API)` in the ComfyUI
+canvas), not the save format, because the save format carries the layout and the
+node titles.
+
 ## 7. Storyboard
 
 ```powershell
 .\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli storyboard --project-dir $proj
 .\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli storyboard --project-dir $proj --shot SHT_SCN_01_01_001
 .\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli storyboard --project-dir $proj --limit 3
+
+# use a different pipeline, for example the SDXL one
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli storyboard --project-dir $proj `
+    --preset sdxl_lightning_4step
 ```
 
 Each shot is rendered with the Style Bible rules plus that shot's own scene, characters,
@@ -190,11 +254,51 @@ directory. Tabs:
 | Blocking | Storyboard and blocking reference side by side, with **Approve / Reject** |
 | Generation Monitor | ComfyUI status and the recent review-event log |
 
-**Regenerate** submits a new image to ComfyUI with a changed seed and appends a new
-generation. Approved images are never overwritten: every attempt is a new revision.
+**Regenerate** submits a new image to ComfyUI and appends a new generation. It uses the
+plan for that shot, so it uses the prompt you wrote, your settings and your workflow.
+Approved images are never overwritten: every attempt is a new revision.
 
 The port can be changed with `--port`. Port 8765 was occupied on the verification
 machine, which is why the default is 8790.
+
+## 9b. The Production workspace in the application
+
+The same packages are in the application, under **Visual Development** in the sidebar.
+The workspace shows one spine — script, breakdown, visual direction, boards, previz,
+continuity, handoff — with a shot inspector beside it.
+
+- **Breakdown** renders as a breakdown sheet: the elements of each scene, coloured by
+  category, and the categories the script does not mention.
+- **Boards** is a shot strip with the real frames, the shot size, the duration and the
+  status. Approve, Reject and Regenerate are on each row.
+- **Visual Direction** is the candidate gallery, with **Select this direction** and
+  **Approve the Style Bible**.
+- The **inspector** is where the prompt is taken over: the generated prompt is shown
+  as generated, any module can be dropped, your own text and negative prompt are added
+  on top, the settings and the preset are chosen, a ComfyUI workflow is attached, and
+  **Render this shot** makes the picture with exactly that.
+
+The stages can be linked to directly: `http://127.0.0.1:1420/?stage=BOARDS#vdev`.
+
+## 9c. Cut the animatic
+
+```powershell
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli animatic --project-dir $proj
+```
+
+The boards are cut to a timeline with the voice on them. The voice uses the local
+Kokoro model when it is available; when it is not, the animatic is still cut and the
+lines are recorded as silent. The shots are held long enough for the line that is
+spoken over them, so the voice is never cut off.
+
+## 9d. Break the script down
+
+```powershell
+.\.venv\Scripts\python -m VISUAL_DEVELOPMENT.cli breakdown --project-dir $proj
+```
+
+Every scene is reduced to the elements a department needs. It derives only what the
+script states.
 
 ## 10. Continuity checks
 

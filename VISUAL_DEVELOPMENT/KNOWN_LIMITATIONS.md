@@ -1,6 +1,6 @@
 # Known Limitations
 
-**Status:** Current limitations of the implemented module as of 2026-11-10. This file
+**Status:** Current limitations of the implemented module as of 2026-11-11. This file
 describes what the module does and does not do, not what it might do later.
 
 ## What is now implemented (previously unavailable)
@@ -106,7 +106,9 @@ describes what the module does and does not do, not what it might do later.
 ## Manual steps a human still owns
 
 1. Start ComfyUI before generating.
-2. Decide which art direction to select, and approve the Style Bible.
+2. Decide which art direction to select (`select`, or the **Select this direction**
+   button in the workspace), and approve the Style Bible (`approve-style-bible`, or the
+   **Approve the Style Bible** button in the workspace).
 3. Resolve the open questions the analyzer reports (for the pilot: the Act III location
    and time).
 4. Compare the generated images for character and environment consistency; the tool
@@ -114,3 +116,23 @@ describes what the module does and does not do, not what it might do later.
 5. Build the actual 3D environment, rig the characters, animate, and set the final
    cameras in Blender or Unreal.
 6. Clear any rights or licence questions for the models, LoRAs and generated content.
+
+## Known limits of the newer parts
+
+- **The animatic is a cut of still frames with a voice, not an animation.** The boards
+  do not move, the camera does not move, and the lip sync is not in the animatic. The
+  lip-sync tool exists in the pipeline scripts but is not wired into it.
+- **The prompt control applies to text-to-image and to the Canny reference render.**
+  It does not reach the deterministic blocking layouts, which are drawn from the shot
+  specification and not from a prompt.
+- **A preset is not applied to a workflow of your own.** A workflow you built keeps its
+  own model and its own size; the settings you set by hand are applied to it, and
+  anything that could not be applied is reported rather than dropped silently.
+- **The SDXL ControlNet path is not verified on an 8 GB card.** The SDXL text-to-image
+  path is measured at about 2.4 GB of extra video memory; the ControlNet path adds a
+  2.4 GB model on top and has not been run end to end on this machine.
+- **The breakdown's quantities are counts of mentions.** How many times a word appears
+  in a scene is not how many of that object to build.
+- **The application still runs the stages from the command line.** The workspace can
+  generate, decide and render; starting a package, running the breakdown, the
+  continuity check, the animatic and the handoff are still command line steps.

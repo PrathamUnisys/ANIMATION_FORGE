@@ -778,6 +778,28 @@ def delete_production_prompt(
         raise HTTPException(status_code=404, detail=str(exc))
 
 
+@app.post("/api/production/{project_id}/style-bible/approve")
+def post_production_style_bible_approve(
+    project_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """Approve the current Style Bible. A human decision, never automatic."""
+    try:
+        return visual_development.approve_style_bible(project_id, actor="frontend")
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/production/{project_id}/script")
+def get_production_script(
+    project_id: str, _: str = Depends(verify_local_ipc_token)
+) -> Dict[str, Any]:
+    """The script the package was built from."""
+    try:
+        return visual_development.script(project_id)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
 @app.get("/api/production/presets")
 def get_production_presets(_: str = Depends(verify_local_ipc_token)) -> Dict[str, Any]:
     """The generation presets a user can choose from, with what they cost."""
@@ -797,6 +819,33 @@ def get_production_workflows(
     return {"workflows": workflows, "count": len(workflows)}
 
 
+class VisualGeneratePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_id: str
+    kind: str = ""
+    artifact_type: str = "STORYBOARD"
+
+
+@app.post("/api/production/{project_id}/generate")
+def post_production_generate(
+    project_id: str,
+    payload: VisualGeneratePayload,
+    _: str = Depends(verify_local_ipc_token),
+) -> Dict[str, Any]:
+    """Generate one image for a shot or an art-direction candidate.
+
+    The prompt, the settings and the workflow are the ones the user saved,
+    so this is the same picture the command line would produce.
+    """
+    artifact_type = payload.artifact_type
+    if artifact_type not in {"STORYBOARD", "ART_DIRECTION"}:
+        raise HTTPException(status_code=400, detail="artifact_type must be STORYBOARD or ART_DIRECTION.")
+    try:
+        return visual_development.generate(project_id, payload.target_id, artifact_type)
+    except VisualDevelopmentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.get("/api/production/{project_id}/animatic")
 def get_production_animatic(
     project_id: str, _: str = Depends(verify_local_ipc_token)
@@ -808,13 +857,19 @@ def get_production_animatic(
         raise HTTPException(status_code=404, detail=str(exc))
 
 
+class VisualWorkflowPayload(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    workflow: Dict[str, Any]
+
+
 @app.post("/api/production/{project_id}/workflow/validate")
 def post_production_workflow_validate(
     project_id: str,
-    workflow: Dict[str, Any],
+    payload: VisualWorkflowPayload,
     _: str = Depends(verify_local_ipc_token),
 ) -> Dict[str, Any]:
     """Check a user supplied ComfyUI API-format workflow against the server."""
+    workflow = payload.workflow
     if not isinstance(workflow, dict) or not workflow:
         raise HTTPException(status_code=400, detail="The workflow must be a non-empty object.")
     try:

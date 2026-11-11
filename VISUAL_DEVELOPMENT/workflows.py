@@ -325,6 +325,8 @@ def workflow_settings(workflow: dict[str, Any]) -> dict[str, Any]:
         elif node.get("class_type") == "EmptyLatentImage":
             settings["width"] = inputs.get("width")
             settings["height"] = inputs.get("height")
+        elif node.get("class_type") == "VAELoader":
+            settings["vae"] = inputs.get("vae_name")
         elif node.get("class_type") == "ControlNetLoader":
             settings["control_net"] = inputs.get("control_net_name")
     return settings
@@ -339,6 +341,22 @@ TEXT_NODE_CLASSES = ("CLIPTextEncode", "CLIPTextEncodeSDXL", "CLIPTextEncodeSDXL
 SAMPLER_NODE_CLASSES = ("KSampler", "KSamplerAdvanced", "SamplerCustom", "SamplerCustomAdvanced")
 LATENT_NODE_CLASSES = ("EmptyLatentImage", "EmptySD3LatentImage", "EmptyLatentImagePresets")
 
+# Conditioning nodes that pass a text conditioning through to the sampler. A
+# ControlNet sits between the text and the sampler in most real graphs, so the
+# text node has to be found by walking back through them.
+CONDITIONING_PASSTHROUGH = {
+    "ControlNetApply": ("positive",),
+    "ControlNetApplyAdvanced": ("positive", "negative"),
+    "ConditioningSetArea": ("conditioning",),
+    "ConditioningSetAreaPercentage": ("conditioning",),
+    "ConditioningSetTimestepRange": ("conditioning",),
+    "ConditioningCombine": ("conditioning_1", "conditioning_2"),
+    "ConditioningConcat": ("conditioning_to", "conditioning_from"),
+    "ConditioningSetAreaStrength": ("conditioning",),
+    "FluxGuidance": ("conditioning",),
+    "DisableNoise": ("conditioning",),
+}
+
 
 def _link_target(link: Any) -> str | None:
     """Return the node id a ComfyUI link points at."""
@@ -347,12 +365,60 @@ def _link_target(link: Any) -> str | None:
     return None
 
 
+def _walk_to_text_node(
+    workflow: dict[str, Any],
+    node_id: str | None,
+    direction: str = "positive",
+    seen: set[str] | None = None,
+) -> str | None:
+    """Follow the conditioning back to the text node that feeds it.
+
+    The sampler usually does not point at the text node directly: a
+    ControlNet, a guidance node or a conditioning operation sits in between.
+    Guessing by node order would put the prompt into the wrong node, so the
+    graph is walked instead, and the walk keeps the direction it came from:
+    the negative conditioning of a ControlNet is not the positive one.
+
+    A graph that does not resolve returns None rather than a guess.
+    """
+    if not node_id or node_id not in workflow:
+        return None
+    node = workflow[node_id]
+    if node.get("class_type") in TEXT_NODE_CLASSES:
+        return node_id
+    seen = seen if seen is not None else set()
+    if node_id in seen:
+        return None
+    seen.add(node_id)
+    class_type = node.get("class_type", "")
+    inputs = node.get("inputs", {})
+    names = CONDITIONING_PASSTHROUGH.get(class_type)
+    if names is None:
+        names = [
+            name
+            for name, value in inputs.items()
+            if _link_target(value) is not None
+        ]
+    else:
+        # The input that matches the direction is tried first.
+        names = sorted(names, key=lambda name: 0 if name == direction else 1)
+    for name in names:
+        target = _link_target(inputs.get(name))
+        if target is None:
+            continue
+        found = _walk_to_text_node(workflow, target, direction, seen)
+        if found is not None:
+            return found
+    return None
+
+
 def resolve_prompt_nodes(workflow: dict[str, Any]) -> dict[str, str | None]:
     """Find the positive text node, the negative text node and the latent node.
 
-    The graph is followed the way ComfyUI follows it: from the sampler back to
-    the nodes that feed it. Guessing by node order would break on any workflow
-    the user built themselves.
+    The graph is followed the way ComfyUI follows it: from the sampler back
+    to the nodes that feed it. Guessing by node order would break on any
+    workflow the user built themselves, and would put the prompt into the
+    negative node of a graph with a ControlNet in it.
     """
     sampler_id: str | None = None
     for node_id, node in workflow.items():
@@ -366,41 +432,26 @@ def resolve_prompt_nodes(workflow: dict[str, Any]) -> dict[str, str | None]:
 
     if sampler_id is not None:
         inputs = workflow[sampler_id].get("inputs", {})
-        positive_id = _link_target(inputs.get("positive"))
-        negative_id = _link_target(inputs.get("negative"))
-        latent_id = _link_target(inputs.get("latent_image"))
-
-    # A link may point at a node that is not in the graph. Following it blindly
-    # would report a prompt node that does not exist.
-    def _is_text(node_id: str | None) -> bool:
-        return bool(
-            node_id
-            and node_id in workflow
-            and workflow[node_id].get("class_type") in TEXT_NODE_CLASSES
+        positive_id = _walk_to_text_node(
+            workflow, _link_target(inputs.get("positive")), "positive"
         )
-
-    if not _is_text(positive_id):
-        positive_id = None
-    if not _is_text(negative_id):
-        negative_id = None
-    if latent_id is not None and latent_id not in workflow:
-        latent_id = None
+        negative_id = _walk_to_text_node(
+            workflow, _link_target(inputs.get("negative")), "negative"
+        )
+        latent_id = _link_target(inputs.get("latent_image"))
 
     text_nodes = [
         node_id
         for node_id, node in workflow.items()
         if node.get("class_type") in TEXT_NODE_CLASSES
     ]
-    if positive_id is None and text_nodes:
+    if positive_id is None and len(text_nodes) == 1:
         positive_id = text_nodes[0]
-    if negative_id is None and len(text_nodes) > 1:
+    if negative_id is None and len(text_nodes) == 2 and positive_id == text_nodes[0]:
         negative_id = text_nodes[1]
 
-    if latent_id is None:
-        for node_id, node in workflow.items():
-            if node.get("class_type") in LATENT_NODE_CLASSES:
-                latent_id = node_id
-                break
+    if latent_id is not None and latent_id not in workflow:
+        latent_id = None
 
     return {
         "sampler": sampler_id,
@@ -428,6 +479,7 @@ def apply_to_user_workflow(
     result = copy.deepcopy(workflow)
     nodes = resolve_prompt_nodes(result)
     applied: list[str] = []
+    missing: list[str] = []
 
     positive_id = nodes["positive"]
     if positive_id and positive_id in result:
@@ -451,9 +503,19 @@ def apply_to_user_workflow(
             "scheduler": "scheduler",
         }
         for key, input_name in mapping.items():
-            if settings.get(key) is not None and input_name in inputs:
-                inputs[input_name] = settings[key]
-                applied.append(f"{input_name}:{sampler_id}")
+            if settings.get(key) is None:
+                continue
+            # KSamplerAdvanced calls the seed noise_seed.
+            for candidate in (input_name, "noise_seed" if input_name == "seed" else ""):
+                if candidate and candidate in inputs:
+                    inputs[candidate] = settings[key]
+                    applied.append(f"{candidate}:{sampler_id}")
+                    break
+            else:
+                if input_name == "seed":
+                    # The graph has no seed input at all. Say so rather than
+                    # dropping the value silently.
+                    missing.append("seed")
 
     latent_id = nodes["latent"]
     if latent_id and latent_id in result:
@@ -463,7 +525,25 @@ def apply_to_user_workflow(
                 inputs[input_name] = settings[key]
                 applied.append(f"{input_name}:{latent_id}")
 
-    return {"workflow": result, "applied": applied, "nodes": nodes}
+    # A model, a LoRA and a VAE are only applied where the graph has the
+    # node for them. A graph that loads its own keeps its own.
+    for node in result.values():
+        class_type = node.get("class_type")
+        inputs = node.setdefault("inputs", {})
+        if class_type == "CheckpointLoaderSimple" and settings.get("model"):
+            inputs["ckpt_name"] = settings["model"]
+            applied.append(f"ckpt_name:{node.get('_meta', {}).get('title', 'checkpoint')}")
+        elif class_type == "LoraLoader" and settings.get("lora"):
+            inputs["lora_name"] = settings["lora"]
+            applied.append("lora_name")
+        elif class_type == "VAELoader" and settings.get("vae"):
+            inputs["vae_name"] = settings["vae"]
+            applied.append("vae_name")
+        elif class_type == "ControlNetLoader" and settings.get("control_net"):
+            inputs["control_net_name"] = settings["control_net"]
+            applied.append("control_net_name")
+
+    return {"workflow": result, "applied": applied, "nodes": nodes, "missing": missing}
 
 
 def validate_user_workflow(

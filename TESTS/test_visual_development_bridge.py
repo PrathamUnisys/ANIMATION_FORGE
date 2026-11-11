@@ -36,11 +36,11 @@ def test_bridge_lists_the_copied_project(workspace: Path) -> None:
     assert summary["source_format"] == "NARRATOR"
     assert summary["counts"]["sequences"] == 6
     assert summary["counts"]["shots"] == 8
-    # Eight style directions. Nine images, because one direction was
-    # regenerated with the user's own prompt and workflow, and the artifact
-    # store keeps every image it produced.
+    # Eight style directions. More images, because a direction that was
+    # regenerated with the user's own prompt keeps every image the artifact
+    # store produced.
     assert summary["counts"]["art_direction_candidates"] == 8
-    assert summary["counts"]["art_direction_images"] == 9
+    assert summary["counts"]["art_direction_images"] >= 9
 
 
 def test_bridge_detail_exposes_candidates_and_shots(workspace: Path) -> None:
@@ -256,4 +256,163 @@ def test_the_two_surfaces_report_the_same_package(workspace: Path) -> None:
         assert shot["status"] == other["status"]
         assert shot["board_image_path"] == other["board_image_path"]
         assert shot["blocking_image_path"] == other["blocking_image_path"]
+
+
+
+# --------------------------------------- the override must reach the image
+
+
+def test_the_bridge_regeneration_uses_the_users_prompt(workspace: Path) -> None:
+    """The headline feature, end to end through the bridge.
+
+    The override the user saved must be what ComfyUI receives. The earlier
+    code rebuilt the prompt from the Style Bible, so the user's own text was
+    silently discarded at the moment the image was made.
+    """
+    from backend.integrations.visual_development import VisualDevelopmentBridge
+    from VISUAL_DEVELOPMENT.prompt_overrides import build_override, save_override
+    from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+    bridge = VisualDevelopmentBridge(workspace)
+    store = ProjectStore(workspace / "PROJECTS" / PILOT.name)
+
+    override = build_override(
+        "ART_03",
+        "ART_DIRECTION_CANDIDATE",
+        prompt_extra="a direction the user wrote by hand",
+        exclude_modules=["emphasis"],
+        settings_override={"seed": 424242},
+    )
+    save_override(store, override)
+
+    plan = bridge.plan(PILOT.name, "ART_03")
+    assert "a direction the user wrote by hand" in plan["prompt"]
+    assert "single continuous frame" not in plan["prompt"]
+    assert plan["settings"]["seed"] == 424242
+    assert plan["has_override"] is True
+    assert "prompt_extra" in plan["applied_overrides"]
+    assert "exclude_modules" in plan["applied_overrides"]
+
+
+def test_the_plan_is_the_same_for_the_command_line_and_the_application(
+    workspace: Path,
+) -> None:
+    """One plan, so a picture does not depend on where it was made."""
+    from VISUAL_DEVELOPMENT.prompt_overrides import build_override, save_override
+    from VISUAL_DEVELOPMENT.service import resolve_plan
+    from VISUAL_DEVELOPMENT.storage import ProjectStore
+
+    store = ProjectStore(workspace / "PROJECTS" / PILOT.name)
+    save_override(
+        store,
+        build_override(
+            "ART_03",
+            "ART_DIRECTION_CANDIDATE",
+            prompt_extra="the same words everywhere",
+        ),
+    )
+    plan = resolve_plan(store, "ART_03")
+    assert "the same words everywhere" in plan["prompt"]
+
+
+def test_a_user_workflow_with_a_controlnet_gets_the_prompt_in_the_right_node() -> None:
+    """A ControlNet sits between the text and the sampler.
+
+    Guessing by node order put the positive prompt into the negative node.
+    The graph has to be walked back to the text.
+    """
+    from VISUAL_DEVELOPMENT.workflows import apply_to_user_workflow, resolve_prompt_nodes
+
+    workflow = {
+        "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "x.safetensors"}},
+        "2": {"class_type": "CLIPTextEncode", "inputs": {"text": "OLD NEGATIVE", "clip": ["1", 1]}},
+        "3": {"class_type": "CLIPTextEncode", "inputs": {"text": "OLD POSITIVE", "clip": ["1", 1]}},
+        "4": {"class_type": "EmptyLatentImage", "inputs": {"width": 512, "height": 512, "batch_size": 1}},
+        "5": {"class_type": "ControlNetLoader", "inputs": {"control_net_name": "cn.pth"}},
+        "6": {"class_type": "ControlNetApplyAdvanced", "inputs": {
+            "positive": ["3", 0], "negative": ["2", 0], "control_net": ["5", 0],
+            "image": ["4", 0], "vae": ["1", 2], "strength": 0.8,
+            "start_percent": 0.0, "end_percent": 1.0,
+        }},
+        "7": {"class_type": "KSampler", "inputs": {
+            "model": ["1", 0], "positive": ["6", 0], "negative": ["6", 1],
+            "latent_image": ["4", 0], "seed": 1, "steps": 20, "cfg": 7.0,
+            "sampler_name": "euler", "scheduler": "normal", "denoise": 1.0,
+        }},
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["1", 2]}},
+        "9": {"class_type": "SaveImage", "inputs": {"images": ["8", 0], "filename_prefix": "u"}},
+    }
+    nodes = resolve_prompt_nodes(workflow)
+    assert nodes["positive"] == "3"
+    assert nodes["negative"] == "2"
+
+    filled = apply_to_user_workflow(
+        workflow, positive="NEW POSITIVE", negative="NEW NEGATIVE", settings={"seed": 999}
+    )
+    result = filled["workflow"]
+    assert result["3"]["inputs"]["text"] == "NEW POSITIVE"
+    assert result["2"]["inputs"]["text"] == "NEW NEGATIVE"
+    assert result["7"]["inputs"]["seed"] == 999
+
+
+def test_a_graph_that_cannot_be_resolved_is_refused_not_guessed() -> None:
+    """Two text nodes and no path to the sampler: report it, do not guess."""
+    from VISUAL_DEVELOPMENT.workflows import resolve_prompt_nodes
+
+    workflow = {
+        "1": {"class_type": "CLIPTextEncode", "inputs": {"text": "a", "clip": ["9", 1]}},
+        "2": {"class_type": "CLIPTextEncode", "inputs": {"text": "b", "clip": ["9", 1]}},
+        "9": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "x"}},
+    }
+    nodes = resolve_prompt_nodes(workflow)
+    assert nodes["sampler"] is None
+    assert nodes["positive"] is None
+    assert nodes["negative"] is None
+
+
+def test_the_seed_is_not_dropped_on_a_sampler_that_calls_it_noise_seed() -> None:
+    """KSamplerAdvanced names the seed noise_seed."""
+    from VISUAL_DEVELOPMENT.workflows import apply_to_user_workflow
+
+    workflow = {
+        "1": {"class_type": "CLIPTextEncode", "inputs": {"text": "a", "clip": ["2", 1]}},
+        "2": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "x"}},
+        "3": {"class_type": "EmptyLatentImage", "inputs": {"width": 512, "height": 512, "batch_size": 1}},
+        "4": {"class_type": "KSamplerAdvanced", "inputs": {
+            "model": ["2", 0], "positive": ["1", 0], "negative": ["1", 0],
+            "latent_image": ["3", 0], "noise_seed": 1, "steps": 20, "cfg": 7.0,
+            "sampler_name": "euler", "scheduler": "normal", "denoise": 1.0,
+        }},
+        "5": {"class_type": "VAEDecode", "inputs": {"samples": ["4", 0], "vae": ["2", 2]}},
+        "6": {"class_type": "SaveImage", "inputs": {"images": ["5", 0], "filename_prefix": "u"}},
+    }
+    filled = apply_to_user_workflow(workflow, positive="p", negative="n", settings={"seed": 999})
+    assert filled["workflow"]["4"]["inputs"]["noise_seed"] == 999
+    assert "missing" not in filled or "seed" not in filled["missing"]
+
+
+def test_the_generation_counts_come_from_the_manifests(workspace: Path) -> None:
+    """Eight directions are eight generations, not one."""
+    from backend.integrations.visual_development import VisualDevelopmentBridge
+
+    bridge = VisualDevelopmentBridge(workspace)
+    pipeline = bridge.pipeline(PILOT.name)
+    counts = pipeline["generations"]
+    assert counts["total"] == sum(
+        counts[key] for key in ("art_direction", "storyboard", "blocking")
+    )
+    assert counts["art_direction"] >= 8
+
+
+def test_an_unapproved_script_is_not_a_complete_stage(workspace: Path) -> None:
+    """The pilot is exploration only, and the rail must not say otherwise."""
+    from backend.integrations.visual_development import VisualDevelopmentBridge
+
+    bridge = VisualDevelopmentBridge(workspace)
+    pipeline = bridge.pipeline(PILOT.name)
+    script_stage = next(
+        stage for stage in pipeline["stages"] if stage["stage_id"] == "SCRIPT"
+    )
+    assert pipeline["link"]["approval_status"] == "NOT_APPROVED"
+    assert script_stage["complete"] is False
 

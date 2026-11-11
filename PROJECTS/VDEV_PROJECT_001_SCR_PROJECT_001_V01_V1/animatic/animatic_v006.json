@@ -1,14 +1,22 @@
 {
   "schema_version": "1.0.0",
-  "animatic_id": "ANM_1EB1961D0BD3",
-  "created_at": "2026-11-11T05:50:54Z",
+  "animatic_id": "ANM_84336512205C",
+  "created_at": "2026-11-11T07:39:28Z",
   "source_format": "SCREENPLAY",
   "summary": {
     "shot_count": 9,
     "picture_count": 9,
     "voice_line_count": 6,
-    "total_duration_sec": 45.0,
-    "missing_pictures": []
+    "total_duration_sec": 65.39,
+    "missing_pictures": [],
+    "voice_overruns": [
+      "SHT_SCN_01_01_002",
+      "SHT_SCN_01_01_003",
+      "SHT_SCN_02_01_002",
+      "SHT_SCN_02_01_003",
+      "SHT_SCN_03_01_002",
+      "SHT_SCN_03_01_003"
+    ]
   },
   "entries": [
     {
@@ -24,6 +32,7 @@
       "description": "Sunbeams slice through mossy gothic arches. SIR PIP (20s, earnest squire in oversized dented pauldrons) polishes a rusted bronze crown with a turnip cloth. Beside him, GLOOP (translucent emerald slime familiar wearing a tiny monocle) bubbles skeptically.",
       "dialogue": "",
       "narration": "",
+      "is_continuation": false,
       "has_picture": true
     },
     {
@@ -33,13 +42,15 @@
       "scene_heading": "INT. FORGOTTEN CITADEL THRONE ROOM - MORNING",
       "image_path": "storyboard/SEQ_01/SCN_01_01/SHT_SCN_01_01_002/GEN_23975C65DF37.png",
       "start_sec": 6.41,
-      "duration_sec": 4.6,
+      "duration_sec": 11.6,
       "shot_size": "close-up",
       "camera": "eye-level",
       "description": "Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.",
       "dialogue": "Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.",
       "narration": "",
-      "has_picture": true
+      "is_continuation": false,
+      "has_picture": true,
+      "voice_overruns_picture": true
     },
     {
       "shot_id": "SHT_SCN_01_01_003",
@@ -47,14 +58,16 @@
       "scene_id": "SCN_01_01",
       "scene_heading": "INT. FORGOTTEN CITADEL THRONE ROOM - MORNING",
       "image_path": "storyboard/SEQ_01/SCN_01_01/SHT_SCN_01_01_003/GEN_11CDE233A943.png",
-      "start_sec": 11.01,
-      "duration_sec": 3.99,
+      "start_sec": 18.01,
+      "duration_sec": 7.575,
       "shot_size": "medium",
       "camera": "eye-level",
       "description": "And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.",
       "dialogue": "And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.",
       "narration": "",
-      "has_picture": true
+      "is_continuation": false,
+      "has_picture": true,
+      "voice_overruns_picture": true
     },
     {
       "shot_id": "SHT_SCN_02_01_001",
@@ -62,13 +75,14 @@
       "scene_id": "SCN_02_01",
       "scene_heading": "INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS",
       "image_path": "storyboard/SEQ_02/SCN_02_01/SHT_SCN_02_01_001/GEN_3130E91C4DEE.png",
-      "start_sec": 15.0,
+      "start_sec": 25.585,
       "duration_sec": 7.02,
       "shot_size": "wide",
       "camera": "eye-level",
       "description": "Sir Pip buffs a stubborn smudge. A hidden rune flares gold! The ancient STONE GOLEM BAILIFF (3 meters tall, mossy basalt plates, glowing amber eyes) rumbles awake behind the throne, holding a stone clipboard.",
       "dialogue": "",
       "narration": "",
+      "is_continuation": false,
       "has_picture": true
     },
     {
@@ -77,14 +91,16 @@
       "scene_id": "SCN_02_01",
       "scene_heading": "INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS",
       "image_path": "storyboard/SEQ_02/SCN_02_01/SHT_SCN_02_01_002/GEN_EC68171AE517.png",
-      "start_sec": 22.02,
-      "duration_sec": 5.41,
+      "start_sec": 32.605,
+      "duration_sec": 8.475,
       "shot_size": "close-up",
       "camera": "eye-level",
       "description": "CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?",
       "dialogue": "CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?",
       "narration": "",
-      "has_picture": true
+      "is_continuation": false,
+      "has_picture": true,
+      "voice_overruns_picture": true
     },
     {
       "shot_id": "SHT_SCN_02_01_003",
@@ -92,14 +108,16 @@
       "scene_id": "SCN_02_01",
       "scene_heading": "INT. FORGOTTEN CITADEL THRONE ROOM - CONTINUOUS",
       "image_path": "storyboard/SEQ_02/SCN_02_01/SHT_SCN_02_01_003/GEN_51075D3C2A42.png",
-      "start_sec": 27.43,
-      "duration_sec": 4.57,
+      "start_sec": 41.08,
+      "duration_sec": 6.325,
       "shot_size": "close-up",
       "camera": "eye-level",
       "description": "Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?",
       "dialogue": "Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?",
       "narration": "",
-      "has_picture": true
+      "is_continuation": false,
+      "has_picture": true,
+      "voice_overruns_picture": true
     },
     {
       "shot_id": "SHT_SCN_03_01_001",
@@ -107,13 +125,14 @@
       "scene_id": "SCN_03_01",
       "scene_heading": "",
       "image_path": "storyboard/SEQ_03/SCN_03_01/SHT_SCN_03_01_001/GEN_0DF31A15DAE6.png",
-      "start_sec": 32.0,
+      "start_sec": 47.405,
       "duration_sec": 3.51,
       "shot_size": "wide",
       "camera": "eye-level",
       "description": "Sir Pip gently places the gleaming crown onto Gloop's gelatinous head. Gloop freezes as the monocle pops off.",
       "dialogue": "",
       "narration": "",
+      "is_continuation": false,
       "has_picture": true
     },
     {
@@ -122,14 +141,16 @@
       "scene_id": "SCN_03_01",
       "scene_heading": "",
       "image_path": "storyboard/SEQ_03/SCN_03_01/SHT_SCN_03_01_002/GEN_52BE5D168376.png",
-      "start_sec": 35.51,
-      "duration_sec": 5.01,
+      "start_sec": 50.915,
+      "duration_sec": 7.8,
       "shot_size": "medium",
       "camera": "eye-level",
       "description": "NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.",
       "dialogue": "NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.",
       "narration": "",
-      "has_picture": true
+      "is_continuation": false,
+      "has_picture": true,
+      "voice_overruns_picture": true
     },
     {
       "shot_id": "SHT_SCN_03_01_003",
@@ -137,84 +158,99 @@
       "scene_id": "SCN_03_01",
       "scene_heading": "",
       "image_path": "storyboard/SEQ_03/SCN_03_01/SHT_SCN_03_01_003/GEN_B01C9EA6DB6B.png",
-      "start_sec": 40.52,
-      "duration_sec": 4.48,
+      "start_sec": 58.715,
+      "duration_sec": 6.675,
       "shot_size": "medium",
       "camera": "eye-level",
       "description": "Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!",
       "dialogue": "Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!",
       "narration": "",
-      "has_picture": true
+      "is_continuation": false,
+      "has_picture": true,
+      "voice_overruns_picture": true
     }
   ],
   "voice_lines": [
     {
-      "line_id": "VOX_B527F5EB411C",
+      "line_id": "VOX_9D80F9448A3E",
       "shot_id": "SHT_SCN_01_01_002",
       "speaker": "Sir Pip",
       "kind": "DIALOGUE",
       "text": "Behold, Gloop! According to the Royal Inventory of 842, whoever buffs the Crown of Eldoria inherits the entire Kingdom... and its tax exemptions.",
       "start_sec": 6.41,
       "duration_sec": 11.2,
+      "measured_duration_sec": 11.2,
       "status": "PASS",
       "voice": "af_heart"
     },
     {
-      "line_id": "VOX_A1A22DB11D04",
+      "line_id": "VOX_3C1DA4DD10A1",
       "shot_id": "SHT_SCN_01_01_003",
       "speaker": "Gloop",
       "kind": "DIALOGUE",
       "text": "And according to the foreclosure notice nailed to the drawbridge, we owe the Stone Golem three hundred turnips by noon.",
-      "start_sec": 11.01,
+      "start_sec": 18.01,
       "duration_sec": 7.175,
+      "measured_duration_sec": 7.175,
       "status": "PASS",
       "voice": "af_heart"
     },
     {
-      "line_id": "VOX_8D42D278D8F3",
+      "line_id": "VOX_6FF2D5FAB45B",
       "shot_id": "SHT_SCN_02_01_002",
       "speaker": "Stone Golem",
       "kind": "DIALOGUE",
       "text": "CITIZEN DETECTED. CROWN ACTIVATION FEE: FORTY GOLD COINS. WOULD YOU LIKE TO PAY BY COIN OR CATAPULT EJECTION?",
-      "start_sec": 22.02,
+      "start_sec": 32.605,
       "duration_sec": 8.075,
+      "measured_duration_sec": 8.075,
       "status": "PASS",
       "voice": "af_heart"
     },
     {
-      "line_id": "VOX_312B36785714",
+      "line_id": "VOX_36B11C7E637B",
       "shot_id": "SHT_SCN_02_01_003",
       "speaker": "Sir Pip",
       "kind": "DIALOGUE",
       "text": "Aha! Good morning, Officer! Does the Crown's warranty cover... spontaneous abdication?",
-      "start_sec": 27.43,
+      "start_sec": 41.08,
       "duration_sec": 5.925,
+      "measured_duration_sec": 5.925,
       "status": "PASS",
       "voice": "af_heart"
     },
     {
-      "line_id": "VOX_A07472AF90B1",
+      "line_id": "VOX_32BBD00F90F9",
       "shot_id": "SHT_SCN_03_01_002",
       "speaker": "Stone Golem",
       "kind": "DIALOGUE",
       "text": "NEW MONARCH VERIFIED. HAIL KING GLOOP THE GELATINOUS. YOUR FIRST ROYAL DECREE IS DUE IN FIVE SECONDS.",
-      "start_sec": 35.51,
+      "start_sec": 50.915,
       "duration_sec": 7.4,
+      "measured_duration_sec": 7.4,
       "status": "PASS",
       "voice": "af_heart"
     },
     {
-      "line_id": "VOX_AB7F25460CB6",
+      "line_id": "VOX_FD60B42B22AA",
       "shot_id": "SHT_SCN_03_01_003",
       "speaker": "Gloop",
       "kind": "DIALOGUE",
       "text": "Decree Number One: Sir Pip is officially promoted to Royal Turnip Peeler! Start peeling, peasant!",
-      "start_sec": 40.52,
+      "start_sec": 58.715,
       "duration_sec": 6.275,
+      "measured_duration_sec": 6.275,
       "status": "PASS",
       "voice": "af_heart"
     }
   ],
-  "video_path": "D:\\Work\\ANIMATION_FORGE\\PROJECTS\\VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1\\animatic\\animatic_v002.mp4",
-  "video_status": "PASS"
+  "video_path": "D:\\Work\\ANIMATION_FORGE\\PROJECTS\\VDEV_PROJECT_001_SCR_PROJECT_001_V01_V1\\animatic\\animatic_v006.mp4",
+  "video_status": "PASS",
+  "staleness": {
+    "is_stale": true,
+    "changed_shots": [
+      "SHT_SCN_01_01_001"
+    ],
+    "message": "1 shot(s) were regenerated after this animatic was cut."
+  }
 }
