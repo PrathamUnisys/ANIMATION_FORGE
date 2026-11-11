@@ -75,6 +75,19 @@ def _iter_shots(analysis: dict[str, Any]):
 # --------------------------------------------------------------------- commands
 
 
+def _set_stage(store: ProjectStore, stage: str) -> None:
+    """Record how far the pipeline has progressed on the project manifest.
+
+    The stage is working state, so it is updated in place. Without this the
+    manifest kept reporting SOURCE_IMPORTED long after the pipeline had run.
+    """
+    project = store.read("project.json")
+    if project.get("stage") == stage:
+        return
+    project["stage"] = stage
+    store.update_json("project.json", project, "project.schema.json")
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     script = load_approved_script(args.database, args.script_id)
     store = ProjectStore.create(args.project_dir, script)
@@ -124,6 +137,7 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     path = store.write_json(
         f"analysis/analysis_v{version:03d}.json", analysis, "analysis.schema.json"
     )
+    _set_stage(store, "ANALYZED")
     shots = sum(len(scene["shots"]) for sequence in analysis["sequences"] for scene in sequence["scenes"])
     _print(
         {
@@ -154,6 +168,7 @@ def cmd_art_direction(args: argparse.Namespace) -> int:
         candidate_set,
         "candidate.schema.json",
     )
+    _set_stage(store, "ART_DIRECTION_READY")
     _print(
         {
             "status": "PASS",
@@ -236,6 +251,7 @@ def cmd_generate_candidates(args: argparse.Namespace) -> int:
     store.update_json(
         f"art_direction/candidates_v{version:03d}.json", candidate_set, "candidate.schema.json"
     )
+    _set_stage(store, "ART_DIRECTION_GENERATED")
     _print({"status": "PASS", "generated": len(results), "results": results})
     return 0
 
@@ -262,6 +278,7 @@ def cmd_select(args: argparse.Namespace) -> int:
             "metadata": {},
         }
     )
+    _set_stage(store, "DIRECTION_SELECTED")
     _print(
         {
             "status": "PASS",
@@ -281,6 +298,7 @@ def cmd_style_bible(args: argparse.Namespace) -> int:
     path = store.write_json(
         f"style_bibles/style_bible_v{version:03d}.json", style_bible, "style_bible.schema.json"
     )
+    _set_stage(store, "STYLE_BIBLE_CREATED")
     _print(
         {
             "status": "PASS",
@@ -331,6 +349,7 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
             filename_prefix=f"SB_{shot['shot_id']}",
         )
         results.append({"shot_id": shot["shot_id"], **result})
+    _set_stage(store, "STORYBOARD_GENERATED")
     _print({"status": "PASS", "generated": len(results), "results": results})
     return 0
 
@@ -380,6 +399,7 @@ def cmd_blocking(args: argparse.Namespace) -> int:
             )
             entry.update(result)
         results.append(entry)
+    _set_stage(store, "BLOCKING_GENERATED")
     _print({"status": "PASS", "processed": len(results), "results": results})
     return 0
 
@@ -404,6 +424,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     )
     version = store.latest_number("reports", "continuity")
     store.write_json(f"reports/continuity_v{version:03d}.json", report)
+    _set_stage(store, "CONTINUITY_CHECKED")
     _print({"status": report["status"], "report": report})
     return 0 if report["status"] in {"PASS", "REVIEW"} else 1
 
@@ -451,6 +472,7 @@ def cmd_handoff(args: argparse.Namespace) -> int:
         f"handoff/handoff_v{version:03d}.md",
         render_handoff_markdown(package).encode("utf-8"),
     )
+    _set_stage(store, "HANDOFF_EXPORTED")
     _print(
         {
             "status": "PASS",

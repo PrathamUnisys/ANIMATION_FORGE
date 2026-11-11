@@ -71,8 +71,12 @@ Two custom nodes fail to import in this build (`ComfyUI-Trellis2` needs `trimesh
   design.
 - No 3D scene, measured coordinates, `.blend` file, Sequencer or engine automation. The
   handoff carries shot intent and references only.
-- No integration into the Animation Forge backend, database or React app. The review UI
-  is a standalone loopback tool; embedding it requires an approved Change Request.
+- The module is now reachable from the Animation Forge app through
+  `backend/integrations/visual_development.py` and four token-protected
+  `/api/visual-development/*` routes. That bridge is **read-mostly**: it lists
+  projects, serves the real image files and records review decisions in the module's
+  own append-only event log. It never writes to `animation_forge.db`, and it adds no
+  table, no protected instruction file and no agent definition.
 - The pilot script is short and single-location, so multi-location and historical
   environment coverage is untested.
 - No approved style, shot or package. Every generated image is a draft until a human
@@ -87,22 +91,44 @@ Two custom nodes fail to import in this build (`ComfyUI-Trellis2` needs `trimesh
    `APPROVED` / `REJECTED`.
 3. A failed generation-manifest write left an orphan PNG behind. `write_generation_artifact`
    now removes the image when the manifest cannot be written.
+4. The review page served a blank shell. An inline `onerror="..."` attribute on the
+   image markup put a raw double quote inside a double-quoted JavaScript string, so the
+   browser refused to parse the whole script block. The page now carries **no inline
+   event handler at all**: image errors are handled by a delegated capture-phase
+   listener, because image error events do not bubble.
+5. The renderer filled the tab sections but never switched the `active` class, and the
+   stylesheet hides every section that does not carry it. The page rendered its
+   content and showed nothing. `render()` now toggles the class.
+6. The `composition` and `atmosphere` rules of a Style Bible were verbatim copies of
+   `camera_language` and `lighting`. Every style profile now carries its own
+   composition and atmosphere direction. The pilot's Style Bible v1 still holds the
+   duplicated text, because `atmosphere` feeds the shot prompts: re-versioning it
+   would describe images that were generated under different rules.
+7. The project manifest reported `SOURCE_IMPORTED` for the whole life of a project.
+   The CLI now advances the stage as the pipeline progresses.
 
 ## Verification performed
 
-- `pytest TESTS/test_visual_development.py` -> **30 passed**.
+- `pytest TESTS/test_visual_development.py TESTS/test_visual_development_bridge.py` ->
+  **58 passed** (including a suite that fetches the review page over real HTTP,
+  parses its script with `node --check`, asserts that the served page carries no
+  inline event handler, and renders the page in a real headless browser to prove the
+  gallery is visible).
 - Live ComfyUI: health, node discovery, model discovery, workflow validation, queue
   submission, status polling, image retrieval and reference upload all exercised
   against the running server.
 - Review UI exercised over HTTP: dashboard, real image bytes, refused path traversal,
   approve / reject / regenerate actions, and persisted `review_status`.
+- Review UI exercised in a real browser (Edge headless): the six tabs, the eight
+  art-direction candidates with their generated images, and the selection buttons all
+  render.
 - Continuity report on the pilot: 6 PASS, 0 FAIL, 1 REVIEW, 1 NOT_CHECKED.
 - Repository-prescribed checks are recorded in the root `AGENTS.md`.
 
 ## Next steps
 
-1. Decide whether to integrate into the Animation Forge application; that requires a
-   Change Request per `CORE/CHANGE_CONTROL.md`.
+1. Keep the app bridge read-mostly until a Change Request per `CORE/CHANGE_CONTROL.md`
+   says otherwise.
 2. Pilot a second, longer script with multiple locations to test the analyzer and the
    continuity checks more honestly.
 3. Add reference-image conditioning (IP-Adapter) if a model becomes available, then

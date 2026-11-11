@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import shutil
@@ -169,6 +170,25 @@ def test_style_bible_requires_a_human_selection(analysis: dict[str, Any]) -> Non
     assert bible["version"] == 1
     schema = json.loads((SCHEMA_DIR / "style_bible.schema.json").read_text(encoding="utf-8"))
     jsonschema.validate(bible, schema)
+
+
+def test_style_bible_rules_do_not_repeat_each_other(analysis: dict[str, Any]) -> None:
+    """Composition and atmosphere must carry their own direction.
+
+    Copying the camera and lighting text into them produced a Style Bible
+    where two rules repeated two others and carried no information.
+    """
+    candidate_set = build_candidates(analysis, "PROJECT_001")
+    select_candidate(candidate_set, "ART_02")
+    bible = build_style_bible(candidate_set, "ART_02", "PROJECT_001")
+    rules = bible["global_rules"]
+    assert rules["composition"] != rules["camera_language"]
+    assert rules["atmosphere"] != rules["lighting"]
+    for candidate in candidate_set["candidates"]:
+        assert candidate["composition"] != candidate["camera"]
+        assert candidate["atmosphere"] != candidate["lighting"]
+        assert candidate["composition"]
+        assert candidate["atmosphere"]
 
 
 def test_style_bible_revision_creates_a_new_version(analysis: dict[str, Any]) -> None:
@@ -680,13 +700,9 @@ def test_approved_script_gate_still_rejects_unapproved_database_rows(database: P
 # ------------------------------------------------------- review page script
 
 
-def _served_review_page(project_dir: Path) -> str:
-    """Fetch the review page from the real server over real HTTP.
-
-    The page must be checked in its *served* form. The template still contains
-    Python escape sequences that are resolved during rendering, and the browser
-    only ever sees the rendered bytes.
-    """
+@contextlib.contextmanager
+def _review_server(project_dir: Path):
+    """Run the real review server and yield its base URL."""
     from VISUAL_DEVELOPMENT.review_server import make_handler
 
     store = ProjectStore(project_dir)
@@ -694,13 +710,35 @@ def _served_review_page(project_dir: Path) -> str:
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
-        with urllib.request.urlopen(
-            f"http://127.0.0.1:{server.server_address[1]}/", timeout=15
-        ) as response:
-            return response.read().decode("utf-8")
+        yield f"http://127.0.0.1:{server.server_address[1]}"
     finally:
         server.shutdown()
         server.server_close()
+
+
+def _served_review_page(project_dir: Path) -> str:
+    """Fetch the review page from the real server over real HTTP.
+
+    The page must be checked in its *served* form. The template still contains
+    Python escape sequences that are resolved during rendering, and the browser
+    only ever sees the rendered bytes.
+    """
+    with _review_server(project_dir) as base:
+        with urllib.request.urlopen(base + "/", timeout=15) as response:
+            return response.read().decode("utf-8")
+
+
+def _headless_browser() -> str | None:
+    """Locate a headless browser, or None when none is installed."""
+    for candidate in (
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    ):
+        if Path(candidate).is_file():
+            return candidate
+    return shutil.which("msedge") or shutil.which("chrome")
 
 
 def _unterminated_js_string(script: str) -> str | None:
@@ -802,6 +840,25 @@ def review_store(store: ProjectStore, analysis: dict[str, Any]) -> ProjectStore:
     return store
 
 
+def test_the_pipeline_advances_the_project_stage(store: ProjectStore) -> None:
+    """The project manifest must report how far the pipeline got.
+
+    It used to stay on SOURCE_IMPORTED for the whole life of a project, so
+    the stage could not be used to tell where something stood.
+    """
+    import argparse
+
+    from VISUAL_DEVELOPMENT.cli import cmd_analyze, cmd_art_direction
+
+    assert store.read("project.json")["stage"] == "SOURCE_IMPORTED"
+    cmd_analyze(argparse.Namespace(project_dir=store.root))
+    assert store.read("project.json")["stage"] == "ANALYZED"
+    cmd_art_direction(
+        argparse.Namespace(project_dir=store.root, comparison_scene=None)
+    )
+    assert store.read("project.json")["stage"] == "ART_DIRECTION_READY"
+
+
 def test_review_page_script_is_syntactically_balanced(review_store: ProjectStore) -> None:
     """Regression guard: the review page must never serve a blank shell.
 
@@ -883,6 +940,40 @@ def test_the_guard_rejects_the_historical_defect() -> None:
             [node, "--check", str(target)], capture_output=True, text=True, timeout=60
         )
     assert result.returncode != 0, "the historical defect must not parse"
+
+
+def test_review_page_renders_the_gallery_in_a_real_browser(review_store: ProjectStore) -> None:
+    """A real browser must render the gallery, not an empty shell.
+
+    The served bytes can be well formed while the page still shows nothing:
+    the stylesheet hides every section unless it carries the active class,
+    and the renderer has to switch that class on. Only a browser sees that.
+    """
+    browser = _headless_browser()
+    if browser is None:
+        pytest.skip("no headless browser is installed")
+    with _review_server(review_store.root) as base:
+        with tempfile.TemporaryDirectory() as profile:
+            result = subprocess.run(
+                [
+                    browser,
+                    "--headless=new",
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    f"--user-data-dir={profile}",
+                    "--virtual-time-budget=15000",
+                    "--dump-dom",
+                    base + "/",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=240,
+            )
+    dom = result.stdout
+    assert "ART_01" in dom, "the browser must render the candidate gallery"
+    assert "<img" in dom, "the browser must render the generated images"
+    visible = re.findall(r'<section id="([^"]+)" class="active"', dom)
+    assert len(visible) == 1, f"exactly one section must be visible, found {visible}"
 
 
 def test_review_page_renders_images_and_controls(review_store: ProjectStore) -> None:

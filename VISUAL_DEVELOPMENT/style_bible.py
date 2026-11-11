@@ -49,8 +49,13 @@ def build_style_bible(
         "environment_design": candidate["environment"],
         "lighting": candidate["lighting"],
         "camera_language": candidate["camera"],
-        "composition": candidate["camera"],
-        "atmosphere": candidate["lighting"],
+        # Composition and atmosphere must carry their own direction. Copying the
+        # camera and lighting text into them produced a Style Bible where two
+        # rules repeated two others and carried no information.
+        "composition": candidate.get("composition")
+        or "Framing follows the camera language above; keep the subject readable and the beat legible.",
+        "atmosphere": candidate.get("atmosphere")
+        or "Mood follows the lighting direction above; keep it consistent across shots.",
         "accuracy_requirements": (
             "Preserve script-specified character identity, clothing, props and location. "
             "Do not invent story facts."

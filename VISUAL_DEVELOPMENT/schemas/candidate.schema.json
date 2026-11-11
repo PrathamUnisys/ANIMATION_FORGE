@@ -54,6 +54,8 @@
         "environment": { "type": "string" },
         "character_design": { "type": "string" },
         "camera": { "type": "string" },
+        "composition": { "type": "string" },
+        "atmosphere": { "type": "string" },
         "storytelling": { "type": "string" },
         "feasibility": { "type": "string" },
         "generation_requirements": { "type": "string" },

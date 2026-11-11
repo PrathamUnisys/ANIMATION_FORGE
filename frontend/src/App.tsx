@@ -1163,7 +1163,9 @@ export default function App() {
   const [showFiles, setShowFiles] = useState(false);
   const [showProvenance, setShowProvenance] = useState(false);
   const [showStory, setShowStory] = useState(false);
-  const [showVisual, setShowVisual] = useState(false);
+  // #vdev opens the Visual Development panel directly, so the review surface
+  // can be linked to and verified without hunting for the toggle.
+  const [showVisual, setShowVisual] = useState(() => window.location.hash === '#vdev');
 
   const loadProjects = useCallback(async () => {
     try {
